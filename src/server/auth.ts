@@ -1,4 +1,5 @@
 import { DrizzleAdapter } from "@auth/drizzle-adapter";
+import { compare } from "bcrypt";
 import { type GetServerSidePropsContext } from "next";
 import {
   getServerSession,
@@ -6,9 +7,8 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
-import DiscordProvider from "next-auth/providers/discord";
+import Credentials from "next-auth/providers/credentials";
 
-import { env } from "~/env";
 import { db } from "~/server/db";
 import { createTable } from "~/server/db/schema";
 
@@ -22,6 +22,7 @@ declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
+      isAdmin: boolean;
       // ...other properties
       // role: UserRole;
     } & DefaultSession["user"];
@@ -50,19 +51,34 @@ export const authOptions: NextAuthOptions = {
   },
   adapter: DrizzleAdapter(db, createTable) as Adapter,
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
-    }),
     /**
      * ...add more providers here.
      *
      * Most other providers require a bit more work than the Discord provider. For example, the
      * GitHub provider requires you to add the `refresh_token_expires_in` field to the Account
      * model. Refer to the NextAuth.js docs for the provider you want to use. Example:
-     *
      * @see https://next-auth.js.org/providers/github
      */
+    Credentials({
+      name: "Credentials",
+      credentials: {
+        email: { label: "И-Мэйл хаяг", type: "email" },
+        password: { label: "Нууц үг", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials) return null;
+
+        const user = await db.query.users.findFirst({
+          where: (t, { eq }) => eq(t.email, credentials?.email),
+        });
+
+        if (!user) return null;
+
+        const ok = await compare(credentials.password, user.password);
+
+        return ok ? user : null;
+      },
+    }),
   ],
 };
 

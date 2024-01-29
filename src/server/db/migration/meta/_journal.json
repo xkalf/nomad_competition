@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1706409083513,
+      "tag": "0000_same_photon",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1706411289243,
+      "tag": "0001_same_the_executioner",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1706411545107,
+      "tag": "0002_wise_spirit",
+      "breakpoints": true
+    }
+  ]
+}
