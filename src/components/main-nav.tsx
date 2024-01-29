@@ -26,7 +26,7 @@ export function MainNav() {
       {data.map((item) => (
         <Link
           className={cn(
-            "hover:text-primary text-xl font-medium transition-colors",
+            "text-xl font-medium transition-colors hover:text-primary",
             !isPage(item.href) && "text-muted-foreground",
           )}
           href={item.href}

@@ -1,5 +1,4 @@
 import { eq } from "drizzle-orm";
-import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 import {
   adminProcedure,
@@ -7,11 +6,7 @@ import {
   publicProcedure,
 } from "~/server/api/trpc";
 import { competitions } from "~/server/db/schema";
-
-const insertSchema = createInsertSchema(competitions);
-const updateSchema = insertSchema.partial().extend({
-  id: z.number().int().positive(),
-});
+import { createCompetitionSchema, getUpdateSchema } from "~/utils/zod";
 
 export const competitionRouter = createTRPCRouter({
   getAll: publicProcedure.query(({ ctx }) => {
@@ -31,14 +26,14 @@ export const competitionRouter = createTRPCRouter({
       return res;
     }),
   create: adminProcedure
-    .input(createInsertSchema(competitions))
+    .input(createCompetitionSchema)
     .mutation(async ({ ctx, input }) => {
       const [res] = await ctx.db.insert(competitions).values(input).returning();
 
       return res;
     }),
   update: adminProcedure
-    .input(updateSchema)
+    .input(getUpdateSchema(createCompetitionSchema))
     .mutation(async ({ ctx, input }) => {
       const [res] = await ctx.db
         .update(competitions)

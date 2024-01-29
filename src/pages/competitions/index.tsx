@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useState } from "react";
+import Layout from "~/components/layout";
 import { MainNav } from "~/components/main-nav";
 import { Button } from "~/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import {
 } from "~/components/ui/table";
 import { api } from "~/utils/api";
 import { mnFormat } from "~/utils/date";
+import CompetitionCreateForm from "./create-form";
 
 export default function CompetitionsPage() {
   const [isActive, setIsActive] = useState(true);
@@ -23,13 +25,8 @@ export default function CompetitionsPage() {
   const handleActive = (i: boolean) => () => setIsActive(i);
 
   return (
-    <div className="space-y-4 p-8">
-      <MainNav />
-      {session?.user.isAdmin && (
-        <div className="pt-4">
-          <Button>Нэмэх</Button>
-        </div>
-      )}
+    <Layout>
+      {session?.user.isAdmin && <CompetitionCreateForm />}
       <div className="grid grid-cols-2 space-x-4 p-4">
         <Button
           className="w-full"
@@ -73,6 +70,6 @@ export default function CompetitionsPage() {
           </TableBody>
         </Table>
       </div>
-    </div>
+    </Layout>
   );
 }
