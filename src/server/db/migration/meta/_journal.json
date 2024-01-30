@@ -22,6 +22,27 @@
       "when": 1706411545107,
       "tag": "0002_wise_spirit",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1706576353969,
+      "tag": "0003_conscious_black_bolt",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1706595300719,
+      "tag": "0004_smiling_rockslide",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1706599714744,
+      "tag": "0005_cute_sir_ram",
+      "breakpoints": true
     }
   ]
 }

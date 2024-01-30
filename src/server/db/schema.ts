@@ -35,7 +35,7 @@ export const users = createTable("user", {
     mode: "date",
   }).default(sql`CURRENT_TIMESTAMP`),
   image: varchar("image", { length: 255 }),
-  isAdmin: boolean("is_admin").default(false),
+  isAdmin: boolean("is_admin").notNull().default(false),
   password: varchar("password", { length: 255 }).notNull(),
 });
 
@@ -128,6 +128,7 @@ export const competitions = createTable("competitions", {
 
 export const competitionsRelations = relations(competitions, ({ many }) => ({
   competitors: many(competitors),
+  competitionsToCubeTypes: many(competitionsToCubeType),
 }));
 
 export const competitionsToCubeType = createTable(
@@ -169,11 +170,13 @@ export const competitors = createTable("competitors", {
   competitionId: integer("competition_id")
     .notNull()
     .references(() => competitions.id),
+  guestCount: integer("guest_count").notNull().default(0),
+  description: varchar("description"),
   requestedAt: timestamp("requested_at").notNull().defaultNow(),
   verifiedAt: timestamp("verified_at"),
 });
 
-export const competitorsRelations = relations(competitors, ({ one }) => ({
+export const competitorsRelations = relations(competitors, ({ one, many }) => ({
   user: one(users, {
     fields: [competitors.userId],
     references: [users.id],
@@ -182,6 +185,7 @@ export const competitorsRelations = relations(competitors, ({ one }) => ({
     fields: [competitors.competitionId],
     references: [competitions.id],
   }),
+  competitorsToCubeTypes: many(competitorsToCubeTypes),
 }));
 
 export const competitorsToCubeTypes = createTable(

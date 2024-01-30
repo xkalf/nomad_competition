@@ -1,9 +1,5 @@
-import { MainNav } from "~/components/main-nav";
+import Layout from "~/components/layout";
 
 export default function Home() {
-  return (
-    <div className="p-8">
-      <MainNav />
-    </div>
-  );
+  return <Layout>hello</Layout>;
 }

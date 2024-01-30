@@ -1,6 +1,11 @@
 import { createInsertSchema } from "drizzle-zod";
 import { ZodObject, ZodRawShape, z } from "zod";
-import { competitions } from "~/server/db/schema";
+import {
+  competitions,
+  competitors,
+  cubeTypes,
+  users,
+} from "~/server/db/schema";
 
 export const getUpdateSchema = <T extends ZodRawShape>(input: ZodObject<T>) => {
   return input.partial().extend({
@@ -11,3 +16,23 @@ export const getUpdateSchema = <T extends ZodRawShape>(input: ZodObject<T>) => {
 export const createCompetitionSchema = createInsertSchema(competitions).extend({
   cubeTypes: z.number().int().positive().array(),
 });
+
+export const registerSchema = createInsertSchema(users).omit({
+  id: true,
+  isAdmin: true,
+});
+
+export const createCubeTypeSchema = createInsertSchema(cubeTypes).omit({
+  id: true,
+});
+
+export const competitionRegisterSchema = createInsertSchema(competitors)
+  .omit({
+    id: true,
+    userId: true,
+    requestedAt: true,
+    verifiedAt: true,
+  })
+  .extend({
+    cubeTypes: z.number().int().positive().array(),
+  });
