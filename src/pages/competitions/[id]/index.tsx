@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { mnFormat } from "~/utils/date";
 import CompetitionLayout from "./layout";
+import LoadingScreen from "~/components/loading-screen";
 
 export default function CompetitionShowPage() {
   const router = useRouter();
@@ -10,20 +11,20 @@ export default function CompetitionShowPage() {
   const { data, error, isLoading } = api.competition.getById.useQuery(+id);
 
   if (error) {
-    return <div>Тэмцээн олдсонгүй.</div>;
+    return <div></div>;
   }
 
   if (isLoading) {
-    return <div>Түр хүлээнэ үү...</div>;
+    return <LoadingScreen />;
   }
 
   return (
     <CompetitionLayout>
-      <h1 className="text-4xl capitalize">{data?.name}</h1>
+      <h1 className="text-4xl capitalize">{data.name}</h1>
       <div className="mt-8 grid w-1/2 grid-cols-2 text-lg">
         <label className="mr-2 text-end">Болох өдөр</label>
         <p>
-          {mnFormat(data?.startDate)} ~ {mnFormat(data?.endDate)}
+          {mnFormat(data.startDate)} ~ {mnFormat(data.endDate)}
         </p>
         <label className="mr-2 text-end">Хаяг</label>
         <p>{data.address}</p>
