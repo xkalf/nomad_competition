@@ -17,6 +17,14 @@ const config = {
     locales: ["en"],
     defaultLocale: "en",
   },
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "sepqgdowngdjrimbdsop.supabase.co",
+      },
+    ],
+  },
 };
 
 export default config;

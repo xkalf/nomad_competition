@@ -110,6 +110,7 @@ export const verificationTokens = createTable(
 export const cubeTypes = createTable("cube_types", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
+  image: varchar("image"),
 });
 
 export const cubeTypesRelations = relations(cubeTypes, ({ many }) => ({

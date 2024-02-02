@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { randomUUID } from "crypto";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -16,6 +17,7 @@ import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { toast } from "~/components/ui/use-toast";
 import { cubeTypes } from "~/server/db/schema";
 import { api } from "~/utils/api";
+import { handleFileUpload, storage, supabase } from "~/utils/supabase";
 import { createCubeTypeSchema } from "~/utils/zod";
 
 interface Props {
@@ -107,6 +109,38 @@ export default function CubeTypeForm({
                   <FormLabel>Төрлийн нэр</FormLabel>
                   <FormControl>
                     <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="image"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Зураг</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const { data, error } = await handleFileUpload(
+                          e,
+                          "cube-types",
+                        );
+
+                        if (data) {
+                          field.onChange(data.path);
+                        } else if (error) {
+                          toast({
+                            title: "Алдаа гарлаа",
+                            description: error.message,
+                            variant: "destructive",
+                          });
+                        }
+                      }}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

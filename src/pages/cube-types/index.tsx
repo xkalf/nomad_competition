@@ -23,6 +23,8 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { toast } from "~/components/ui/use-toast";
+import Image from "next/image";
+import { getImageUrl } from "~/utils/supabase";
 
 export default function CubeTypesPage() {
   const utils = api.useUtils();
@@ -64,13 +66,25 @@ export default function CubeTypesPage() {
         <TableHeader>
           <TableRow>
             <TableHead>Нэр</TableHead>
+            <TableHead>Зураг</TableHead>
             <TableHead>Үйлдэл</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data?.map((item) => (
-            <TableRow>
+            <TableRow key={`${item.id}-${item.name}`}>
               <TableCell>{item.name}</TableCell>
+              <TableCell>
+                {item.image && (
+                  <Image
+                    src={getImageUrl(item.image) || ""}
+                    width={50}
+                    height={50}
+                    priority
+                    alt={item.name}
+                  />
+                )}
+              </TableCell>
               <TableCell className="space-x-2">
                 <Button onClick={handleSelected(item.id)}>Засах</Button>
                 <AlertDialog>
