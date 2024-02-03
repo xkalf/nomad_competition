@@ -1,0 +1,2 @@
+ALTER TABLE "nomad_competition_user" ADD CONSTRAINT "nomad_competition_user_wca_id_unique" UNIQUE("wca_id");--> statement-breakpoint
+ALTER TABLE "nomad_competition_user" ADD CONSTRAINT "nomad_competition_user_email_unique" UNIQUE("email");

@@ -41,6 +41,14 @@ export default function CompetitionLayout({ children }: Props) {
               Бүртгүүлсэн тамирчид
             </Link>
           </Button>
+          <Button
+            asChild
+            variant={
+              isPage("/competitions/[id]/schedule") ? "default" : "outline"
+            }
+          >
+            <Link href={`/competitions/${id}/schedule`}>Цагийн хуваарь</Link>
+          </Button>
         </div>
         <div className="col-span-4 px-4">{children}</div>
       </div>

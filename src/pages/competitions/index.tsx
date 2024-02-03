@@ -26,6 +26,7 @@ import {
   AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 import { toast } from "~/components/ui/use-toast";
+import DeleteButton from "~/components/delete-button";
 
 export default function CompetitionsPage() {
   const utils = api.useUtils();
@@ -111,27 +112,10 @@ export default function CompetitionsPage() {
                     >
                       Засах
                     </Button>
-                    <AlertDialog>
-                      <AlertDialogTrigger asChild>
-                        <Button>Устгах</Button>
-                      </AlertDialogTrigger>
-                      <AlertDialogContent>
-                        <AlertDialogHeader>
-                          <AlertDialogTitle>
-                            Устгахдаа итгэлтэй байна уу?
-                          </AlertDialogTitle>
-                          <AlertDialogDescription>
-                            {item.name} тэмцээнийг устгахдаа итгэлтэй байна уу?
-                          </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                          <AlertDialogCancel>Цуцлах</AlertDialogCancel>
-                          <AlertDialogAction onClick={handleRemove(item.id)}>
-                            Баталгаажуулах
-                          </AlertDialogAction>
-                        </AlertDialogFooter>
-                      </AlertDialogContent>
-                    </AlertDialog>
+                    <DeleteButton
+                      description={`${item.name} тэмцээнийг устгахдаа итгэлтэй байна уу?`}
+                      onConfirm={handleRemove(item.id)}
+                    />
                   </>
                 )}
               </TableCell>

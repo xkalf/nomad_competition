@@ -8,6 +8,7 @@ import {
   primaryKey,
   serial,
   text,
+  time,
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
@@ -27,8 +28,8 @@ export const users = createTable("user", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
   firstname: varchar("firstname", { length: 255 }).notNull(),
   lastname: varchar("lastname", { length: 255 }).notNull(),
-  wcaId: varchar("wca_id", { length: 255 }),
-  email: varchar("email", { length: 255 }).notNull(),
+  wcaId: varchar("wca_id", { length: 255 }).unique(),
+  email: varchar("email", { length: 255 }).notNull().unique(),
   phone: integer("phone").notNull(),
   birthDate: date("birth_date").notNull(),
   emailVerified: timestamp("emailVerified", {
@@ -130,6 +131,7 @@ export const competitions = createTable("competitions", {
 export const competitionsRelations = relations(competitions, ({ many }) => ({
   competitors: many(competitors),
   competitionsToCubeTypes: many(competitionsToCubeType),
+  schedules: many(schedules),
 }));
 
 export const competitionsToCubeType = createTable(
@@ -219,3 +221,20 @@ export const competitorsToCubeTypesRelations = relations(
     }),
   }),
 );
+
+export const schedules = createTable("schedules", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  startTime: time("start_time").notNull(),
+  endTime: time("end_time").notNull(),
+  competitionId: integer("competition_id")
+    .references(() => competitions.id)
+    .notNull(),
+});
+
+export const schedulesRelations = relations(schedules, ({ one }) => ({
+  competition: one(competitions, {
+    fields: [schedules.competitionId],
+    references: [competitions.id],
+  }),
+}));

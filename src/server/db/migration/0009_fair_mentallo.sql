@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_schedules" ADD COLUMN "end_time" time NOT NULL;

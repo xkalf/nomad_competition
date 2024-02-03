@@ -50,6 +50,27 @@
       "when": 1706769044223,
       "tag": "0006_bizarre_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1706940760989,
+      "tag": "0007_steady_chat",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1706944580727,
+      "tag": "0008_flowery_alex_wilder",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1706946809881,
+      "tag": "0009_fair_mentallo",
+      "breakpoints": true
     }
   ]
 }

@@ -4,6 +4,7 @@ import {
   competitions,
   competitors,
   cubeTypes,
+  schedules,
   users,
 } from "~/server/db/schema";
 
@@ -36,3 +37,7 @@ export const competitionRegisterSchema = createInsertSchema(competitors)
   .extend({
     cubeTypes: z.number().int().positive().array(),
   });
+
+export const createScheduleSchema = createInsertSchema(schedules).omit({
+  id: true,
+});
