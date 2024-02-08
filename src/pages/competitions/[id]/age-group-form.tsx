@@ -14,33 +14,39 @@ import {
 import { Input } from "~/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { toast } from "~/components/ui/use-toast";
-import { cubeTypes } from "~/server/db/schema";
-import { api } from "~/utils/api";
-import { handleFileUpload } from "~/utils/supabase";
-import { createCubeTypeSchema } from "~/utils/zod";
+import { RouterOutputs, api } from "~/utils/api";
+import { createAgeGroupSchema } from "~/utils/zod";
+
+type Current = RouterOutputs["ageGroup"]["getAll"][number];
 
 interface Props {
-  current?: typeof cubeTypes.$inferSelect;
+  current?: Current;
+  reset: () => void;
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
-  reset: () => void;
+  competitionId: number;
 }
 
-const defaultValues: z.infer<typeof createCubeTypeSchema> = {
+const defaultValues: z.infer<typeof createAgeGroupSchema> = {
+  start: 0,
+  end: 0,
+  competitionId: 0,
   name: "",
 };
 
-export default function CubeTypeForm({
+export default function AgeGroupForm({
   current,
+  reset,
   isOpen,
   setIsOpen,
-  reset,
+  competitionId,
 }: Props) {
   const utils = api.useUtils();
+
   const { mutate: create, isLoading: createLoading } =
-    api.cubeTypes.create.useMutation({
+    api.ageGroup.create.useMutation({
       onSuccess: () => {
-        utils.cubeTypes.getAll.invalidate();
+        utils.ageGroup.getAll.invalidate();
         toast({
           title: "Амжилттай бүртгэгдлээ.",
         });
@@ -55,9 +61,9 @@ export default function CubeTypeForm({
       },
     });
   const { mutate: update, isLoading: updateLoading } =
-    api.cubeTypes.update.useMutation({
+    api.ageGroup.update.useMutation({
       onSuccess: () => {
-        utils.cubeTypes.getAll.invalidate();
+        utils.ageGroup.getAll.invalidate();
         toast({
           title: "Амжилттай шинэчлэгдлээ.",
         });
@@ -72,40 +78,51 @@ export default function CubeTypeForm({
       },
     });
 
-  const form = useForm<z.infer<typeof createCubeTypeSchema>>({
-    resolver: zodResolver(createCubeTypeSchema),
-    defaultValues,
+  const form = useForm<z.infer<typeof createAgeGroupSchema>>({
+    resolver: zodResolver(createAgeGroupSchema),
+    defaultValues: {
+      ...defaultValues,
+      competitionId,
+    },
   });
 
-  const onSubmit = async (values: z.infer<typeof createCubeTypeSchema>) => {
+  const onSubmit = (values: z.infer<typeof createAgeGroupSchema>) => {
     current ? update({ id: current.id, ...values }) : create(values);
   };
 
   useEffect(() => {
-    form.reset(current || defaultValues);
-  }, [form, current]);
+    form.reset(
+      current
+        ? current
+        : {
+          ...defaultValues,
+          competitionId,
+        },
+    );
+  }, [current, form]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
         <Button
+          size="sm"
           onClick={() => {
             setIsOpen(true);
             reset();
           }}
         >
-          Шооны төрөл
+          Насны ангилал бүртгэх
         </Button>
       </SheetTrigger>
       <SheetContent>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Төрлийн нэр</FormLabel>
+                  <FormLabel>Нэр</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -115,30 +132,32 @@ export default function CubeTypeForm({
             />
             <FormField
               control={form.control}
-              name="image"
+              name="start"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Зураг</FormLabel>
+                  <FormLabel>Эхлэх он</FormLabel>
                   <FormControl>
                     <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={async (e) => {
-                        const { data, error } = await handleFileUpload(
-                          e,
-                          "cube-types",
-                        );
-
-                        if (data) {
-                          field.onChange(data.path);
-                        } else if (error) {
-                          toast({
-                            title: "Алдаа гарлаа",
-                            description: error.message,
-                            variant: "destructive",
-                          });
-                        }
-                      }}
+                      type="number"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="end"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Дуусах он</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
                     />
                   </FormControl>
                   <FormMessage />

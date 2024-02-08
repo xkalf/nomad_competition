@@ -1,9 +1,11 @@
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { cn } from "~/lib/utils";
 
 export function MainNav() {
   const router = useRouter();
+  const { data: session } = useSession();
 
   const data: {
     label: string;
@@ -45,18 +47,19 @@ export function MainNav() {
           {item.label}
         </Link>
       ))}
-      {adminPages.map((item) => (
-        <Link
-          className={cn(
-            "text-xl font-medium transition-colors hover:text-primary",
-            !isPage(item.href) && "text-muted-foreground",
-          )}
-          href={item.href}
-          key={item.href}
-        >
-          {item.label}
-        </Link>
-      ))}
+      {session?.user.isAdmin &&
+        adminPages.map((item) => (
+          <Link
+            className={cn(
+              "text-xl font-medium transition-colors hover:text-primary",
+              !isPage(item.href) && "text-muted-foreground",
+            )}
+            href={item.href}
+            key={item.href}
+          >
+            {item.label}
+          </Link>
+        ))}
     </nav>
   );
 }

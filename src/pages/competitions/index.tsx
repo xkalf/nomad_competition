@@ -14,17 +14,6 @@ import {
 import { api } from "~/utils/api";
 import { mnFormat } from "~/utils/date";
 import CompetitionCreateForm from "./form";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "~/components/ui/alert-dialog";
 import { toast } from "~/components/ui/use-toast";
 import DeleteButton from "~/components/delete-button";
 

@@ -71,6 +71,20 @@
       "when": 1706946809881,
       "tag": "0009_fair_mentallo",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1707374062386,
+      "tag": "0010_mute_shocker",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "5",
+      "when": 1707377944293,
+      "tag": "0011_right_spiral",
+      "breakpoints": true
     }
   ]
 }

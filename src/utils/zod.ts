@@ -1,6 +1,7 @@
 import { createInsertSchema } from "drizzle-zod";
 import { ZodObject, ZodRawShape, z } from "zod";
 import {
+  ageGroups,
   competitions,
   competitors,
   cubeTypes,
@@ -39,5 +40,9 @@ export const competitionRegisterSchema = createInsertSchema(competitors)
   });
 
 export const createScheduleSchema = createInsertSchema(schedules).omit({
+  id: true,
+});
+
+export const createAgeGroupSchema = createInsertSchema(ageGroups).omit({
   id: true,
 });

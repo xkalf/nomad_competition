@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_age_groups" ADD COLUMN "name" varchar NOT NULL;

@@ -98,11 +98,11 @@ export default function CompetitionCreateForm({
     form.reset(
       current
         ? {
-            ...current,
-            startDate: mnFormat(current?.startDate),
-            endDate: mnFormat(current?.endDate),
-            cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
-          }
+          ...current,
+          startDate: mnFormat(current?.startDate),
+          endDate: mnFormat(current?.endDate),
+          cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
+        }
         : defaultValues,
     );
   }, [current, form]);

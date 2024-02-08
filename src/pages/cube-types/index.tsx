@@ -11,25 +11,19 @@ import { api } from "~/utils/api";
 import CubeTypeForm from "./form";
 import { useState } from "react";
 import { Button } from "~/components/ui/button";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from "~/components/ui/alert-dialog";
 import { toast } from "~/components/ui/use-toast";
 import Image from "next/image";
 import { getImageUrl } from "~/utils/supabase";
+import { useSession } from "next-auth/react";
+import DeleteButton from "~/components/delete-button";
 
 export default function CubeTypesPage() {
   const utils = api.useUtils();
   const [selected, setSelected] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
+  useSession({
+    required: true,
+  });
 
   const { data } = api.cubeTypes.getAll.useQuery();
   const { mutate: remove } = api.cubeTypes.delete.useMutation({
@@ -87,27 +81,10 @@ export default function CubeTypesPage() {
               </TableCell>
               <TableCell className="space-x-2">
                 <Button onClick={handleSelected(item.id)}>Засах</Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button>Устгах</Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        Устгахдаа итгэлтэй байна уу?
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {item.name} төрлийг устгахдаа итгэлтэй байна уу?
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Цуцлах</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleRemove(item.id)}>
-                        Баталгаажуулах
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <DeleteButton
+                  onConfirm={handleRemove(item.id)}
+                  description={`${item.name} төрлийг устгахдаа итгэлтэй байна уу?`}
+                />
               </TableCell>
             </TableRow>
           ))}

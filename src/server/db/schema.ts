@@ -132,6 +132,7 @@ export const competitionsRelations = relations(competitions, ({ many }) => ({
   competitors: many(competitors),
   competitionsToCubeTypes: many(competitionsToCubeType),
   schedules: many(schedules),
+  ageGroups: many(ageGroups),
 }));
 
 export const competitionsToCubeType = createTable(
@@ -235,6 +236,23 @@ export const schedules = createTable("schedules", {
 export const schedulesRelations = relations(schedules, ({ one }) => ({
   competition: one(competitions, {
     fields: [schedules.competitionId],
+    references: [competitions.id],
+  }),
+}));
+
+export const ageGroups = createTable("age_groups", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  start: integer("start").notNull(),
+  end: integer("end").notNull(),
+  competitionId: integer("competition_id")
+    .notNull()
+    .references(() => competitions.id),
+});
+
+export const ageGroupsRelations = relations(ageGroups, ({ one }) => ({
+  competition: one(competitions, {
+    fields: [ageGroups.competitionId],
     references: [competitions.id],
   }),
 }));

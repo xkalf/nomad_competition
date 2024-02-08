@@ -4,6 +4,7 @@ import { authRouter } from "./routers/auth";
 import { cubeTypesRouter } from "./routers/cubeTypes";
 import { competitorRouter } from "./routers/competitors";
 import { schedulesRouter } from "./routers/schedules";
+import { ageGroupRouter } from "./routers/ageGroups";
 
 /**
  * This is the primary router for your server.
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   cubeTypes: cubeTypesRouter,
   competitor: competitorRouter,
   schedule: schedulesRouter,
+  ageGroup: ageGroupRouter,
 });
 
 // export type definition of API
