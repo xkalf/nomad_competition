@@ -156,7 +156,7 @@ export default function AgeGroupForm({
                   <FormControl>
                     <Input
                       type="number"
-                      {...field}
+                      value={field.value || undefined}
                       onChange={(e) => field.onChange(e.target.valueAsNumber)}
                     />
                   </FormControl>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import Layout from "~/components/layout";
 import { Button } from "~/components/ui/button";
+import { api } from "~/utils/api";
 
 interface Props {
   children: React.ReactNode;
@@ -9,9 +10,24 @@ interface Props {
 
 export default function CompetitionLayout({ children }: Props) {
   const router = useRouter();
-  const id = router.query.id?.toString() || "0";
+  const id = parseInt(router.query.id?.toString() || "0");
+  const { data: competition } = api.competition.getById.useQuery(id);
 
   const isPage = (href: string) => router.pathname === href;
+  const isRegisterAllow = () => {
+    if (
+      competition &&
+      competition.registerStartDate &&
+      competition.registerEndDate
+    ) {
+      return (
+        new Date(competition.registerStartDate) <= new Date() &&
+        new Date() <= new Date(competition.registerEndDate)
+      );
+    }
+
+    return false;
+  };
 
   return (
     <Layout>
@@ -23,14 +39,18 @@ export default function CompetitionLayout({ children }: Props) {
           >
             <Link href={`/competitions/${id}`}>Мэдээлэл</Link>
           </Button>
-          <Button
-            asChild
-            variant={
-              isPage("/competitions/[id]/register") ? "default" : "outline"
-            }
-          >
-            <Link href={`/competitions/${id}/register`}>Бүртгүүлэх хүсэлт</Link>
-          </Button>
+          {isRegisterAllow() && (
+            <Button
+              asChild
+              variant={
+                isPage("/competitions/[id]/register") ? "default" : "outline"
+              }
+            >
+              <Link href={`/competitions/${id}/register`}>
+                Бүртгүүлэх хүсэлт
+              </Link>
+            </Button>
+          )}
           <Button
             asChild
             variant={

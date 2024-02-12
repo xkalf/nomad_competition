@@ -129,6 +129,8 @@ export const competitions = createTable("competitions", {
   maxCompetitors: integer("max_competitors").notNull(),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
+  registerStartDate: date("register_start_date"),
+  registerEndDate: date("register_end_date"),
 });
 
 export const competitionsRelations = relations(competitions, ({ many }) => ({
@@ -247,7 +249,7 @@ export const ageGroups = createTable("age_groups", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
   start: integer("start").notNull(),
-  end: integer("end").notNull(),
+  end: integer("end"),
   competitionId: integer("competition_id")
     .notNull()
     .references(() => competitions.id),

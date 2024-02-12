@@ -46,7 +46,14 @@ export default function CompetitionShowPage() {
           </TableRow>
           <TableRow>
             <TableHead>Хаяг</TableHead>
-            <TableCell>{data.address}</TableCell>
+            <TableCell>
+              {data.address + " "}
+              {data.addressLink && (
+                <a href={data.addressLink} target="_blank">
+                  {data.addressLink}
+                </a>
+              )}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableHead>Тамирчны тоо</TableHead>
@@ -69,7 +76,9 @@ export default function CompetitionShowPage() {
               {ageGroups?.map((item) => (
                 <TableRow key={"age-group-" + item.id}>
                   <TableHead>
-                    {item.start} оноос {item.end} хүртэл
+                    {item.end
+                      ? `${item.name} ${item.start} оноос ${item.end}`
+                      : `${item.name} ${item.start} оноос өмнөх`}
                   </TableHead>
                   {session?.user.isAdmin && (
                     <Button

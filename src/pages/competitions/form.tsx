@@ -107,6 +107,8 @@ export default function CompetitionCreateForm({
     );
   }, [current, form]);
 
+  console.log(form.getValues());
+
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
       <SheetTrigger asChild>
