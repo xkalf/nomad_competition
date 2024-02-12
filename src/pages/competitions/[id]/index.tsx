@@ -66,11 +66,12 @@ export default function CompetitionShowPage() {
           <TableRow>
             <TableHead>Хаяг</TableHead>
             <TableCell>
-              {data.address + " "}
-              {data.addressLink && (
+              {data.addressLink ? (
                 <a href={data.addressLink} target="_blank">
-                  {data.addressLink}
+                  {data.address}
                 </a>
+              ) : (
+                data.address
               )}
             </TableCell>
           </TableRow>
@@ -83,6 +84,10 @@ export default function CompetitionShowPage() {
             <TableCell>
               {data.registerStartDate} ~ {data.registerEndDate}
             </TableCell>
+          </TableRow>
+          <TableRow>
+            <TableHead>Хобоо барих мэдээлэл</TableHead>
+            <TableCell>{data.contact}</TableCell>
           </TableRow>
           <TableRow>
             <TableHead className="flex items-center justify-between">

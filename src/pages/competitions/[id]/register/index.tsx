@@ -27,8 +27,9 @@ const defaultValues: z.infer<typeof competitionRegisterSchema> = {
 export default function CompetitionRegisterPage() {
   const utils = api.useUtils();
   const router = useRouter();
-  const id = router.query.id?.toString() || "0";
+  const id = parseInt(router.query.id?.toString() || "0");
 
+  const { data: competition } = api.competition.getById.useQuery(id);
   const { data: cubeTypes } = api.cubeTypes.getByCompetitionId.useQuery(+id, {
     enabled: +id > 0,
   });
@@ -84,14 +85,15 @@ export default function CompetitionRegisterPage() {
     current
       ? updateRegister({ id: current.id, ...values })
       : register({
-          ...values,
-          competitionId: +id,
-        });
+        ...values,
+        competitionId: +id,
+      });
   };
 
   return (
     <CompetitionLayout>
       <h1 className="text-4xl capitalize">Бүртгүүлэх хүсэлт</h1>
+      <p className="my-4">{competition?.registrationRequirments}</p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-8">
           <FormField
