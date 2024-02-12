@@ -14,6 +14,8 @@ import {
   TableRow,
 } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
+import { getImageUrl } from "~/utils/supabase";
+import Image from "next/image";
 
 export default function CompetitionShowPage() {
   const router = useRouter();
@@ -35,9 +37,26 @@ export default function CompetitionShowPage() {
 
   return (
     <CompetitionLayout>
-      <h1 className="text-4xl capitalize">{data.name}</h1>
-      <Table>
+      <h1 className="text-4xl font-bold capitalize">{data.name}</h1>
+      <Table className="mt-4">
         <TableBody>
+          <TableRow>
+            <TableHead>Төрөл</TableHead>
+            <TableCell>
+              {data.competitionsToCubeTypes.map((i) => {
+                if (i.cubeType.image) {
+                  return (
+                    <Image
+                      src={getImageUrl(i.cubeType.image) || ""}
+                      alt={i.cubeType.name}
+                    />
+                  );
+                } else {
+                  return i.cubeType.name + " ";
+                }
+              })}
+            </TableCell>
+          </TableRow>
           <TableRow>
             <TableHead>Хэзээ</TableHead>
             <TableCell>
@@ -58,6 +77,12 @@ export default function CompetitionShowPage() {
           <TableRow>
             <TableHead>Тамирчны тоо</TableHead>
             <TableCell>{data.maxCompetitors}</TableCell>
+          </TableRow>
+          <TableRow>
+            <TableHead>Бүртгэлийн хугацаа</TableHead>
+            <TableCell>
+              {data.registerStartDate} ~ {data.registerEndDate}
+            </TableCell>
           </TableRow>
           <TableRow>
             <TableHead className="flex items-center justify-between">

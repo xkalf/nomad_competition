@@ -27,4 +27,7 @@ export const ageGroupRouter = createTRPCRouter({
         .set(input)
         .where(eq(ageGroups.id, input.id));
     }),
+  delete: adminProcedure.input(z.number()).mutation(async ({ ctx, input }) => {
+    await ctx.db.delete(ageGroups).where(eq(ageGroups.id, input));
+  }),
 });

@@ -131,6 +131,8 @@ export const competitions = createTable("competitions", {
   endDate: date("end_date").notNull(),
   registerStartDate: date("register_start_date"),
   registerEndDate: date("register_end_date"),
+  contact: text("contact"),
+  registrationRequirments: text("registration_requirments"),
 });
 
 export const competitionsRelations = relations(competitions, ({ many }) => ({

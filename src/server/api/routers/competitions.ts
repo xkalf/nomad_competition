@@ -39,6 +39,13 @@ export const competitionRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const res = await ctx.db.query.competitions.findFirst({
         where: eq(competitions.id, input),
+        with: {
+          competitionsToCubeTypes: {
+            with: {
+              cubeType: true,
+            },
+          },
+        },
       });
 
       if (!res) {
