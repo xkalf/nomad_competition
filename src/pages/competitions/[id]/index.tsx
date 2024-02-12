@@ -52,7 +52,7 @@ export default function CompetitionShowPage() {
                     />
                   );
                 } else {
-                  return i.cubeType.name + " ";
+                  return <span>{i.cubeType.name + " "}</span>;
                 }
               })}
             </TableCell>
@@ -86,7 +86,7 @@ export default function CompetitionShowPage() {
             </TableCell>
           </TableRow>
           <TableRow>
-            <TableHead>Хобоо барих мэдээлэл</TableHead>
+            <TableHead>Холбоо барих</TableHead>
             <TableCell>{data.contact}</TableCell>
           </TableRow>
           <TableRow>
