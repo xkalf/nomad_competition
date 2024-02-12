@@ -39,7 +39,7 @@ export default function CompetitionShowPage() {
       <Table>
         <TableBody>
           <TableRow>
-            <TableHead>Болох өдөр</TableHead>
+            <TableHead>Хэзээ</TableHead>
             <TableCell>
               {mnFormat(data.startDate)} ~ {mnFormat(data.endDate)}
             </TableCell>

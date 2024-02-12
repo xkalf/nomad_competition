@@ -150,6 +150,19 @@ export default function CompetitionCreateForm({
             />
             <FormField
               control={form.control}
+              name="addressLink"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Хаяг Линк</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value || undefined} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="startDate"
               render={({ field }) => (
                 <FormItem>

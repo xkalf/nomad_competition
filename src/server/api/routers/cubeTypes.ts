@@ -6,7 +6,9 @@ import { z } from "zod";
 
 export const cubeTypesRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
-    const res = await ctx.db.query.cubeTypes.findMany();
+    const res = await ctx.db.query.cubeTypes.findMany({
+      orderBy: (t) => [t.order],
+    });
 
     return res;
   }),
@@ -41,7 +43,11 @@ export const cubeTypesRouter = createTRPCRouter({
           ),
         );
 
-      const res = await ctx.db.select().from(cubeTypes).where(exists(sq));
+      const res = await ctx.db
+        .select()
+        .from(cubeTypes)
+        .where(exists(sq))
+        .orderBy(cubeTypes.order);
 
       return res;
     }),

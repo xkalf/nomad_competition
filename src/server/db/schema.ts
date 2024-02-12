@@ -6,6 +6,7 @@ import {
   integer,
   pgTableCreator,
   primaryKey,
+  real,
   serial,
   text,
   time,
@@ -112,6 +113,7 @@ export const cubeTypes = createTable("cube_types", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
   image: varchar("image"),
+  order: real("order").notNull().default(1),
 });
 
 export const cubeTypesRelations = relations(cubeTypes, ({ many }) => ({
@@ -123,6 +125,7 @@ export const competitions = createTable("competitions", {
   id: serial("id").primaryKey(),
   name: varchar("name").notNull(),
   address: varchar("address").notNull(),
+  addressLink: varchar("address_link"),
   maxCompetitors: integer("max_competitors").notNull(),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
