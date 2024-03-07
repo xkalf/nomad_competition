@@ -24,8 +24,12 @@ export default function CompetitionShowPage() {
   const [selected, setSelected] = useState(0);
 
   const { data: session } = useSession();
-  const { data, error, isLoading } = api.competition.getById.useQuery(id);
-  const { data: ageGroups } = api.ageGroup.getAll.useQuery(id);
+  const { data, error, isLoading } = api.competition.getById.useQuery(id, {
+    enabled: id > 0,
+  });
+  const { data: ageGroups } = api.ageGroup.getAll.useQuery(id, {
+    enabled: id > 0,
+  });
 
   if (error) {
     return <div></div>;
@@ -82,7 +86,8 @@ export default function CompetitionShowPage() {
           <TableRow>
             <TableHead>Бүртгэлийн хугацаа</TableHead>
             <TableCell>
-              {data.registerStartDate} ~ {data.registerEndDate}
+              {mnFormat(data.registerStartDate || "")} ~
+              {mnFormat(data.registerEndDate || "")}
             </TableCell>
           </TableRow>
           <TableRow>
