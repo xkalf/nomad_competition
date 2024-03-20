@@ -16,6 +16,7 @@ import {
 import { Button } from "~/components/ui/button";
 import { getImageUrl } from "~/utils/supabase";
 import Image from "next/image";
+import { Badge } from "~/components/ui/badge";
 
 export default function CompetitionShowPage() {
   const router = useRouter();
@@ -46,17 +47,18 @@ export default function CompetitionShowPage() {
         <TableBody>
           <TableRow>
             <TableHead>Төрөл</TableHead>
-            <TableCell>
+            <TableCell className="space-x-4 space-y-2">
               {data.competitionsToCubeTypes.map((i) => {
                 if (i.cubeType.image) {
                   return (
                     <Image
                       src={getImageUrl(i.cubeType.image) || ""}
                       alt={i.cubeType.name}
+                      key={i.cubeTypeId}
                     />
                   );
                 } else {
-                  return <span>{i.cubeType.name + " "}</span>;
+                  return <Badge key={i.cubeTypeId}>{i.cubeType.name}</Badge>;
                 }
               })}
             </TableCell>
@@ -86,8 +88,9 @@ export default function CompetitionShowPage() {
           <TableRow>
             <TableHead>Бүртгэлийн хугацаа</TableHead>
             <TableCell>
-              {mnFormat(data.registerStartDate || "")} ~
-              {mnFormat(data.registerEndDate || "")}
+              {data.registerStartDate?.toLocaleString()}
+              {" ~ "}
+              {data.registerEndDate?.toLocaleString()}
             </TableCell>
           </TableRow>
           <TableRow>
@@ -107,28 +110,32 @@ export default function CompetitionShowPage() {
                 />
               )}
             </TableHead>
-            <TableCell>
-              {ageGroups?.map((item) => (
-                <TableRow key={"age-group-" + item.id}>
-                  <TableHead>
-                    {item.end
-                      ? `${item.name} ${item.start} оноос ${item.end}`
-                      : `${item.name} ${item.start} оноос өмнөх`}
-                  </TableHead>
-                  {session?.user.isAdmin && (
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setSelected(item.id);
-                        setIsOpen(true);
-                      }}
-                    >
-                      Засах
-                    </Button>
-                  )}
-                </TableRow>
-              ))}
-            </TableCell>
+            <Table>
+              <TableBody>
+                {ageGroups?.map((item) => (
+                  <TableRow key={"age-group-" + item.id}>
+                    <TableHead>
+                      {item.end
+                        ? `${item.name} ${item.start} оноос ${item.end}`
+                        : `${item.name} ${item.start} оноос өмнөх`}
+                    </TableHead>
+                    {session?.user.isAdmin && (
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelected(item.id);
+                            setIsOpen(true);
+                          }}
+                        >
+                          Засах
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </TableRow>
         </TableBody>
       </Table>

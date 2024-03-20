@@ -129,8 +129,12 @@ export const competitions = createTable("competitions", {
   maxCompetitors: integer("max_competitors").notNull(),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
-  registerStartDate: date("register_start_date"),
-  registerEndDate: date("register_end_date"),
+  registerStartDate: timestamp("register_start_date", {
+    withTimezone: true,
+  }),
+  registerEndDate: timestamp("register_end_date", {
+    withTimezone: true,
+  }),
   contact: text("contact"),
   registrationRequirments: text("registration_requirments"),
 });

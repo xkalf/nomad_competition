@@ -237,9 +237,11 @@ export default function CompetitionCreateForm({
                     <FormLabel>Бүртгэл эхлэх хугацаа</FormLabel>
                     <FormControl>
                       <Input
-                        type="date"
-                        {...field}
-                        value={field.value || undefined}
+                        type="datetime-local"
+                        onChange={(e) => {
+                          field.onChange(new Date(e.target.value));
+                        }}
+                        value={field.value?.toLocaleString("sv-SE")}
                       />
                     </FormControl>
                     <FormMessage />
@@ -254,9 +256,11 @@ export default function CompetitionCreateForm({
                     <FormLabel>Бүртгэл дуусах хугацаа</FormLabel>
                     <FormControl>
                       <Input
-                        type="date"
-                        {...field}
-                        value={field.value || undefined}
+                        type="datetime-local"
+                        onChange={(e) => {
+                          field.onChange(new Date(e.target.value));
+                        }}
+                        value={field.value?.toLocaleString("sv-SE")}
                       />
                     </FormControl>
                     <FormMessage />

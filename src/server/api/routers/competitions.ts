@@ -1,4 +1,4 @@
-import { eq, inArray, sql } from "drizzle-orm";
+import { count, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   adminProcedure,
@@ -39,6 +39,15 @@ export const competitionRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const res = await ctx.db.query.competitions.findFirst({
         where: eq(competitions.id, input),
+        extras: {
+          isRegisterAble:
+            sql`${competitions.registerStartDate} <= now() AND ${competitions.registerEndDate} >= now() AND ${competitions.maxCompetitors} > (${ctx.db
+              .select({
+                count: count(),
+              })
+              .from(competitions)
+              .where(eq(competitions.id, input))})`.as("is_register_able"),
+        },
         with: {
           competitionsToCubeTypes: {
             with: {
@@ -77,6 +86,7 @@ export const competitionRouter = createTRPCRouter({
   update: adminProcedure
     .input(getUpdateSchema(createCompetitionSchema))
     .mutation(async ({ ctx, input: { cubeTypes, ...input } }) => {
+      console.log(input.registerStartDate);
       await ctx.db.transaction(async (t) => {
         await t
           .update(competitions)

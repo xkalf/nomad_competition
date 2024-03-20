@@ -127,6 +127,13 @@
       "when": 1707723968705,
       "tag": "0017_illegal_hobgoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "5",
+      "when": 1709979899012,
+      "tag": "0018_elite_wind_dancer",
+      "breakpoints": true
     }
   ]
 }
