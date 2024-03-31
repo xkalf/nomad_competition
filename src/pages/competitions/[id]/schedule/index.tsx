@@ -12,7 +12,7 @@ import {
 } from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import ScheduleCreateForm from "./form";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "~/components/ui/use-toast";
 import DeleteButton from "~/components/delete-button";
 
@@ -43,6 +43,27 @@ export default function SchedulePage() {
     },
   });
 
+  const groupSchedule = (input: typeof data = []) => {
+    const grouped = input.reduce(
+      (acc: { [key: string]: typeof input }, item) => {
+        const key = item.date;
+
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+
+        acc[key]?.push(item);
+
+        return acc;
+      },
+      {},
+    );
+
+    return grouped;
+  };
+
+  const groupedData = useMemo(() => groupSchedule(data), [data]);
+
   const handleEdit = (id: number) => () => {
     setSelected(id);
     setIsOpen(true);
@@ -63,32 +84,45 @@ export default function SchedulePage() {
           />
         )}
       </div>
-      <Table className="mt-4">
-        <TableHeader>
-          <TableRow>
-            <TableHead>Эхлэх цаг</TableHead>
-            <TableHead>Дуусах цаг</TableHead>
-            <TableHead>Үйлдэл</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data?.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.startTime.slice(0, -3)}</TableCell>
-              <TableCell>{item.endTime.slice(0, -3)}</TableCell>
-              <TableCell>{item.name}</TableCell>
-              <TableCell className="space-x-2">
-                {session?.user.isAdmin && (
-                  <>
-                    <Button onClick={handleEdit(item.id)}>Засах</Button>
-                    <DeleteButton onConfirm={handleRemove(item.id)} />
-                  </>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      {Object.keys(groupedData).map((key) => (
+        <div key={key}>
+          <h2 className="mt-4 text-2xl">{key}</h2>
+          <Table className="mt-4">
+            <TableHeader>
+              <TableRow>
+                <TableHead>Эхлэх цаг</TableHead>
+                <TableHead>Дуусах цаг</TableHead>
+                <TableHead>Төрөл</TableHead>
+                <TableHead>Таслах хугацаа</TableHead>
+                <TableHead>Цагийн хязгаар</TableHead>
+                <TableHead>Таслах хугацаа</TableHead>
+                <TableHead>Дараагийн үед үлдэх тамирчид</TableHead>
+                <TableHead>Үйлдэл</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {groupedData[key]?.map((item) => (
+                <TableRow key={item.id}>
+                  <TableCell>{item.startTime.slice(0, -3)}</TableCell>
+                  <TableCell>{item.endTime.slice(0, -3)}</TableCell>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.cutOff}</TableCell>
+                  <TableCell>{item.timeLimit}</TableCell>
+                  <TableCell>{item.competitorLimit}</TableCell>
+                  <TableCell className="space-x-2">
+                    {session?.user.isAdmin && (
+                      <>
+                        <Button onClick={handleEdit(item.id)}>Засах</Button>
+                        <DeleteButton onConfirm={handleRemove(item.id)} />
+                      </>
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      ))}
     </CompetitionLayout>
   );
 }

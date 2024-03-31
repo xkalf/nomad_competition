@@ -134,6 +134,20 @@
       "when": 1709979899012,
       "tag": "0018_elite_wind_dancer",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "5",
+      "when": 1711881391374,
+      "tag": "0019_tricky_senator_kelly",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "5",
+      "when": 1711892191645,
+      "tag": "0020_goofy_arclight",
+      "breakpoints": true
     }
   ]
 }

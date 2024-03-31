@@ -32,6 +32,7 @@ const defaultValues: z.infer<typeof createScheduleSchema> = {
   competitionId: 0,
   startTime: "",
   endTime: "",
+  date: "",
 };
 
 export default function ScheduleCreateForm({
@@ -89,9 +90,9 @@ export default function ScheduleCreateForm({
   const onSubmit = (values: z.infer<typeof createScheduleSchema>) => {
     current
       ? update({
-        id: current.id,
-        ...values,
-      })
+          id: current.id,
+          ...values,
+        })
       : create(values);
   };
 
@@ -99,12 +100,12 @@ export default function ScheduleCreateForm({
     form.reset(
       current
         ? {
-          ...current,
-        }
+            ...current,
+          }
         : {
-          ...defaultValues,
-          competitionId,
-        },
+            ...defaultValues,
+            competitionId,
+          },
     );
   }, [current, form]);
 
@@ -138,6 +139,19 @@ export default function ScheduleCreateForm({
             />
             <FormField
               control={form.control}
+              name="date"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Өдөр</FormLabel>
+                  <FormControl>
+                    <Input type="date" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
               name="startTime"
               render={({ field }) => (
                 <FormItem>
@@ -157,6 +171,49 @@ export default function ScheduleCreateForm({
                   <FormLabel>Дуусах цаг</FormLabel>
                   <FormControl>
                     <Input type="time" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="cutOff"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Таслах хугацаа</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? undefined} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="timeLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Цагийн хязгаар</FormLabel>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? undefined} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="competitorLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Дуусах цаг</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      {...field}
+                      value={field.value ?? undefined}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

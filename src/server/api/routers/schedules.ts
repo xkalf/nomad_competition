@@ -10,7 +10,7 @@ export const schedulesRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const res = await ctx.db.query.schedules.findMany({
         where: (t, { eq }) => eq(t.competitionId, input),
-        orderBy: (t) => [t.startTime],
+        orderBy: (t) => [t.date, t.startTime],
       });
 
       return res;

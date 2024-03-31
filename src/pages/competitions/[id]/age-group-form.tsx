@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -111,7 +112,7 @@ export default function AgeGroupForm({
             reset();
           }}
         >
-          Насны ангилал бүртгэх
+          <Plus />
         </Button>
       </SheetTrigger>
       <SheetContent>

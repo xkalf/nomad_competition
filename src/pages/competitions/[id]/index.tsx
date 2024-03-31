@@ -110,32 +110,32 @@ export default function CompetitionShowPage() {
                 />
               )}
             </TableHead>
-            <Table>
-              <TableBody>
-                {ageGroups?.map((item) => (
-                  <TableRow key={"age-group-" + item.id}>
-                    <TableHead>
-                      {item.end
-                        ? `${item.name} ${item.start} оноос ${item.end}`
-                        : `${item.name} ${item.start} оноос өмнөх`}
-                    </TableHead>
+            <TableCell>
+              {ageGroups?.map((item) => (
+                <ul key={"age-group" + item.id}>
+                  <li className="space-x-4 pb-2">
+                    <span>
+                      {item.start === item.end
+                        ? `${item.name} ${item.start} онд төрсөн`
+                        : item.end
+                          ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
+                          : `${item.name} ${item.start} оноос өмнө төрсөн`}
+                    </span>
                     {session?.user.isAdmin && (
-                      <TableCell>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelected(item.id);
-                            setIsOpen(true);
-                          }}
-                        >
-                          Засах
-                        </Button>
-                      </TableCell>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setSelected(item.id);
+                          setIsOpen(true);
+                        }}
+                      >
+                        Засах
+                      </Button>
                     )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                  </li>
+                </ul>
+              ))}
+            </TableCell>
           </TableRow>
         </TableBody>
       </Table>

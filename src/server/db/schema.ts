@@ -239,6 +239,10 @@ export const schedules = createTable("schedules", {
   name: varchar("name").notNull(),
   startTime: time("start_time").notNull(),
   endTime: time("end_time").notNull(),
+  date: date("date").notNull(),
+  cutOff: varchar("cut_off"),
+  timeLimit: varchar("time_limit"),
+  competitorLimit: integer("competitor_limit"),
   competitionId: integer("competition_id")
     .references(() => competitions.id)
     .notNull(),
