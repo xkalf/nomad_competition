@@ -263,11 +263,18 @@ export const ageGroups = createTable("age_groups", {
   competitionId: integer("competition_id")
     .notNull()
     .references(() => competitions.id),
+  cubeTypeId: integer("cube_type_id")
+    .references(() => cubeTypes.id)
+    .notNull(),
 });
 
 export const ageGroupsRelations = relations(ageGroups, ({ one }) => ({
   competition: one(competitions, {
     fields: [ageGroups.competitionId],
     references: [competitions.id],
+  }),
+  cubeType: one(cubeTypes, {
+    fields: [ageGroups.cubeTypeId],
+    references: [cubeTypes.id],
   }),
 }));

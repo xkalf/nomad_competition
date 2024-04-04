@@ -17,8 +17,12 @@ import { Button } from "~/components/ui/button";
 import { getImageUrl } from "~/utils/supabase";
 import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
+import { toast } from "~/components/ui/use-toast";
+import DeleteButton from "~/components/delete-button";
 
 export default function CompetitionShowPage() {
+  const ctx = api.useUtils();
+
   const router = useRouter();
   const id = parseInt(router.query.id?.toString() || "0");
   const [isOpen, setIsOpen] = useState(false);
@@ -30,6 +34,19 @@ export default function CompetitionShowPage() {
   });
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(id, {
     enabled: id > 0,
+  });
+
+  const { mutate: deleteAgeGroup } = api.ageGroup.delete.useMutation({
+    onSuccess: () => {
+      ctx.ageGroup.getAll.invalidate();
+    },
+    onError: (error) => {
+      toast({
+        title: "Алдаа гарлаа",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
   });
 
   if (error) {
@@ -119,18 +136,25 @@ export default function CompetitionShowPage() {
                         ? `${item.name} ${item.start} онд төрсөн`
                         : item.end
                           ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
-                          : `${item.name} ${item.start} оноос өмнө төрсөн`}
+                          : `${item.name} ${item.start} оноос өмнө төрсөн`}{" "}
+                      <Badge className="ml-4">{item.cubeType.name}</Badge>
                     </span>
                     {session?.user.isAdmin && (
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setSelected(item.id);
-                          setIsOpen(true);
-                        }}
-                      >
-                        Засах
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelected(item.id);
+                            setIsOpen(true);
+                          }}
+                        >
+                          Засах
+                        </Button>
+                        <DeleteButton
+                          size="sm"
+                          onConfirm={() => deleteAgeGroup(item.id)}
+                        />
+                      </>
                     )}
                   </li>
                 </ul>

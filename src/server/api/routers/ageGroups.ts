@@ -10,6 +10,9 @@ export const ageGroupRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const res = await ctx.db.query.ageGroups.findMany({
         where: (t, { eq }) => eq(t.competitionId, input),
+        with: {
+          cubeType: true,
+        },
       });
 
       return res;

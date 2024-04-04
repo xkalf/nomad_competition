@@ -207,11 +207,11 @@ export default function ScheduleCreateForm({
               name="competitorLimit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Дуусах цаг</FormLabel>
+                  <FormLabel>Дараагийн үед үлдэх тамирчид</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
-                      {...field}
+                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
                       value={field.value ?? undefined}
                     />
                   </FormControl>

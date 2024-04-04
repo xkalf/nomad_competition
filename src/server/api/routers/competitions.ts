@@ -86,7 +86,6 @@ export const competitionRouter = createTRPCRouter({
   update: adminProcedure
     .input(getUpdateSchema(createCompetitionSchema))
     .mutation(async ({ ctx, input: { cubeTypes, ...input } }) => {
-      console.log(input.registerStartDate);
       await ctx.db.transaction(async (t) => {
         await t
           .update(competitions)

@@ -13,6 +13,13 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { toast } from "~/components/ui/use-toast";
 import { RouterOutputs, api } from "~/utils/api";
@@ -33,6 +40,7 @@ const defaultValues: z.infer<typeof createAgeGroupSchema> = {
   end: 0,
   competitionId: 0,
   name: "",
+  cubeTypeId: 0,
 };
 
 export default function AgeGroupForm({
@@ -43,6 +51,8 @@ export default function AgeGroupForm({
   competitionId,
 }: Props) {
   const utils = api.useUtils();
+
+  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery();
 
   const { mutate: create, isLoading: createLoading } =
     api.ageGroup.create.useMutation({
@@ -96,9 +106,9 @@ export default function AgeGroupForm({
       current
         ? current
         : {
-          ...defaultValues,
-          competitionId,
-        },
+            ...defaultValues,
+            competitionId,
+          },
     );
   }, [current, form]);
 
@@ -161,6 +171,36 @@ export default function AgeGroupForm({
                       onChange={(e) => field.onChange(e.target.valueAsNumber)}
                     />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="cubeTypeId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Төрөл</FormLabel>
+                  <Select
+                    onValueChange={(value) => field.onChange(+value)}
+                    defaultValue={field.value.toString()}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Шооны төрөл сонгоно уу." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {cubeTypes?.map((cubeType) => (
+                        <SelectItem
+                          key={"cube-type" + cubeType.id}
+                          value={cubeType.id.toString()}
+                        >
+                          {cubeType.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}

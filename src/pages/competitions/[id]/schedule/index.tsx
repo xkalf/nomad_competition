@@ -95,7 +95,6 @@ export default function SchedulePage() {
                 <TableHead>Төрөл</TableHead>
                 <TableHead>Таслах хугацаа</TableHead>
                 <TableHead>Цагийн хязгаар</TableHead>
-                <TableHead>Таслах хугацаа</TableHead>
                 <TableHead>Дараагийн үед үлдэх тамирчид</TableHead>
                 <TableHead>Үйлдэл</TableHead>
               </TableRow>

@@ -14,13 +14,16 @@ import { Button } from "./ui/button";
 interface Props {
   description?: string;
   onConfirm: () => void;
+  size?: "sm" | "lg" | "default" | "icon";
 }
 
-export default function DeleteButton({ description, onConfirm }: Props) {
+export default function DeleteButton({ description, onConfirm, size }: Props) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive">Устгах</Button>
+        <Button variant="destructive" size={size}>
+          Устгах
+        </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
