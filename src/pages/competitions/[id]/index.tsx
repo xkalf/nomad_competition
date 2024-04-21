@@ -5,7 +5,7 @@ import CompetitionLayout from "./layout";
 import LoadingScreen from "~/components/loading-screen";
 import { useSession } from "next-auth/react";
 import AgeGroupForm from "./age-group-form";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -48,6 +48,30 @@ export default function CompetitionShowPage() {
       });
     },
   });
+
+  const groupAgeGroups = (input: typeof ageGroups = []) => {
+    const grouped = input?.reduce(
+      (acc: { [key: string]: typeof ageGroups }, item) => {
+        const key = item.cubeType.name;
+
+        if (!acc[key]) {
+          acc[key] = [];
+        }
+
+        acc[key]?.push(item);
+
+        return acc;
+      },
+      {},
+    );
+
+    return grouped;
+  };
+
+  const groupedAgeGroups = useMemo(
+    () => groupAgeGroups(ageGroups),
+    [ageGroups],
+  );
 
   if (error) {
     return <div></div>;
@@ -127,36 +151,43 @@ export default function CompetitionShowPage() {
                 />
               )}
             </TableHead>
-            <TableCell>
-              {ageGroups?.map((item) => (
-                <ul key={"age-group" + item.id}>
-                  <li className="space-x-4 pb-2">
-                    <span>
-                      {item.start === item.end
-                        ? `${item.name} ${item.start} онд төрсөн`
-                        : item.end
-                          ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
-                          : `${item.name} ${item.start} оноос өмнө төрсөн`}{" "}
-                      <Badge className="ml-4">{item.cubeType.name}</Badge>
-                    </span>
-                    {session?.user.isAdmin && (
-                      <>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelected(item.id);
-                            setIsOpen(true);
-                          }}
-                        >
-                          Засах
-                        </Button>
-                        <DeleteButton
-                          size="sm"
-                          onConfirm={() => deleteAgeGroup(item.id)}
-                        />
-                      </>
-                    )}
-                  </li>
+            <TableCell className="p-0">
+              {Object.keys(groupedAgeGroups).map((key) => (
+                <ul key={key}>
+                  <h2 className="py-2 text-center text-2xl">
+                    {key} шооны насны ангилал
+                  </h2>
+                  {groupedAgeGroups[key]?.map((item) => (
+                    <li
+                      key={"age-group" + item.id}
+                      className="space-x-4 p-2 odd:bg-gray-200"
+                    >
+                      <span>
+                        {item.start === item.end
+                          ? `${item.name} ${item.start} онд төрсөн`
+                          : item.end
+                            ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
+                            : `${item.name} ${item.start} оноос өмнө төрсөн`}{" "}
+                      </span>
+                      {session?.user.isAdmin && (
+                        <>
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelected(item.id);
+                              setIsOpen(true);
+                            }}
+                          >
+                            Засах
+                          </Button>
+                          <DeleteButton
+                            size="sm"
+                            onConfirm={() => deleteAgeGroup(item.id)}
+                          />
+                        </>
+                      )}
+                    </li>
+                  ))}
                 </ul>
               ))}
             </TableCell>

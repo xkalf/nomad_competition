@@ -31,8 +31,8 @@ export default function CompetitionLayout({ children }: Props) {
 
   return (
     <Layout>
-      <div className="grid grid-cols-5">
-        <div className="flex flex-col space-y-2">
+      <div className="grid grid-cols-1 lg:grid-cols-5">
+        <div className="mb-8 flex flex-col space-y-2 lg:mb-0">
           <Button
             asChild
             variant={isPage("/competitions/[id]") ? "default" : "outline"}

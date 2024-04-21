@@ -96,12 +96,12 @@ export default function SchedulePage() {
                 <TableHead>Таслах хугацаа</TableHead>
                 <TableHead>Цагийн хязгаар</TableHead>
                 <TableHead>Дараагийн үед үлдэх тамирчид</TableHead>
-                <TableHead>Үйлдэл</TableHead>
+                {session?.user.isAdmin && <TableHead>Үйлдэл</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
               {groupedData[key]?.map((item) => (
-                <TableRow key={item.id}>
+                <TableRow key={item.id} className="odd:bg-gray-200">
                   <TableCell>{item.startTime.slice(0, -3)}</TableCell>
                   <TableCell>{item.endTime.slice(0, -3)}</TableCell>
                   <TableCell>{item.name}</TableCell>
