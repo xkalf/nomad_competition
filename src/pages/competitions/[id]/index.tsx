@@ -164,7 +164,7 @@ export default function CompetitionShowPage() {
                   {groupedAgeGroups[key]?.map((item) => (
                     <li
                       key={"age-group" + item.id}
-                      className="space-x-4 p-2 odd:bg-gray-200"
+                      className="space-x-4 p-2 even:bg-gray-200"
                     >
                       <span>
                         {item.start === item.end
