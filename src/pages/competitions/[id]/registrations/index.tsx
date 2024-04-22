@@ -52,11 +52,14 @@ export default function RegistrationsPage() {
 
   return (
     <CompetitionLayout>
-      <div className="flex justify-between">
+      <div className="flex flex-col justify-between md:flex-row">
         <h1 className="text-4xl">
           {isVerified ? "Баталгаажсан" : "Хүлээлгийн"} тамирчид
         </h1>
-        <Button onClick={() => setIsVerified(!isVerified)}>
+        <Button
+          className="mt-2 md:mt-0"
+          onClick={() => setIsVerified(!isVerified)}
+        >
           {isVerified ? "Хүлээлгийн" : "Баталгаажсан"} тамирчид
         </Button>
       </div>

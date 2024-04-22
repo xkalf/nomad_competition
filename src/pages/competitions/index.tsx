@@ -16,8 +16,10 @@ import { mnFormat } from "~/utils/date";
 import CompetitionCreateForm from "./form";
 import { toast } from "~/components/ui/use-toast";
 import DeleteButton from "~/components/delete-button";
+import { useRouter } from "next/router";
 
 export default function CompetitionsPage() {
+  const router = useRouter();
   const utils = api.useUtils();
   const [isActive, setIsActive] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -75,18 +77,23 @@ export default function CompetitionsPage() {
           <TableRow>
             <TableHead>Огноо</TableHead>
             <TableHead>Тэмцээний нэр</TableHead>
-            <TableHead>Хаяг</TableHead>
+            <TableHead className="hidden md:block">Хаяг</TableHead>
             <TableHead>Үйлдэл</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data?.map((item) => (
-            <TableRow key={item.id}>
+            <TableRow
+              key={item.id}
+              onClick={() => {
+                router.push(`/competitions/${item.id}`);
+              }}
+            >
               <TableCell>
                 {mnFormat(item.startDate)} ~ {mnFormat(item.endDate)}
               </TableCell>
               <TableCell>{item.name}</TableCell>
-              <TableCell>{item.address}</TableCell>
+              <TableCell className="hidden md:block">{item.address}</TableCell>
               <TableCell className="space-x-2">
                 <Button variant="outline" asChild>
                   <Link href={`/competitions/${item.id}`}>Дэлгэрэнгүй</Link>

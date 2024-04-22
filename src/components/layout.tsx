@@ -11,17 +11,19 @@ interface Props {
 export default function Layout({ children }: Props) {
   const { data: session } = useSession();
   return (
-    <div className="space-y-4 p-8">
+    <div className="space-y-4 p-2 md:p-8">
       <div className="flex h-16 items-center justify-between px-4">
         <MainNav />
-        {session ? (
-          <UserNav user={session.user} />
-        ) : (
-          <div className="flex space-x-2">
-            <LoginDialog />
-            <RegisterDialog />
-          </div>
-        )}
+        <div className="hidden md:block">
+          {session ? (
+            <UserNav user={session.user} />
+          ) : (
+            <div className="flex space-x-2">
+              <LoginDialog />
+              <RegisterDialog />
+            </div>
+          )}
+        </div>
       </div>
       <div className="space-y-4 p-4">{children}</div>
     </div>

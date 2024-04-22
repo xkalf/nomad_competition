@@ -70,7 +70,7 @@ export default function CompetitionLayout({ children }: Props) {
             <Link href={`/competitions/${id}/schedule`}>Цагийн хуваарь</Link>
           </Button>
         </div>
-        <div className="col-span-4 px-4">{children}</div>
+        <div className="col-span-4 md:px-4">{children}</div>
       </div>
     </Layout>
   );
