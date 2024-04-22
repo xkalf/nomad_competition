@@ -88,7 +88,7 @@ export default function CompetitionShowPage() {
         <TableBody>
           <TableRow>
             <TableHead>Төрөл</TableHead>
-            <TableCell className="space-x-4 space-y-2">
+            <TableCell className="space-y-1 md:space-y-2">
               {data.competitionsToCubeTypes.map((i) => {
                 if (i.cubeType.image) {
                   return (
@@ -99,7 +99,11 @@ export default function CompetitionShowPage() {
                     />
                   );
                 } else {
-                  return <Badge key={i.cubeTypeId}>{i.cubeType.name}</Badge>;
+                  return (
+                    <Badge className="mr-2" key={i.cubeTypeId}>
+                      {i.cubeType.name}
+                    </Badge>
+                  );
                 }
               })}
             </TableCell>
