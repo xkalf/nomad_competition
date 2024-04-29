@@ -24,8 +24,8 @@
     "jsx": "preserve",
     "plugins": [
       {
-        "name": "next"
-      }
+        "name": "next",
+      },
     ],
     "incremental": true,
     /* Path Aliases */

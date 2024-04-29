@@ -20,7 +20,7 @@ export default function RegistrationsPage() {
   const { data: session } = useSession();
   const id = parseInt(router.query.id?.toString() || "0");
 
-  const [isVerified, setIsVerified] = useState(true);
+  const [isVerified, setIsVerified] = useState(false);
 
   const { data } = api.competitor.getByCompetitionId.useQuery(
     {
@@ -66,17 +66,17 @@ export default function RegistrationsPage() {
       <Table className="mt-4">
         <TableHeader>
           <TableRow>
-            <TableHead>Овог</TableHead>
             <TableHead>Нэр</TableHead>
+            <TableHead>Овог</TableHead>
             <TableHead>WCA ID</TableHead>
             <TableHead>Төрлүүд</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {data?.map((item) => (
-            <TableRow key={item.id}>
-              <TableCell>{item.user.lastname}</TableCell>
+            <TableRow key={item.id} className="odd:bg-gray-200">
               <TableCell>{item.user.firstname}</TableCell>
+              <TableCell>{item.user.lastname}</TableCell>
               <TableCell>{item.user.wcaId}</TableCell>
               <TableCell>
                 {item.competitorsToCubeTypes

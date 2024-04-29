@@ -17,6 +17,8 @@ import { toast } from "~/components/ui/use-toast";
 import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { Button } from "~/components/ui/button";
+import { useSession } from "next-auth/react";
+import { Alert, AlertTitle } from "~/components/ui/alert";
 
 const defaultValues: z.infer<typeof competitionRegisterSchema> = {
   competitionId: 0,
@@ -28,6 +30,7 @@ export default function CompetitionRegisterPage() {
   const utils = api.useUtils();
   const router = useRouter();
   const id = parseInt(router.query.id?.toString() || "0");
+  const session = useSession();
 
   const { data: competition } = api.competition.getById.useQuery(id);
   const { data: cubeTypes } = api.cubeTypes.getByCompetitionId.useQuery(+id, {
@@ -146,9 +149,15 @@ export default function CompetitionRegisterPage() {
               </FormItem>
             )}
           />
-          <Button disabled={registerLoading || updateRegisterLoading}>
-            {current ? "Шинэчлэх" : "Бүртгүүлэх"}
-          </Button>
+          {session.data?.user.id ? (
+            <Button disabled={registerLoading || updateRegisterLoading}>
+              {current ? "Шинэчлэх" : "Бүртгүүлэх"}
+            </Button>
+          ) : (
+            <Alert variant="destructive">
+              <AlertTitle>Бүртгүүлэхийн тулд эхэлж нэвтэрж орно уу.</AlertTitle>
+            </Alert>
+          )}
         </form>
       </Form>
     </CompetitionLayout>
