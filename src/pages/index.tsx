@@ -4,13 +4,13 @@ import HomeCarousel from "./carousel";
 export default function Home() {
   return (
     <Layout>
-      <div className="mx-auto flex">
-        <div className="w-3/5">
+      <div className="grid grid-cols-1 gap-2 md:grid-cols-10">
+        <div className="md:col-span-4">
           <HomeCarousel />
         </div>
-        <div className="w-2/5">
+        <div className="md:col-span-6">
           <iframe
-            className="w-full"
+            className="h-full min-h-96 w-full"
             height="500"
             src="https://www.youtube.com/embed/pxWN8N72R_E?si=6h6lWlTXecM_qJh2"
             title="YouTube video player"
