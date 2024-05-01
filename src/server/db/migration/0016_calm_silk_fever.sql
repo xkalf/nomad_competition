@@ -1,1 +1,0 @@
-ALTER TABLE "nomad_competition_competitions" ADD COLUMN "contact" text;

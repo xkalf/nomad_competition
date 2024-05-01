@@ -19,6 +19,7 @@ import { MultiSelect } from "~/components/ui/multi-select";
 import { Button } from "~/components/ui/button";
 import { useSession } from "next-auth/react";
 import { Alert, AlertTitle } from "~/components/ui/alert";
+import LoadingScreen from "~/components/loading-screen";
 
 const defaultValues: z.infer<typeof competitionRegisterSchema> = {
   competitionId: 0,
@@ -32,7 +33,12 @@ export default function CompetitionRegisterPage() {
   const id = parseInt(router.query.id?.toString() || "0");
   const session = useSession();
 
-  const { data: competition } = api.competition.getById.useQuery(id);
+  const { data: competition, isLoading } = api.competition.getById.useQuery(
+    id,
+    {
+      enabled: id > 0,
+    },
+  );
   const { data: cubeTypes } = api.cubeTypes.getByCompetitionId.useQuery(+id, {
     enabled: +id > 0,
   });
@@ -44,6 +50,14 @@ export default function CompetitionRegisterPage() {
     +id,
     {
       enabled: +id > 0,
+      onSuccess: (data) => {
+        if (!data) return;
+        form.reset({
+          competitionId: data?.competitionId,
+          cubeTypes: data?.competitorsToCubeTypes.map((i) => i.cubeTypeId),
+          guestCount: data?.guestCount,
+        });
+      },
     },
   );
   const { mutate: register, isLoading: registerLoading } =
@@ -78,6 +92,19 @@ export default function CompetitionRegisterPage() {
         });
       },
     });
+  const { mutate: createInvoice, isLoading: invoiceLoading } =
+    api.payment.createInvoice.useMutation({
+      onSuccess(data) {
+        window.open(data.qPay_shortUrl);
+      },
+      onError(error) {
+        toast({
+          title: "Алдаа гарлаа",
+          description: error.message,
+          variant: "destructive",
+        });
+      },
+    });
 
   const form = useForm<z.infer<typeof competitionRegisterSchema>>({
     resolver: zodResolver(competitionRegisterSchema),
@@ -88,10 +115,14 @@ export default function CompetitionRegisterPage() {
     current
       ? updateRegister({ id: current.id, ...values })
       : register({
-        ...values,
-        competitionId: +id,
-      });
+          ...values,
+          competitionId: +id,
+        });
   };
+
+  if (isLoading) {
+    return <LoadingScreen />;
+  }
 
   return (
     <CompetitionLayout>
@@ -157,6 +188,22 @@ export default function CompetitionRegisterPage() {
             <Alert variant="destructive">
               <AlertTitle>Бүртгүүлэхийн тулд эхэлж нэвтэрж орно уу.</AlertTitle>
             </Alert>
+          )}
+          {session?.data?.user.id && current && (
+            <Button
+              className="ml-2"
+              type="button"
+              disabled={invoiceLoading}
+              onClick={() =>
+                createInvoice({
+                  userId: session.data.user.id,
+                  competitorId: current.id,
+                  amount: "1000",
+                })
+              }
+            >
+              Төлбөр төлөх
+            </Button>
           )}
         </form>
       </Form>

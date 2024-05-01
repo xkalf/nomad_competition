@@ -1,1 +1,0 @@
-ALTER TABLE "nomad_competition_age_groups" ALTER COLUMN "end" DROP NOT NULL;

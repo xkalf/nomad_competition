@@ -1,9 +1,12 @@
+import { randomUUID } from "crypto";
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
   date,
   index,
   integer,
+  numeric,
+  pgEnum,
   pgTableCreator,
   primaryKey,
   real,
@@ -13,7 +16,9 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
 import { type AdapterAccount } from "next-auth/adapters";
+import { z } from "zod";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -278,3 +283,36 @@ export const ageGroupsRelations = relations(ageGroups, ({ one }) => ({
     references: [cubeTypes.id],
   }),
 }));
+
+export const paymentsTypeEnum = pgEnum("payment_type", ["qpay"]);
+
+export const payments = createTable("qpay", {
+  type: paymentsTypeEnum("type").notNull().primaryKey().unique(),
+  accessToken: text("access_token").notNull(),
+  refreshToken: text("refresh_token").notNull(),
+  accessExpiresAt: timestamp("access_expires_at", {
+    mode: "date",
+    withTimezone: true,
+  }).notNull(),
+  refreshExpiresAt: timestamp("refresh_expires_at", {
+    mode: "date",
+    withTimezone: true,
+  }).notNull(),
+});
+
+export const invoices = createTable("invoices", {
+  id: varchar("id")
+    .primaryKey()
+    .$defaultFn(() => randomUUID()),
+  amount: numeric("amount").notNull(),
+  isPaid: boolean("is_paid").notNull().default(false),
+  competitorId: integer("competitor_id")
+    .references(() => competitors.id)
+    .notNull(),
+  userId: varchar("user_id")
+    .notNull()
+    .references(() => users.id),
+});
+
+export const createInvoiceSchema = createInsertSchema(invoices);
+export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;

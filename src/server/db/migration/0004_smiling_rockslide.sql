@@ -1,1 +1,0 @@
-ALTER TABLE "nomad_competition_user" ALTER COLUMN "is_admin" SET NOT NULL;

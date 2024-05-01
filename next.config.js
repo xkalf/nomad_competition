@@ -23,6 +23,14 @@ const config = {
         protocol: "https",
         hostname: "sepqgdowngdjrimbdsop.supabase.co",
       },
+      {
+        protocol: "https",
+        hostname: "s3.qpay.mn",
+      },
+      {
+        protocol: "https",
+        hostname: "qpay.mn",
+      },
     ],
   },
 };

@@ -30,6 +30,9 @@ export const env = createEnv({
     ),
     // DISCORD_CLIENT_ID: z.string(),
     // DISCORD_CLIENT_SECRET: z.string(),
+    QPAY_USERNAME: z.string().min(1),
+    QPAY_PASSWORD: z.string().min(1),
+    QPAY_INVOICE_CODE: z.string().min(1),
   },
 
   /**
@@ -53,6 +56,9 @@ export const env = createEnv({
     NEXTAUTH_URL: process.env.NEXTAUTH_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    QPAY_USERNAME: process.env.QPAY_USERNAME,
+    QPAY_PASSWORD: process.env.QPAY_PASSWORD,
+    QPAY_INVOICE_CODE: process.env.QPAY_INVOICE_CODE,
     // DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
     // DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
   },

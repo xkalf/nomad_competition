@@ -1,2 +1,0 @@
-ALTER TABLE "nomad_competition_competitions" ALTER COLUMN "register_start_date" SET DATA TYPE timestamp with time zone;--> statement-breakpoint
-ALTER TABLE "nomad_competition_competitions" ALTER COLUMN "register_end_date" SET DATA TYPE timestamp with time zone;
