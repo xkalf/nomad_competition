@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 import { db } from "../db";
 import {
   CreateInvoiceInput,
@@ -42,23 +42,10 @@ type InvoiceResponse = {
   }[];
 };
 
-type InvoiceCheckInvoice = {
-  payment_id: string;
-  payment_status: string;
-  payment_fee: string;
-  payment_amount: string;
-  payment_currency: string;
-  payment_date: string;
-  payment_wallet: string;
-  object_type: string;
-  object_id: string;
-  transaction_type: string;
-};
-
 export class QpayService {
-  private username: string = "TEST_MERCHANT";
-  private password: string = "123456";
-  private invoiceCode: string = "TEST_MERCHANT";
+  private username: string;
+  private password: string;
+  private invoiceCode: string;
   private baseUrl: string = "https://merchant.qpay.mn";
 
   constructor(username: string, password: string, invoiceCode: string) {
@@ -67,7 +54,7 @@ export class QpayService {
     this.invoiceCode = invoiceCode;
   }
 
-  async login() {
+  private async login() {
     const req = await fetch(`${this.baseUrl}/v2/auth/token`, {
       method: "POST",
       headers: {
@@ -81,7 +68,7 @@ export class QpayService {
     return res;
   }
 
-  async getRefreshToken(refreshToken: string) {
+  private async getRefreshToken(refreshToken: string) {
     const req = await fetch(`${this.baseUrl}/v2/auth/refresh`, {
       method: "POST",
       headers: {
@@ -95,7 +82,7 @@ export class QpayService {
     return res;
   }
 
-  async getPayment() {
+  private async getPayment() {
     const res = await db.query.payments.findFirst({
       where: eq(payments.type, "qpay"),
     });
@@ -174,11 +161,11 @@ export class QpayService {
 
     const body: CreateInvoiceRequestInput = {
       invoice_code: this.invoiceCode,
-      sender_invoice_no: invoice.id,
+      sender_invoice_no: invoice.id.toString(),
       invoice_receiver_code: invoice.userId.toString(),
       invoice_description: `${desc.phone} ${desc.competitionName} тэмцээний төлбөр`,
       amount: +input.amount,
-      callback_url: `https://competition.nomad-team.com/api/qpay/${invoice.id}`,
+      callback_url: `https://competition.nomad-team.com//api/qpay/${invoice.id}`,
     };
 
     const req = await fetch(`${this.baseUrl}/v2/invoice`, {
@@ -192,33 +179,54 @@ export class QpayService {
 
     const res: InvoiceResponse = await req.json();
 
+    await db
+      .update(invoices)
+      .set({
+        invoiceCode: res.invoice_id,
+      })
+      .where(eq(invoices.id, invoice.id));
+
     return res;
   }
 
   async checkInvoice(id: string) {
     const payment = await this.getPayment();
 
-    const req = await fetch(`${this.baseUrl}/v2/payment/${id}`, {
-      method: "GET",
+    const req = await fetch(`${this.baseUrl}/v2/payment/check`, {
+      method: "POST",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${payment.accessToken}`,
       },
+      body: JSON.stringify({
+        object_type: "INVOICE",
+        object_id: id,
+      }),
     });
 
-    const res: InvoiceCheckInvoice = await req.json();
+    const res: { count: number } = await req.json();
 
-    if (res.payment_status === "PAID") {
-      await db
-        .update(invoices)
-        .set({
-          isPaid: true,
-        })
-        .where(eq(invoices.id, id));
-    }
+    if (res.count > 0) {
+      await db.transaction(async (db) => {
+        const [res] = await db
+          .update(invoices)
+          .set({
+            isPaid: true,
+          })
+          .where(eq(invoices.invoiceCode, id))
+          .returning();
 
-    if (res.payment_status === "FAILED") {
-      throw new Error("Гүйлгээ буцаагдсан байна. Дахин оролдоно уу.");
+        if (!res) {
+          throw new Error("Нэхэмжлэл олдсонгүй");
+        }
+
+        await db
+          .update(competitors)
+          .set({
+            verifiedAt: sql`now()`,
+          })
+          .where(eq(competitors.id, res?.competitorId));
+      });
     }
 
     return res;

@@ -115,6 +115,28 @@ export default function CompetitionRegisterPage() {
         });
       },
     });
+  const { mutate: checkInvoice } = api.payment.checkInvoice.useMutation({
+    onSuccess(data) {
+      if (data.count > 0) {
+        // setQpayResponse(null);
+      }
+    },
+    onError(error) {
+      toast({
+        title: "Алдаа гарлаа",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  api.payment.cronInvoice.useQuery(qpayResponse?.invoice_id || "", {
+    enabled: !!qpayResponse,
+    refetchInterval: 300,
+    onSuccess: (data) => {
+      console.log("checking");
+      if (data === true) setQpayResponse(null);
+    },
+  });
 
   const form = useForm<z.infer<typeof competitionRegisterSchema>>({
     resolver: zodResolver(competitionRegisterSchema),
@@ -203,20 +225,32 @@ export default function CompetitionRegisterPage() {
               </Alert>
             )}
             {session?.data?.user.id && current && (
-              <Button
-                className="ml-2"
-                type="button"
-                disabled={invoiceLoading}
-                onClick={() =>
-                  createInvoice({
-                    userId: session.data.user.id,
-                    competitorId: current.id,
-                    amount: "1000",
-                  })
-                }
-              >
-                Төлбөр төлөх
-              </Button>
+              <>
+                <Button
+                  className="ml-2"
+                  type="button"
+                  disabled={invoiceLoading}
+                  onClick={() =>
+                    createInvoice({
+                      userId: session.data.user.id,
+                      competitorId: current.id,
+                      amount: "100",
+                    })
+                  }
+                >
+                  Төлбөр төлөх
+                </Button>
+                {qpayResponse && (
+                  <Button
+                    className="ml-2"
+                    type="button"
+                    disabled={invoiceLoading}
+                    onClick={() => checkInvoice(qpayResponse.invoice_id)}
+                  >
+                    Төлбөр шалгах
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </form>

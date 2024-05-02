@@ -1,13 +1,8 @@
-import { createInvoiceSchema } from "~/server/db/schema";
+import { createInvoiceSchema, invoices } from "~/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { QpayService } from "~/server/utils/qpay.service";
-import { env } from "~/env";
-
-const Qpay = new QpayService(
-  env.QPAY_USERNAME,
-  env.QPAY_PASSWORD,
-  env.QPAY_INVOICE_CODE,
-);
+import { Qpay } from "~/utils/qpay";
+import { z } from "zod";
+import { eq } from "drizzle-orm";
 
 export const paymentsRouter = createTRPCRouter({
   createInvoice: protectedProcedure
@@ -15,5 +10,21 @@ export const paymentsRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const res = await Qpay.createInvoice(input);
       return res;
+    }),
+  checkInvoice: protectedProcedure
+    .input(z.string().uuid())
+    .mutation(async ({ input }) => {
+      const res = await Qpay.checkInvoice(input);
+      console.log(res);
+      return res;
+    }),
+  cronInvoice: protectedProcedure
+    .input(z.string().uuid())
+    .query(async ({ input, ctx }) => {
+      const [res] = await ctx.db
+        .select({ isPaid: invoices.isPaid })
+        .from(invoices)
+        .where(eq(invoices.invoiceCode, input));
+      return res?.isPaid;
     }),
 });

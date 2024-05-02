@@ -15,8 +15,9 @@ export const competitorRouter = createTRPCRouter({
       const res = await ctx.db.query.competitors.findMany({
         where: (t, { isNull, isNotNull, and, eq }) =>
           and(
-            input.isVerified ? isNotNull(t.verifiedAt) : isNull(t.verifiedAt),
             eq(t.competitionId, input.competitionId),
+            isNotNull(t.verifiedAt).if(input.isVerified),
+            isNull(t.verifiedAt).if(!input.isVerified),
           ),
         with: {
           user: {

@@ -301,9 +301,8 @@ export const payments = createTable("qpay", {
 });
 
 export const invoices = createTable("invoices", {
-  id: varchar("id")
-    .primaryKey()
-    .$defaultFn(() => randomUUID()),
+  id: serial("id").primaryKey(),
+  invoiceCode: varchar("invoice_code"),
   amount: numeric("amount").notNull(),
   isPaid: boolean("is_paid").notNull().default(false),
   competitorId: integer("competitor_id")
