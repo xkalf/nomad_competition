@@ -19,7 +19,40 @@ export const createCompetitionSchema = createInsertSchema(competitions).extend({
   cubeTypes: z.number().int().positive().array(),
 });
 
-export const registerSchema = createInsertSchema(users).omit({
+export const registerSchema = createInsertSchema(users, {
+  firstname: (t) =>
+    t.firstname
+      .min(2, {
+        message: "Хамгийн багадаа 2 тэмдэгт байх ёстой",
+      })
+      .regex(/^[А-Яа-яёЁҮүӨөІі]+$/, {
+        message: "Зөвхөн кирилл үсгээр бичнэ үү",
+      }),
+  lastname: (t) =>
+    t.lastname
+      .min(2, {
+        message: "Хамгийн багадаа 2 тэмдэгт байх ёстой",
+      })
+      .regex(/^[А-Яа-яёЁҮүӨөІі]+$/, {
+        message: "Зөвхөн кирилл үсгээр бичнэ үү",
+      }),
+  email: (t) =>
+    t.email.email({
+      message: "Зөв имэйл хаяг оруулна уу. abc@example.com",
+    }),
+  password: (t) =>
+    t.password.min(6, {
+      message: "Нууц үг хамгийн багадаа 6 тэмдэгтээс их байх ёстой",
+    }),
+  phone: (t) =>
+    t.phone
+      .min(10000000, {
+        message: "Утасны дугаар 8 оронтой байх ёстой",
+      })
+      .max(99999999, {
+        message: "Утасны дугаар 8 оронтой байх ёстой",
+      }),
+}).omit({
   id: true,
   isAdmin: true,
 });
