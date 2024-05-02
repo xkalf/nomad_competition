@@ -9,15 +9,20 @@ export default async function handler(
 
   const query = req.query;
   const id = query.id?.toString();
+  const paymentId = query.qpay_payment_id?.toString();
 
   if (!id) {
     return res.status(400).json({ error: "id is required" });
   }
 
+  if (!paymentId) {
+    return res.status(400).json({ error: "qpay_payment_id is required" });
+  }
+
   console.log("requested", id);
 
   try {
-    const result = await Qpay.checkInvoice(id);
+    const result = await Qpay.checkInvoice(id, paymentId);
 
     console.log(result);
 

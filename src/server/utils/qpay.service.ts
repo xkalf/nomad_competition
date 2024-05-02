@@ -165,7 +165,7 @@ export class QpayService {
       invoice_receiver_code: invoice.userId.toString(),
       invoice_description: `${desc.phone} ${desc.competitionName} тэмцээний төлбөр`,
       amount: +input.amount,
-      callback_url: `https://competition.nomad-team.com//api/qpay/${invoice.id}`,
+      callback_url: `https://competition.nomad-team.com/api/qpay/${invoice.id}`,
     };
 
     const req = await fetch(`${this.baseUrl}/v2/invoice`, {
@@ -189,31 +189,25 @@ export class QpayService {
     return res;
   }
 
-  async checkInvoice(id: string) {
+  async checkInvoice(id: string, paymentId: string) {
     const payment = await this.getPayment();
 
-    const req = await fetch(`${this.baseUrl}/v2/payment/check`, {
-      method: "POST",
+    const req = await fetch(`${this.baseUrl}/v2/payment/${paymentId}`, {
       headers: {
-        "Content-Type": "application/json",
         Authorization: `Bearer ${payment.accessToken}`,
       },
-      body: JSON.stringify({
-        object_type: "INVOICE",
-        object_id: id,
-      }),
     });
 
-    const res: { count: number } = await req.json();
+    const res: { payment_status: string } = await req.json();
 
-    if (res.count > 0) {
+    if (res.payment_status === "PAID") {
       await db.transaction(async (db) => {
         const [res] = await db
           .update(invoices)
           .set({
             isPaid: true,
           })
-          .where(eq(invoices.invoiceCode, id))
+          .where(eq(invoices.id, +id))
           .returning();
 
         if (!res) {
@@ -228,6 +222,8 @@ export class QpayService {
           .where(eq(competitors.id, res?.competitorId));
       });
     }
+
+    console.log(res);
 
     return res;
   }

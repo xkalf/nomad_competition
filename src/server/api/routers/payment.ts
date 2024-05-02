@@ -9,6 +9,7 @@ export const paymentsRouter = createTRPCRouter({
     .input(createInvoiceSchema)
     .mutation(async ({ input }) => {
       const res = await Qpay.createInvoice(input);
+      console.log(res);
       return res;
     }),
   checkInvoice: protectedProcedure
