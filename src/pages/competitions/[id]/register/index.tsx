@@ -104,7 +104,6 @@ export default function CompetitionRegisterPage() {
   const { mutate: createInvoice, isLoading: invoiceLoading } =
     api.payment.createInvoice.useMutation({
       onSuccess(data) {
-        // window.open(data.qPay_shortUrl);
         setQpayResponse(data);
       },
       onError(error) {
@@ -115,26 +114,19 @@ export default function CompetitionRegisterPage() {
         });
       },
     });
-  const { mutate: checkInvoice } = api.payment.checkInvoice.useMutation({
-    onSuccess(data) {
-      if (data.count > 0) {
-        // setQpayResponse(null);
-      }
-    },
-    onError(error) {
-      toast({
-        title: "Алдаа гарлаа",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+
   api.payment.cronInvoice.useQuery(qpayResponse?.invoice_id || "", {
     enabled: !!qpayResponse,
-    refetchInterval: 300,
+    refetchInterval: 1000,
     onSuccess: (data) => {
       console.log("checking");
-      if (data === true) setQpayResponse(null);
+      if (data === true) {
+        toast({
+          title: "Амжилттай төлөгдлөө.",
+        });
+
+        setQpayResponse(null);
+      }
     },
   });
 
@@ -240,16 +232,6 @@ export default function CompetitionRegisterPage() {
                 >
                   Төлбөр төлөх
                 </Button>
-                {qpayResponse && (
-                  <Button
-                    className="ml-2"
-                    type="button"
-                    disabled={invoiceLoading}
-                    onClick={() => checkInvoice(qpayResponse.invoice_id)}
-                  >
-                    Төлбөр шалгах
-                  </Button>
-                )}
               </>
             )}
           </div>
