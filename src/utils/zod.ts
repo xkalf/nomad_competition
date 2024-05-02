@@ -5,6 +5,8 @@ import {
   competitions,
   competitors,
   cubeTypes,
+  fees,
+  invoices,
   schedules,
   users,
 } from "~/server/db/schema";
@@ -79,3 +81,10 @@ export const createScheduleSchema = createInsertSchema(schedules).omit({
 export const createAgeGroupSchema = createInsertSchema(ageGroups).omit({
   id: true,
 });
+
+export const createInvoiceSchema = createInsertSchema(invoices).omit({
+  id: true,
+});
+export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
+
+export const createFeeSchema = createInsertSchema(fees).omit({ id: true });

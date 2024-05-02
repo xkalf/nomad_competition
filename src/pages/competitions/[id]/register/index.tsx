@@ -20,7 +20,7 @@ import { Button } from "~/components/ui/button";
 import { useSession } from "next-auth/react";
 import { Alert, AlertTitle } from "~/components/ui/alert";
 import LoadingScreen from "~/components/loading-screen";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -48,16 +48,9 @@ export default function CompetitionRegisterPage() {
       enabled: id > 0,
     },
   );
-  const { data: cubeTypes } = api.cubeTypes.getByCompetitionId.useQuery(+id, {
-    enabled: +id > 0,
-  });
-  const mappedCubeTypes = cubeTypes?.map((i) => ({
-    label: i.name,
-    value: i.id.toString(),
-  }));
-  const { data: current } = api.competition.getRegisterByCompetitionId.useQuery(
-    +id,
-    {
+
+  const { data: current, isLoading: currentLoading } =
+    api.competition.getRegisterByCompetitionId.useQuery(+id, {
       enabled: +id > 0,
       onSuccess: (data) => {
         if (!data) return;
@@ -67,8 +60,7 @@ export default function CompetitionRegisterPage() {
           guestCount: data?.guestCount,
         });
       },
-    },
-  );
+    });
   const { mutate: register, isLoading: registerLoading } =
     api.competition.register.useMutation({
       onSuccess: () => {
@@ -119,13 +111,11 @@ export default function CompetitionRegisterPage() {
     enabled: !!qpayResponse,
     refetchInterval: 1000,
     onSuccess: (data) => {
-      console.log("checking");
       if (data === true) {
+        router.push(`/competitions/${id}/registrations?isVerified=true`);
         toast({
           title: "Амжилттай төлөгдлөө.",
         });
-
-        setQpayResponse(null);
       }
     },
   });
@@ -144,7 +134,48 @@ export default function CompetitionRegisterPage() {
         });
   };
 
-  if (isLoading) {
+  const mappedCubeTypes = useMemo(() => {
+    return (
+      competition?.competitionsToCubeTypes
+        .map((i) => i.cubeType)
+        ?.map((i) => ({
+          label: i.name,
+          value: i.id.toString(),
+        })) || []
+    );
+  }, [competition]);
+
+  const freeTypes = useMemo(() => {
+    const filtered = competition?.competitionsToCubeTypes
+      .map((i) => i.cubeType)
+      ?.filter(
+        (cubeType) =>
+          !competition.fees?.map((fee) => fee.cubeTypeId).includes(cubeType.id),
+      );
+    return filtered || [];
+  }, [competition]);
+
+  const totalAmount = useMemo(() => {
+    if (!competition || !current) return 0;
+
+    const baseFee = competition.baseFee;
+    const guestFee =
+      current.guestCount < competition.freeGuests
+        ? 0
+        : (current?.guestCount - competition?.freeGuests) *
+          +competition.guestFee;
+    const cubeTypesFee = competition.fees
+      .filter((fee) =>
+        current.competitorsToCubeTypes
+          .map((i) => i.cubeTypeId)
+          .includes(fee.cubeTypeId),
+      )
+      .reduce((a, b) => a + +b.amount, 0);
+
+    return +baseFee + +guestFee + +cubeTypesFee;
+  }, [competition, current]);
+
+  if (isLoading || currentLoading) {
     return <LoadingScreen />;
   }
 
@@ -152,6 +183,38 @@ export default function CompetitionRegisterPage() {
     <CompetitionLayout>
       <h1 className="text-4xl capitalize">Бүртгүүлэх хүсэлт</h1>
       <p className="my-4">{competition?.registrationRequirments}</p>
+      {freeTypes?.length > 0 && (
+        <Alert>
+          <div className="flex justify-between text-xl">
+            <p className="text-xl">Суурь хураамж</p>
+            <p>{competition?.baseFee}₮</p>
+          </div>
+          <p className="text-lg">Суурь хураамжид багтсан төрлүүд :</p>
+          <p>{freeTypes.map((type) => type.name).join(" ")}</p>
+        </Alert>
+      )}
+      {competition?.fees?.map((fee) => (
+        <Alert key={fee.id} className="flex justify-between">
+          <p>{fee.cubeType.name}</p>
+          <p>{fee.amount}₮</p>
+        </Alert>
+      ))}
+      <Alert className="flex justify-between">
+        <p>Зочны хураамж</p>
+        <p>
+          {current && competition
+            ? current?.guestCount < competition?.freeGuests
+              ? 0
+              : (current?.guestCount - competition?.freeGuests) *
+                +competition.guestFee
+            : 0}
+          ₮
+        </p>
+      </Alert>
+      <Alert className="flex justify-between">
+        <p>Нийт хураамж</p>
+        <p>{totalAmount}₮</p>
+      </Alert>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-8">
           <FormField
@@ -205,33 +268,44 @@ export default function CompetitionRegisterPage() {
             )}
           />
           <div className="flex justify-center md:justify-start">
-            {session.data?.user.id ? (
-              <Button disabled={registerLoading || updateRegisterLoading}>
-                {current ? "Шинэчлэх" : "Бүртгүүлэх"}
-              </Button>
-            ) : (
-              <Alert variant="destructive">
-                <AlertTitle>
-                  Бүртгүүлэхийн тулд эхэлж нэвтэрж орно уу.
-                </AlertTitle>
+            {totalAmount ===
+            current?.invoices
+              .filter((invoice) => invoice.isPaid)
+              .reduce((a, b) => a + +b.amount, 0) ? (
+              <Alert variant={"success"}>
+                <AlertTitle>Төлбөр төлөгдсөн байна</AlertTitle>
               </Alert>
-            )}
-            {session?.data?.user.id && current && (
+            ) : (
               <>
-                <Button
-                  className="ml-2"
-                  type="button"
-                  disabled={invoiceLoading}
-                  onClick={() =>
-                    createInvoice({
-                      userId: session.data.user.id,
-                      competitorId: current.id,
-                      amount: "100",
-                    })
-                  }
-                >
-                  Төлбөр төлөх
-                </Button>
+                {session.data?.user.id ? (
+                  <Button disabled={registerLoading || updateRegisterLoading}>
+                    {current ? "Шинэчлэх" : "Бүртгүүлэх"}
+                  </Button>
+                ) : (
+                  <Alert variant="destructive">
+                    <AlertTitle>
+                      Бүртгүүлэхийн тулд эхэлж нэвтэрж орно уу.
+                    </AlertTitle>
+                  </Alert>
+                )}
+                {session?.data?.user.id && current && (
+                  <>
+                    <Button
+                      className="ml-2"
+                      type="button"
+                      disabled={invoiceLoading || !!qpayResponse}
+                      onClick={() =>
+                        createInvoice({
+                          userId: session.data.user.id,
+                          competitorId: current.id,
+                          amount: totalAmount.toString(),
+                        })
+                      }
+                    >
+                      Төлбөр төлөх
+                    </Button>
+                  </>
+                )}
               </>
             )}
           </div>

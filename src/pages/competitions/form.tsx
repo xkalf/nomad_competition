@@ -37,6 +37,9 @@ const defaultValues: z.infer<typeof createCompetitionSchema> = {
   startDate: "",
   endDate: "",
   cubeTypes: [],
+  guestFee: "0",
+  baseFee: "0",
+  freeGuests: 0,
 };
 
 export default function CompetitionCreateForm({
@@ -99,11 +102,11 @@ export default function CompetitionCreateForm({
     form.reset(
       current
         ? {
-          ...current,
-          startDate: mnFormat(current?.startDate),
-          endDate: mnFormat(current?.endDate),
-          cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
-        }
+            ...current,
+            startDate: mnFormat(current?.startDate),
+            endDate: mnFormat(current?.endDate),
+            cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
+          }
         : defaultValues,
     );
   }, [current, form]);
@@ -288,6 +291,57 @@ export default function CompetitionCreateForm({
                     <FormLabel>Бүртгүүлэх шаардлага</FormLabel>
                     <FormControl>
                       <Textarea {...field} value={field.value || undefined} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="baseFee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Бүртгэлийн хураамж</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="guestFee"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Зочны хураамж</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.value)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="freeGuests"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Үнэгүй оролцох зочин</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        {...field}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

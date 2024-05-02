@@ -20,7 +20,9 @@ export default function RegistrationsPage() {
   const { data: session } = useSession();
   const id = parseInt(router.query.id?.toString() || "0");
 
-  const [isVerified, setIsVerified] = useState(false);
+  const [isVerified, setIsVerified] = useState(
+    router.query.isVerified === "true" ? true : false,
+  );
 
   const { data } = api.competitor.getByCompetitionId.useQuery(
     {

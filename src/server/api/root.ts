@@ -6,6 +6,7 @@ import { competitorRouter } from "./routers/competitors";
 import { schedulesRouter } from "./routers/schedules";
 import { ageGroupRouter } from "./routers/ageGroups";
 import { paymentsRouter } from "./routers/payment";
+import { feeRouter } from "./routers/fees";
 
 /**
  * This is the primary router for your server.
@@ -20,6 +21,7 @@ export const appRouter = createTRPCRouter({
   schedule: schedulesRouter,
   ageGroup: ageGroupRouter,
   payment: paymentsRouter,
+  fee: feeRouter,
 });
 
 // export type definition of API

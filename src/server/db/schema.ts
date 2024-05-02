@@ -1,4 +1,3 @@
-import { randomUUID } from "crypto";
 import { relations, sql } from "drizzle-orm";
 import {
   boolean,
@@ -16,9 +15,7 @@ import {
   timestamp,
   varchar,
 } from "drizzle-orm/pg-core";
-import { createInsertSchema } from "drizzle-zod";
 import { type AdapterAccount } from "next-auth/adapters";
-import { z } from "zod";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -142,6 +139,9 @@ export const competitions = createTable("competitions", {
   }),
   contact: text("contact"),
   registrationRequirments: text("registration_requirments"),
+  baseFee: numeric("base_fee").notNull().default("0"),
+  guestFee: numeric("guest_fee").notNull().default("0"),
+  freeGuests: integer("free_guests").notNull().default(0),
 });
 
 export const competitionsRelations = relations(competitions, ({ many }) => ({
@@ -149,6 +149,7 @@ export const competitionsRelations = relations(competitions, ({ many }) => ({
   competitionsToCubeTypes: many(competitionsToCubeType),
   schedules: many(schedules),
   ageGroups: many(ageGroups),
+  fees: many(fees),
 }));
 
 export const competitionsToCubeType = createTable(
@@ -206,6 +207,7 @@ export const competitorsRelations = relations(competitors, ({ one, many }) => ({
     references: [competitions.id],
   }),
   competitorsToCubeTypes: many(competitorsToCubeTypes),
+  invoices: many(invoices),
 }));
 
 export const competitorsToCubeTypes = createTable(
@@ -313,5 +315,29 @@ export const invoices = createTable("invoices", {
     .references(() => users.id),
 });
 
-export const createInvoiceSchema = createInsertSchema(invoices);
-export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
+export const invoicesRelations = relations(invoices, ({ one }) => ({
+  competitor: one(competitors, {
+    fields: [invoices.competitorId],
+    references: [competitors.id],
+  }),
+}));
+
+export const fees = createTable("fees", {
+  id: serial("id").primaryKey(),
+  cubeTypeId: integer("cube_type_id")
+    .notNull()
+    .references(() => cubeTypes.id),
+  amount: numeric("amount").default("0").notNull(),
+  competitionId: integer("competition_id").references(() => competitions.id),
+});
+
+export const feesRelation = relations(fees, ({ one }) => ({
+  cubeType: one(cubeTypes, {
+    fields: [fees.cubeTypeId],
+    references: [cubeTypes.id],
+  }),
+  competition: one(competitions, {
+    fields: [fees.competitionId],
+    references: [competitions.id],
+  }),
+}));

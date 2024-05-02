@@ -1,3 +1,4 @@
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import Layout from "~/components/layout";
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export default function CompetitionLayout({ children }: Props) {
+  const session = useSession();
   const router = useRouter();
   const id = parseInt(router.query.id?.toString() || "0");
   const { data: competition } = api.competition.getById.useQuery(id);
@@ -69,6 +71,16 @@ export default function CompetitionLayout({ children }: Props) {
           >
             <Link href={`/competitions/${id}/schedule`}>Цагийн хуваарь</Link>
           </Button>
+          {session.data?.user.isAdmin && (
+            <Button
+              asChild
+              variant={
+                isPage("/competitions/[id]/fees") ? "default" : "outline"
+              }
+            >
+              <Link href={`/competitions/${id}/fees`}>Бүртгэлийн хураамж</Link>
+            </Button>
+          )}
         </div>
         <div className="col-span-4 md:px-4">{children}</div>
       </div>

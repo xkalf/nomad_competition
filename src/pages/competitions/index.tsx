@@ -16,10 +16,8 @@ import { mnFormat } from "~/utils/date";
 import CompetitionCreateForm from "./form";
 import { toast } from "~/components/ui/use-toast";
 import DeleteButton from "~/components/delete-button";
-import { useRouter } from "next/router";
 
 export default function CompetitionsPage() {
-  const router = useRouter();
   const utils = api.useUtils();
   const [isActive, setIsActive] = useState(true);
   const [isOpen, setIsOpen] = useState(false);
@@ -83,12 +81,7 @@ export default function CompetitionsPage() {
         </TableHeader>
         <TableBody>
           {data?.map((item) => (
-            <TableRow
-              key={item.id}
-              onClick={() => {
-                router.push(`/competitions/${item.id}`);
-              }}
-            >
+            <TableRow key={item.id}>
               <TableCell>
                 {mnFormat(item.startDate)} ~ {mnFormat(item.endDate)}
               </TableCell>
@@ -101,6 +94,7 @@ export default function CompetitionsPage() {
                 {session?.user.isAdmin && (
                   <>
                     <Button
+                      type="button"
                       onClick={() => {
                         setSelected(item.id);
                         setIsOpen(true);

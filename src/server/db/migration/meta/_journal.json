@@ -15,6 +15,27 @@
       "when": 1714620675512,
       "tag": "0001_petite_johnny_blaze",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1714636512121,
+      "tag": "0002_fluffy_inhumans",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1714647973944,
+      "tag": "0003_colossal_the_twelve",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1714658693126,
+      "tag": "0004_yellow_beast",
+      "breakpoints": true
     }
   ]
 }

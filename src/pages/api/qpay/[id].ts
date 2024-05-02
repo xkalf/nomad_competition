@@ -19,12 +19,8 @@ export default async function handler(
     return res.status(400).json({ error: "qpay_payment_id is required" });
   }
 
-  console.log("requested", id);
-
   try {
-    const result = await Qpay.checkInvoice(id, paymentId);
-
-    console.log(result);
+    await Qpay.checkInvoice(id, paymentId);
 
     return res.status(200).json("SUCCESS");
   } catch (err) {

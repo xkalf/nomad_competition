@@ -223,8 +223,6 @@ export class QpayService {
       });
     }
 
-    console.log(res);
-
     return res;
   }
 }

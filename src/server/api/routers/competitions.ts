@@ -54,6 +54,11 @@ export const competitionRouter = createTRPCRouter({
               cubeType: true,
             },
           },
+          fees: {
+            with: {
+              cubeType: true,
+            },
+          },
         },
       });
 
@@ -190,6 +195,7 @@ export const competitionRouter = createTRPCRouter({
           and(eq(t.competitionId, input), eq(t.userId, ctx.session.user.id)),
         with: {
           competitorsToCubeTypes: true,
+          invoices: true,
         },
       });
 

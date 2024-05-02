@@ -1,8 +1,9 @@
-import { createInvoiceSchema, invoices } from "~/server/db/schema";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { Qpay } from "~/utils/qpay";
 import { z } from "zod";
 import { eq } from "drizzle-orm";
+import { createInvoiceSchema } from "~/utils/zod";
+import { invoices } from "~/server/db/schema";
 
 export const paymentsRouter = createTRPCRouter({
   createInvoice: protectedProcedure

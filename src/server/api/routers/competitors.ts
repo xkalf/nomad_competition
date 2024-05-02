@@ -36,6 +36,12 @@ export const competitorRouter = createTRPCRouter({
               },
             },
           },
+          invoices: {
+            columns: {
+              amount: true,
+              isPaid: true,
+            },
+          },
         },
       });
 
