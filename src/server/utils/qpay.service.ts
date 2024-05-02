@@ -1,13 +1,13 @@
 import { eq, sql } from "drizzle-orm";
 import { db } from "../db";
 import {
-  CreateInvoiceInput,
   competitions,
   competitors,
   invoices,
   payments,
   users,
 } from "../db/schema";
+import { CreateInvoiceInput } from "~/utils/zod";
 
 type CreateInvoiceRequestInput = {
   invoice_code: string;
