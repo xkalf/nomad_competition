@@ -50,8 +50,9 @@ export default function CompetitionShowPage() {
   });
 
   const groupAgeGroups = (input: typeof ageGroups = []) => {
-    const grouped = input?.reduce(
-      (acc: { [key: string]: typeof ageGroups }, item) => {
+    const grouped = input
+      ?.sort((a, b) => a.cubeType.order - b.cubeType.order)
+      .reduce((acc: { [key: string]: typeof ageGroups }, item) => {
         const key = item.cubeType.name;
 
         if (!acc[key]) {
@@ -61,9 +62,7 @@ export default function CompetitionShowPage() {
         acc[key]?.push(item);
 
         return acc;
-      },
-      {},
-    );
+      }, {});
 
     return grouped;
   };
@@ -89,25 +88,27 @@ export default function CompetitionShowPage() {
           <TableRow>
             <TableHead>Төрөл</TableHead>
             <TableCell className="flex gap-1 md:gap-2">
-              {data.competitionsToCubeTypes.map((i) => {
-                if (i.cubeType.image) {
-                  return (
-                    <Image
-                      src={getImageUrl(i.cubeType.image) || ""}
-                      alt={i.cubeType.name}
-                      width={40}
-                      height={40}
-                      key={i.cubeTypeId}
-                    />
-                  );
-                } else {
-                  return (
-                    <Badge className="mr-2" key={i.cubeTypeId}>
-                      {i.cubeType.name}
-                    </Badge>
-                  );
-                }
-              })}
+              {data.competitionsToCubeTypes
+                .sort((a, b) => a.cubeType.order - b.cubeType.order)
+                .map((i) => {
+                  if (i.cubeType.image) {
+                    return (
+                      <Image
+                        src={getImageUrl(i.cubeType.image) || ""}
+                        alt={i.cubeType.name}
+                        width={40}
+                        height={40}
+                        key={i.cubeTypeId}
+                      />
+                    );
+                  } else {
+                    return (
+                      <Badge className="mr-2" key={i.cubeTypeId}>
+                        {i.cubeType.name}
+                      </Badge>
+                    );
+                  }
+                })}
             </TableCell>
           </TableRow>
           <TableRow>
@@ -158,42 +159,44 @@ export default function CompetitionShowPage() {
               )}
             </TableHead>
             <TableCell className="p-0">
-              {Object.keys(groupedAgeGroups).map((key) => (
+              {Object.entries(groupedAgeGroups).map(([key, value]) => (
                 <ul key={key}>
                   <h2 className="py-2 text-center text-2xl">
                     {key} шооны насны ангилал
                   </h2>
-                  {groupedAgeGroups[key]?.map((item) => (
-                    <li
-                      key={"age-group" + item.id}
-                      className="space-x-4 p-2 even:bg-gray-200"
-                    >
-                      <span>
-                        {item.start === item.end
-                          ? `${item.name} ${item.start} онд төрсөн`
-                          : item.end
-                            ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
-                            : `${item.name} ${item.start} оноос өмнө төрсөн`}{" "}
-                      </span>
-                      {session?.user.isAdmin && (
-                        <>
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setSelected(item.id);
-                              setIsOpen(true);
-                            }}
-                          >
-                            Засах
-                          </Button>
-                          <DeleteButton
-                            size="sm"
-                            onConfirm={() => deleteAgeGroup(item.id)}
-                          />
-                        </>
-                      )}
-                    </li>
-                  ))}
+                  {value
+                    ?.sort((a, b) => a.order - b.order)
+                    .map((item) => (
+                      <li
+                        key={"age-group" + item.id}
+                        className="space-x-4 p-2 even:bg-gray-200"
+                      >
+                        <span>
+                          {item.start === item.end
+                            ? `${item.name} ${item.start} онд төрсөн`
+                            : item.end
+                              ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
+                              : `${item.name} ${item.start} оноос өмнө төрсөн`}{" "}
+                        </span>
+                        {session?.user.isAdmin && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                setSelected(item.id);
+                                setIsOpen(true);
+                              }}
+                            >
+                              Засах
+                            </Button>
+                            <DeleteButton
+                              size="sm"
+                              onConfirm={() => deleteAgeGroup(item.id)}
+                            />
+                          </>
+                        )}
+                      </li>
+                    ))}
                 </ul>
               ))}
             </TableCell>

@@ -2,14 +2,6 @@ import { RouterOutputs, api } from "~/utils/api";
 import CompetitionLayout from "../layout";
 import { useRouter } from "next/router";
 import { useMemo, useState } from "react";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "~/components/ui/table";
 import { Button } from "~/components/ui/button";
 import { useSession } from "next-auth/react";
 import { toast } from "~/components/ui/use-toast";
@@ -65,7 +57,7 @@ export default function RegistrationsPage() {
   const cubeTypes = useMemo(() => {
     const res = competition?.competitionsToCubeTypes
       .map((item) => item.cubeType)
-      .sort((cubeType) => cubeType.order);
+      .sort((a, b) => a.order - b.order);
     return res || [];
   }, [competition?.competitionsToCubeTypes]);
 

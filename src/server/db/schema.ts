@@ -267,6 +267,7 @@ export const ageGroups = createTable("age_groups", {
   name: varchar("name").notNull(),
   start: integer("start").notNull(),
   end: integer("end"),
+  order: real("order").notNull().default(1),
   competitionId: integer("competition_id")
     .notNull()
     .references(() => competitions.id),

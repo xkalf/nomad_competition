@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_age_groups" ADD COLUMN "order" real DEFAULT 1 NOT NULL;

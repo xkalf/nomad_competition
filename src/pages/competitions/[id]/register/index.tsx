@@ -151,7 +151,8 @@ export default function CompetitionRegisterPage() {
       ?.filter(
         (cubeType) =>
           !competition.fees?.map((fee) => fee.cubeTypeId).includes(cubeType.id),
-      );
+      )
+      .sort((a, b) => a.order - b.order);
     return filtered || [];
   }, [competition]);
 
@@ -191,7 +192,7 @@ export default function CompetitionRegisterPage() {
       </p>
       <p className="mt-2 text-lg">Бусад төрлүүд нэмэлт хураамжтай ба үүнд:</p>
       {competition?.fees
-        .sort((i) => i.cubeType.order)
+        .sort((a, b) => a.cubeType.order - b.cubeType.order)
         .map((fee) => (
           <p key={"fee" + fee.id}>
             - {fee.cubeType.name} = {fee.amount}₮
