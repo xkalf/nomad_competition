@@ -183,13 +183,13 @@ export default function CompetitionRegisterPage() {
     <CompetitionLayout>
       <h1 className="mb-4 text-4xl capitalize">Бүртгүүлэх хүсэлт</h1>
       <p className="text-lg">
-        Бүртгэлийн суурь хураамж {competition?.baseFee} ба үүнд:
+        Бүртгэлийн суурь хураамж {competition?.baseFee}₮ ба үүнд:
       </p>
       <p>
         - {freeTypes.map((i) => i.name).join(", ")}(шооны {freeTypes.length}{" "}
         төрөл багтана.)
       </p>
-      <p className="text-lg">Бусад төрлүүд нэмэлт хураамжтай ба үүнд:</p>
+      <p className="mt-2 text-lg">Бусад төрлүүд нэмэлт хураамжтай ба үүнд:</p>
       {competition?.fees
         .sort((i) => i.cubeType.order)
         .map((fee) => (

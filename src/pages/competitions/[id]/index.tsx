@@ -88,15 +88,15 @@ export default function CompetitionShowPage() {
         <TableBody>
           <TableRow>
             <TableHead>Төрөл</TableHead>
-            <TableCell className="space-y-1 md:space-y-2">
+            <TableCell className="flex gap-1 md:gap-2">
               {data.competitionsToCubeTypes.map((i) => {
                 if (i.cubeType.image) {
                   return (
                     <Image
                       src={getImageUrl(i.cubeType.image) || ""}
                       alt={i.cubeType.name}
-                      width={50}
-                      height={50}
+                      width={40}
+                      height={40}
                       key={i.cubeTypeId}
                     />
                   );

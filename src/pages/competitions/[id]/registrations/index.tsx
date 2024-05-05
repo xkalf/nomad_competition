@@ -1,7 +1,7 @@
-import { api } from "~/utils/api";
+import { RouterOutputs, api } from "~/utils/api";
 import CompetitionLayout from "../layout";
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Table,
   TableBody,
@@ -13,6 +13,13 @@ import {
 import { Button } from "~/components/ui/button";
 import { useSession } from "next-auth/react";
 import { toast } from "~/components/ui/use-toast";
+import Image from "next/image";
+import { getImageUrl } from "~/utils/supabase";
+import { ColumnDef } from "@tanstack/react-table";
+import { DataTable } from "./data-table";
+import { ArrowUpDownIcon } from "lucide-react";
+
+type Competitor = RouterOutputs["competitor"]["getByCompetitionId"][number];
 
 export default function RegistrationsPage() {
   const router = useRouter();
@@ -24,6 +31,9 @@ export default function RegistrationsPage() {
     router.query.isVerified === "true" ? true : false,
   );
 
+  const { data: competition } = api.competition.getById.useQuery(id, {
+    enabled: id > 0,
+  });
   const { data } = api.competitor.getByCompetitionId.useQuery(
     {
       competitionId: id,
@@ -52,9 +62,117 @@ export default function RegistrationsPage() {
     },
   });
 
+  const cubeTypes = useMemo(() => {
+    const res = competition?.competitionsToCubeTypes
+      .map((item) => item.cubeType)
+      .sort((cubeType) => cubeType.order);
+    return res || [];
+  }, [competition?.competitionsToCubeTypes]);
+
+  const columns: ColumnDef<Competitor>[] = [
+    {
+      accessorKey: "user.firstname",
+      header: "Нэр",
+    },
+    {
+      accessorKey: "user.lastname",
+      header: "Овог",
+    },
+    {
+      accessorKey: "user.wcaId",
+      header: "WCA ID",
+    },
+    {
+      accessorKey: "user.birthDate",
+      header: ({ column }) => (
+        <Button
+          variant={"ghost"}
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Он
+          <ArrowUpDownIcon className="ml-2 h-3 w-3" />
+        </Button>
+      ),
+      cell: ({ row }) => {
+        return row.original.user.birthDate.slice(0, 4);
+      },
+    },
+    ...cubeTypes
+      .sort((cubeType) => cubeType.order)
+      .map(
+        (cubeType): ColumnDef<Competitor> => ({
+          accessorKey: "competitorsToCubeTypes." + cubeType.id,
+          header: ({ column }) => (
+            <Button
+              variant={"ghost"}
+              onClick={() => {
+                column.toggleSorting(column.getIsSorted() === "asc");
+              }}
+            >
+              <Image
+                src={getImageUrl(cubeType.image) || ""}
+                alt={cubeType.name}
+                width={20}
+                height={20}
+              />
+              <ArrowUpDownIcon className="ml-2 h-3 w-3" />
+            </Button>
+          ),
+          cell: ({ row }) => {
+            const result = row.original.competitorsToCubeTypes;
+            const found = result.find((i) => i.cubeTypeId === cubeType.id);
+
+            if (found) {
+              return (
+                <Image
+                  src={getImageUrl(cubeType.image) || ""}
+                  alt={cubeType.name}
+                  width={20}
+                  height={20}
+                />
+              );
+            }
+          },
+          sortingFn: (rowA, rowB) => {
+            const a = rowA.original.competitorsToCubeTypes.find(
+              (i) => i.cubeTypeId === cubeType.id,
+            );
+            const b = rowB.original.competitorsToCubeTypes.find(
+              (i) => i.cubeTypeId === cubeType.id,
+            );
+
+            if (!a) return 1;
+            if (!b) return -1;
+            return 0;
+          },
+        }),
+      ),
+    ...(session?.user.isAdmin && !isVerified
+      ? [
+        {
+          accessorKey: "action",
+          header: "Үйлдэл",
+          cell: ({ row }: any) => {
+            if (!session?.user.isAdmin || isVerified) return <></>;
+
+            return (
+              <Button
+                onClick={() => {
+                  verify(row.original.id);
+                }}
+              >
+                Баталгаажуулах
+              </Button>
+            );
+          },
+        },
+      ]
+      : []),
+  ];
+
   return (
     <CompetitionLayout>
-      <div className="flex flex-col justify-between md:flex-row">
+      <div className="mb-4 flex flex-col justify-between md:flex-row">
         <h1 className="text-4xl">
           {isVerified ? "Баталгаажсан" : "Хүлээлгийн"} тамирчид
         </h1>
@@ -65,39 +183,7 @@ export default function RegistrationsPage() {
           {isVerified ? "Хүлээлгийн" : "Баталгаажсан"} тамирчид
         </Button>
       </div>
-      <Table className="mt-4">
-        <TableHeader>
-          <TableRow>
-            <TableHead>Нэр</TableHead>
-            <TableHead>Овог</TableHead>
-            <TableHead>WCA ID</TableHead>
-            <TableHead>Он</TableHead>
-            <TableHead>Төрлүүд</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {data?.map((item) => (
-            <TableRow key={item.id} className="odd:bg-gray-200">
-              <TableCell>{item.user.firstname}</TableCell>
-              <TableCell>{item.user.lastname}</TableCell>
-              <TableCell>{item.user.wcaId}</TableCell>
-              <TableCell>{item.user.birthDate.slice(0, 4)}</TableCell>
-              <TableCell>
-                {item.competitorsToCubeTypes
-                  .map((i) => i.cubeType.name)
-                  .join(" ")}
-              </TableCell>
-              {!item.verifiedAt && session?.user.isAdmin && (
-                <TableCell>
-                  <Button onClick={() => verify(item.id)}>
-                    Баталгаажуулах
-                  </Button>
-                </TableCell>
-              )}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <DataTable columns={columns} data={data || []} />
     </CompetitionLayout>
   );
 }

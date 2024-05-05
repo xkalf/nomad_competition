@@ -83,7 +83,8 @@ export const authOptions: NextAuthOptions = {
         if (!credentials) return null;
 
         const user = await db.query.users.findFirst({
-          where: (t, { eq }) => eq(t.email, credentials?.email),
+          where: (t, { eq }) =>
+            eq(t.email, credentials?.email.trim().toLowerCase()),
         });
 
         if (!user) return null;

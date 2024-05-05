@@ -27,21 +27,26 @@ export const registerSchema = createInsertSchema(users, {
       .min(2, {
         message: "Хамгийн багадаа 2 тэмдэгт байх ёстой",
       })
-      .regex(/^[А-Яа-яёЁҮүӨөІі]+$/, {
+      .regex(/^[А-Яа-яёЁҮүӨөІі\s-]+$/, {
         message: "Зөвхөн кирилл үсгээр бичнэ үү",
-      }),
+      })
+      .trim(),
   lastname: (t) =>
     t.lastname
       .min(2, {
         message: "Хамгийн багадаа 2 тэмдэгт байх ёстой",
       })
-      .regex(/^[А-Яа-яёЁҮүӨөІі]+$/, {
+      .regex(/^[А-Яа-яёЁҮүӨөІі\s-]+$/, {
         message: "Зөвхөн кирилл үсгээр бичнэ үү",
-      }),
+      })
+      .trim(),
   email: (t) =>
-    t.email.email({
-      message: "Зөв имэйл хаяг оруулна уу. abc@example.com",
-    }),
+    t.email
+      .email({
+        message: "Зөв имэйл хаяг оруулна уу. abc@example.com",
+      })
+      .trim()
+      .toLowerCase(),
   password: (t) =>
     t.password.min(6, {
       message: "Нууц үг хамгийн багадаа 6 тэмдэгтээс их байх ёстой",
