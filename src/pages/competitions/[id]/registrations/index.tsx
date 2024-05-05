@@ -71,6 +71,7 @@ export default function RegistrationsPage() {
             <TableHead>Нэр</TableHead>
             <TableHead>Овог</TableHead>
             <TableHead>WCA ID</TableHead>
+            <TableHead>Он</TableHead>
             <TableHead>Төрлүүд</TableHead>
           </TableRow>
         </TableHeader>
@@ -80,6 +81,7 @@ export default function RegistrationsPage() {
               <TableCell>{item.user.firstname}</TableCell>
               <TableCell>{item.user.lastname}</TableCell>
               <TableCell>{item.user.wcaId}</TableCell>
+              <TableCell>{item.user.birthDate.slice(0, 4)}</TableCell>
               <TableCell>
                 {item.competitorsToCubeTypes
                   .map((i) => i.cubeType.name)

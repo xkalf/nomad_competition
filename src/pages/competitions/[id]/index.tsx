@@ -95,6 +95,8 @@ export default function CompetitionShowPage() {
                     <Image
                       src={getImageUrl(i.cubeType.image) || ""}
                       alt={i.cubeType.name}
+                      width={50}
+                      height={50}
                       key={i.cubeTypeId}
                     />
                   );

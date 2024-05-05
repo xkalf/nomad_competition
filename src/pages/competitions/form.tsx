@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { createCompetitionSchema } from "~/utils/zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -20,6 +19,7 @@ import { useEffect } from "react";
 import { MultiSelect } from "~/components/ui/multi-select";
 import { mnFormat } from "~/utils/date";
 import { ScrollArea } from "~/components/ui/scroll-area";
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 
 type Current = RouterOutputs["competition"]["getAll"][number];
 
@@ -102,18 +102,18 @@ export default function CompetitionCreateForm({
     form.reset(
       current
         ? {
-            ...current,
-            startDate: mnFormat(current?.startDate),
-            endDate: mnFormat(current?.endDate),
-            cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
-          }
+          ...current,
+          startDate: mnFormat(current?.startDate),
+          endDate: mnFormat(current?.endDate),
+          cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
+        }
         : defaultValues,
     );
   }, [current, form]);
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
         <Button
           onClick={() => {
             setIsOpen(true);
@@ -122,11 +122,14 @@ export default function CompetitionCreateForm({
         >
           Шинэ тэмцээн бүртгэх
         </Button>
-      </SheetTrigger>
-      <SheetContent>
+      </DialogTrigger>
+      <DialogContent className="max-w-4xl">
         <Form {...form}>
-          <ScrollArea className="h-[1080px] overflow-y-auto">
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+          <ScrollArea className="max-h-max overflow-y-auto">
+            <form
+              onSubmit={form.handleSubmit(onSubmit)}
+              className="grid grid-cols-2 gap-x-8 gap-y-4"
+            >
               <FormField
                 control={form.control}
                 name="name"
@@ -353,7 +356,7 @@ export default function CompetitionCreateForm({
             </form>
           </ScrollArea>
         </Form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

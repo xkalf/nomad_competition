@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { randomUUID } from "crypto";
 import { ChangeEvent } from "react";
 import { env } from "~/env";
 
@@ -28,7 +29,7 @@ export const handleFileUpload = async (
     };
   }
 
-  const fileName = `${Date.now()}_${file.name}`;
+  const fileName = `${Date.now()}_${file.name.replace(/\s/g, "_")}`;
   const res = await storage.upload(`${folder}/` + fileName, file);
 
   return res;

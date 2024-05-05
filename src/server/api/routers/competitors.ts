@@ -25,6 +25,7 @@ export const competitorRouter = createTRPCRouter({
               firstname: true,
               lastname: true,
               wcaId: true,
+              birthDate: true,
             },
           },
           competitorsToCubeTypes: {

@@ -129,9 +129,9 @@ export default function CompetitionRegisterPage() {
     current
       ? updateRegister({ id: current.id, ...values })
       : register({
-          ...values,
-          competitionId: +id,
-        });
+        ...values,
+        competitionId: +id,
+      });
   };
 
   const mappedCubeTypes = useMemo(() => {
@@ -163,7 +163,7 @@ export default function CompetitionRegisterPage() {
       current.guestCount < competition.freeGuests
         ? 0
         : (current?.guestCount - competition?.freeGuests) *
-          +competition.guestFee;
+        +competition.guestFee;
     const cubeTypesFee = competition.fees
       .filter((fee) =>
         current.competitorsToCubeTypes
@@ -181,40 +181,27 @@ export default function CompetitionRegisterPage() {
 
   return (
     <CompetitionLayout>
-      <h1 className="text-4xl capitalize">Бүртгүүлэх хүсэлт</h1>
-      <p className="my-4">{competition?.registrationRequirments}</p>
-      {freeTypes?.length > 0 && (
-        <Alert>
-          <div className="flex justify-between text-xl">
-            <p className="text-xl">Суурь хураамж</p>
-            <p>{competition?.baseFee}₮</p>
-          </div>
-          <p className="text-lg">Суурь хураамжид багтсан төрлүүд :</p>
-          <p>{freeTypes.map((type) => type.name).join(" ")}</p>
-        </Alert>
-      )}
-      {competition?.fees?.map((fee) => (
-        <Alert key={fee.id} className="flex justify-between">
-          <p>{fee.cubeType.name}</p>
-          <p>{fee.amount}₮</p>
-        </Alert>
-      ))}
-      <Alert className="flex justify-between">
-        <p>Зочны хураамж</p>
-        <p>
-          {current && competition
-            ? current?.guestCount < competition?.freeGuests
-              ? 0
-              : (current?.guestCount - competition?.freeGuests) *
-                +competition.guestFee
-            : 0}
-          ₮
+      <h1 className="mb-4 text-4xl capitalize">Бүртгүүлэх хүсэлт</h1>
+      <p className="text-lg">
+        Бүртгэлийн суурь хураамж {competition?.baseFee} ба үүнд:
+      </p>
+      <p>
+        - {freeTypes.map((i) => i.name).join(", ")}(шооны {freeTypes.length}{" "}
+        төрөл багтана.)
+      </p>
+      <p className="text-lg">Бусад төрлүүд нэмэлт хураамжтай ба үүнд:</p>
+      {competition?.fees
+        .sort((i) => i.cubeType.order)
+        .map((fee) => (
+          <p key={"fee" + fee.id}>
+            - {fee.cubeType.name} = {fee.amount}₮
+          </p>
+        ))}
+      {competition?.registrationRequirments && (
+        <p className="my-4 rounded-lg border border-red-500 p-4">
+          {competition?.registrationRequirments}
         </p>
-      </Alert>
-      <Alert className="flex justify-between">
-        <p>Нийт хураамж</p>
-        <p>{totalAmount}₮</p>
-      </Alert>
+      )}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-8">
           <FormField
@@ -268,46 +255,41 @@ export default function CompetitionRegisterPage() {
             )}
           />
           <div className="flex justify-center md:justify-start">
-            {totalAmount ===
-            current?.invoices
-              .filter((invoice) => invoice.isPaid)
-              .reduce((a, b) => a + +b.amount, 0) ? (
-              <Alert variant={"success"}>
-                <AlertTitle>Төлбөр төлөгдсөн байна</AlertTitle>
-              </Alert>
+            {session.data?.user.id ? (
+              <Button disabled={registerLoading || updateRegisterLoading}>
+                {current ? "Шинэчлэх" : "Бүртгүүлэх"}
+              </Button>
             ) : (
-              <>
-                {session.data?.user.id ? (
-                  <Button disabled={registerLoading || updateRegisterLoading}>
-                    {current ? "Шинэчлэх" : "Бүртгүүлэх"}
-                  </Button>
-                ) : (
-                  <Alert variant="destructive">
-                    <AlertTitle>
-                      Бүртгүүлэхийн тулд эхэлж нэвтэрж орно уу.
-                    </AlertTitle>
-                  </Alert>
-                )}
-                {session?.data?.user.id && current && (
-                  <>
-                    <Button
-                      className="ml-2"
-                      type="button"
-                      disabled={invoiceLoading || !!qpayResponse}
-                      onClick={() =>
-                        createInvoice({
-                          userId: session.data.user.id,
-                          competitorId: current.id,
-                          amount: totalAmount.toString(),
-                        })
-                      }
-                    >
-                      Төлбөр төлөх
-                    </Button>
-                  </>
-                )}
-              </>
+              <Alert variant="destructive">
+                <AlertTitle>
+                  Бүртгүүлэхийн тулд эхэлж нэвтэрж орно уу.
+                </AlertTitle>
+              </Alert>
             )}
+            {session?.data?.user.id &&
+              current &&
+              current.invoices.reduce((a, b) => a + +b.amount, 0) <
+              totalAmount && (
+                <>
+                  <Button
+                    className="ml-2"
+                    type="button"
+                    disabled={invoiceLoading || !!qpayResponse}
+                    onClick={() =>
+                      createInvoice({
+                        userId: session.data.user.id,
+                        competitorId: current.id,
+                        amount: (
+                          totalAmount -
+                          current.invoices.reduce((a, b) => a + +b.amount, 0)
+                        ).toString(),
+                      })
+                    }
+                  >
+                    Төлбөр төлөх
+                  </Button>
+                </>
+              )}
           </div>
         </form>
       </Form>

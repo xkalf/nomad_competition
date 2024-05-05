@@ -1,8 +1,9 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "~/components/ui/button";
+import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -12,7 +13,6 @@ import {
   FormMessage,
 } from "~/components/ui/form";
 import { Input } from "~/components/ui/input";
-import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { toast } from "~/components/ui/use-toast";
 import { cubeTypes } from "~/server/db/schema";
 import { api } from "~/utils/api";
@@ -36,6 +36,7 @@ export default function CubeTypeForm({
   setIsOpen,
   reset,
 }: Props) {
+  const [isLoading, setIsLoading] = useState(false);
   const utils = api.useUtils();
   const { mutate: create, isLoading: createLoading } =
     api.cubeTypes.create.useMutation({
@@ -86,8 +87,8 @@ export default function CubeTypeForm({
   }, [form, current]);
 
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-      <SheetTrigger asChild>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
         <Button
           onClick={() => {
             setIsOpen(true);
@@ -96,8 +97,8 @@ export default function CubeTypeForm({
         >
           Шооны төрөл
         </Button>
-      </SheetTrigger>
-      <SheetContent>
+      </DialogTrigger>
+      <DialogContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
             <FormField
@@ -141,6 +142,7 @@ export default function CubeTypeForm({
                       type="file"
                       accept="image/*"
                       onChange={async (e) => {
+                        setIsLoading(true);
                         const { data, error } = await handleFileUpload(
                           e,
                           "cube-types",
@@ -155,6 +157,8 @@ export default function CubeTypeForm({
                             variant: "destructive",
                           });
                         }
+
+                        setIsLoading(false);
                       }}
                     />
                   </FormControl>
@@ -162,12 +166,15 @@ export default function CubeTypeForm({
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={createLoading || updateLoading}>
+            <Button
+              type="submit"
+              disabled={createLoading || updateLoading || isLoading}
+            >
               Хадгалах
             </Button>
           </form>
         </Form>
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }
