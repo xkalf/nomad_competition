@@ -8,8 +8,8 @@ import { toast } from "~/components/ui/use-toast";
 import Image from "next/image";
 import { getImageUrl } from "~/utils/supabase";
 import { ColumnDef } from "@tanstack/react-table";
-import { DataTable } from "./data-table";
 import { ArrowUpDownIcon } from "lucide-react";
+import DataTable from "~/components/data-table/data-table";
 
 type Competitor = RouterOutputs["competitor"]["getByCompetitionId"][number];
 
