@@ -1,4 +1,4 @@
-import { count, eq, inArray, sql } from "drizzle-orm";
+import { and, count, eq, inArray, sql } from "drizzle-orm";
 import { z } from "zod";
 import {
   adminProcedure,
@@ -158,10 +158,11 @@ export const competitionRouter = createTRPCRouter({
     .input(getUpdateSchema(competitionRegisterSchema))
     .mutation(async ({ ctx, input: { cubeTypes, ...input } }) => {
       await ctx.db.transaction(async (t) => {
-        await t
+        const [res] = await t
           .update(competitors)
           .set(input)
-          .where(eq(competitors.id, input.id));
+          .where(eq(competitors.id, input.id))
+          .returning();
 
         const currentCubeTypes = await t.query.competitorsToCubeTypes.findMany({
           where: (table, { eq }) => eq(table.competitorId, input.id),
@@ -178,13 +179,35 @@ export const competitionRouter = createTRPCRouter({
           await t
             .delete(competitorsToCubeTypes)
             .where(inArray(competitorsToCubeTypes, toDelete));
-        if (toInsert && toInsert?.length > 0)
+        if (toInsert && toInsert?.length > 0) {
           await t.insert(competitorsToCubeTypes).values(
             toInsert.map((cubeType) => ({
               cubeTypeId: cubeType,
               competitorId: input.id,
             })),
           );
+
+          if (res?.verifiedAt) {
+            const cubeTypes = await t.query.fees.findMany({
+              where: and(
+                eq(competitorsToCubeTypes.competitorId, input.id),
+                inArray(
+                  competitorsToCubeTypes.cubeTypeId,
+                  toInsert.map((i) => i),
+                ),
+              ),
+            });
+
+            if (cubeTypes.reduce((acc, i) => acc + +i.amount, 0) > 0) {
+              await t
+                .update(competitors)
+                .set({
+                  verifiedAt: null,
+                })
+                .where(eq(competitors.id, input.id));
+            }
+          }
+        }
       });
     }),
   getRegisterByCompetitionId: protectedProcedure
