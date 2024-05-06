@@ -11,6 +11,7 @@ import {
   competitionsToCubeType,
   competitors,
   competitorsToCubeTypes,
+  fees,
 } from "~/server/db/schema";
 import {
   competitionRegisterSchema,
@@ -175,10 +176,11 @@ export const competitionRouter = createTRPCRouter({
           (i) => !currentCubeTypes.map((j) => j.cubeTypeId).includes(i),
         );
 
-        if (toDelete.length > 0)
+        if (toDelete.length > 0) {
           await t
             .delete(competitorsToCubeTypes)
-            .where(inArray(competitorsToCubeTypes, toDelete));
+            .where(inArray(competitorsToCubeTypes.cubeTypeId, toDelete));
+        }
         if (toInsert && toInsert?.length > 0) {
           await t.insert(competitorsToCubeTypes).values(
             toInsert.map((cubeType) => ({
@@ -188,15 +190,20 @@ export const competitionRouter = createTRPCRouter({
           );
 
           if (res?.verifiedAt) {
-            const cubeTypes = await t.query.fees.findMany({
-              where: and(
-                eq(competitorsToCubeTypes.competitorId, input.id),
-                inArray(
-                  competitorsToCubeTypes.cubeTypeId,
-                  toInsert.map((i) => i),
+            const cubeTypes = await t
+              .select({
+                amount: fees.amount,
+              })
+              .from(fees)
+              .where(
+                and(
+                  eq(fees.competitionId, res.competitionId),
+                  inArray(
+                    fees.cubeTypeId,
+                    toInsert.map((i) => i),
+                  ),
                 ),
-              ),
-            });
+              );
 
             if (cubeTypes.reduce((acc, i) => acc + +i.amount, 0) > 0) {
               await t
