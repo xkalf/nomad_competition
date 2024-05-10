@@ -20,12 +20,12 @@ async function main() {
     .values(
       competitors.map((competitor) => ({
         competitorId: competitor.id,
-        cubeTypeId: 2,
+        cubeTypeId: 6,
       })),
     )
     .onConflictDoNothing();
 
-  process.exit(1);
+  process.exit(0);
 }
 
 main();
