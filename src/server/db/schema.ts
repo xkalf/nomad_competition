@@ -13,6 +13,7 @@ import {
   text,
   time,
   timestamp,
+  unique,
   varchar,
 } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
@@ -183,19 +184,25 @@ export const competitionsToCubeTypeRelations = relations(
   }),
 );
 
-export const competitors = createTable("competitors", {
-  id: serial("id").primaryKey(),
-  userId: varchar("user_id")
-    .notNull()
-    .references(() => users.id),
-  competitionId: integer("competition_id")
-    .notNull()
-    .references(() => competitions.id),
-  guestCount: integer("guest_count").notNull().default(0),
-  description: varchar("description"),
-  requestedAt: timestamp("requested_at").notNull().defaultNow(),
-  verifiedAt: timestamp("verified_at"),
-});
+export const competitors = createTable(
+  "competitors",
+  {
+    id: serial("id").primaryKey(),
+    userId: varchar("user_id")
+      .notNull()
+      .references(() => users.id),
+    competitionId: integer("competition_id")
+      .notNull()
+      .references(() => competitions.id),
+    guestCount: integer("guest_count").notNull().default(0),
+    description: varchar("description"),
+    requestedAt: timestamp("requested_at").notNull().defaultNow(),
+    verifiedAt: timestamp("verified_at"),
+  },
+  (t) => ({
+    competitionIdUserIdUniq: unique().on(t.competitionId, t.userId),
+  }),
+);
 
 export const competitorsRelations = relations(competitors, ({ one, many }) => ({
   user: one(users, {

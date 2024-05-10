@@ -63,6 +63,11 @@ export default function RegistrationsPage() {
 
   const columns: ColumnDef<Competitor>[] = [
     {
+      accessorKey: 'index',
+      header: 'Дугаар',
+      cell: ({ row }) => row.index + 1
+    },
+    {
       accessorKey: "user.firstname",
       header: "Нэр",
     },
