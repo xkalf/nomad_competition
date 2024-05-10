@@ -179,7 +179,12 @@ export const competitionRouter = createTRPCRouter({
         if (toDelete.length > 0) {
           await t
             .delete(competitorsToCubeTypes)
-            .where(inArray(competitorsToCubeTypes.cubeTypeId, toDelete));
+            .where(
+              and(
+                inArray(competitorsToCubeTypes.cubeTypeId, toDelete),
+                eq(competitorsToCubeTypes.competitorId, input.id),
+              ),
+            );
         }
         if (toInsert && toInsert?.length > 0) {
           await t.insert(competitorsToCubeTypes).values(
