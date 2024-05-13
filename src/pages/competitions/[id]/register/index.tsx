@@ -33,7 +33,6 @@ const defaultValues: z.infer<typeof competitionRegisterSchema> = {
 type InvoiceResponse = RouterOutputs["payment"]["createInvoice"];
 
 export default function CompetitionRegisterPage() {
-  const utils = api.useUtils();
   const router = useRouter();
   const id = parseInt(router.query.id?.toString() || "0");
   const session = useSession();
@@ -49,22 +48,25 @@ export default function CompetitionRegisterPage() {
     },
   );
 
-  const { data: current, isLoading: currentLoading } =
-    api.competition.getRegisterByCompetitionId.useQuery(+id, {
-      enabled: +id > 0,
-      onSuccess: (data) => {
-        if (!data) return;
-        form.reset({
-          competitionId: data?.competitionId,
-          cubeTypes: data?.competitorsToCubeTypes.map((i) => i.cubeTypeId),
-          guestCount: data?.guestCount,
-        });
-      },
-    });
+  const {
+    data: current,
+    isLoading: currentLoading,
+    refetch: currentRefetch,
+  } = api.competition.getRegisterByCompetitionId.useQuery(+id, {
+    enabled: +id > 0,
+    onSuccess: (data) => {
+      if (!data) return;
+      form.reset({
+        competitionId: data?.competitionId,
+        cubeTypes: data?.competitorsToCubeTypes.map((i) => i.cubeTypeId),
+        guestCount: data?.guestCount,
+      });
+    },
+  });
   const { mutate: register, isLoading: registerLoading } =
     api.competition.register.useMutation({
       onSuccess: () => {
-        utils.competition.getRegisterByCompetitionId.invalidate();
+        currentRefetch();
         toast({
           title: "Амжилттай бүртгэгдлээ.",
         });
@@ -80,7 +82,7 @@ export default function CompetitionRegisterPage() {
   const { mutate: updateRegister, isLoading: updateRegisterLoading } =
     api.competition.updateRegister.useMutation({
       onSuccess: () => {
-        utils.competition.getRegisterByCompetitionId.invalidate();
+        currentRefetch();
         toast({
           title: "Амжилттай шинэчлэгдлээ.",
         });
@@ -203,6 +205,16 @@ export default function CompetitionRegisterPage() {
           {competition?.registrationRequirments}
         </p>
       )}
+      <p className="mt-2 text-lg">
+        Зочны мандатны хураамж = {competition?.guestFee}₮
+      </p>
+      <p className="mt-2 text-lg">
+        Хаанбанк данс: 5085536671 Данс эзэмшигч: Н.Сэргэлэнбат
+      </p>
+      <p>
+        Гүйлгээний утга: Тамирчны овог нэр, холбоо барих дугаарыг заавал бична
+        үү,
+      </p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-8">
           <FormField
