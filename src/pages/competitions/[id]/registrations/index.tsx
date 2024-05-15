@@ -63,17 +63,33 @@ export default function RegistrationsPage() {
 
   const columns: ColumnDef<Competitor>[] = [
     {
-      accessorKey: 'index',
-      header: 'Дугаар',
-      cell: ({ row }) => row.index + 1
+      accessorKey: "index",
+      header: "Дугаар",
+      cell: ({ row }) => row.index + 1,
     },
     {
       accessorKey: "user.firstname",
-      header: "Нэр",
+      header: ({ column }) => (
+        <Button
+          variant={"ghost"}
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Нэр
+          <ArrowUpDownIcon className="ml-2 h-3 w-3" />
+        </Button>
+      ),
     },
     {
       accessorKey: "user.lastname",
-      header: "Овог",
+      header: ({ column }) => (
+        <Button
+          variant={"ghost"}
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Овог
+          <ArrowUpDownIcon className="ml-2 h-3 w-3" />
+        </Button>
+      ),
     },
     {
       accessorKey: "user.wcaId",
