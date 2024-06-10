@@ -349,3 +349,25 @@ export const feesRelation = relations(fees, ({ one }) => ({
     references: [competitions.id],
   }),
 }));
+
+export const resultType = pgEnum("result_type", ["ao5", "ao3"]);
+
+export const results = createTable("results", {
+  id: serial("id").primaryKey(),
+  solve1: integer("solve1").notNull(),
+  solve2: integer("solve2").notNull(),
+  solve3: integer("solve3").notNull(),
+  solve4: integer("solve4"),
+  solve5: integer("solve5"),
+  best: integer("best").notNull(),
+  type: resultType("type").notNull(),
+  cubeTypeId: integer("cube_type_id")
+    .notNull()
+    .references(() => cubeTypes.id),
+  competitionId: integer("competition_id")
+    .notNull()
+    .references(() => competitions.id),
+  competitorId: integer("competitor_id")
+    .notNull()
+    .references(() => competitors.id),
+});

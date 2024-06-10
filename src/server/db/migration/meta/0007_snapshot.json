@@ -1,4 +1,6 @@
 {
+  "id": "651fb199-42ff-43f7-8842-ddf1fd461f0d",
+  "prevId": "cb06b3c1-567f-4ce8-a60b-e855d092e361",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -75,6 +77,7 @@
       },
       "indexes": {
         "account_userId_idx": {
+          "name": "account_userId_idx",
           "columns": [
             {
               "expression": "userId",
@@ -83,26 +86,25 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "account_userId_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "nomad_competition_account_userId_nomad_competition_user_id_fk": {
           "name": "nomad_competition_account_userId_nomad_competition_user_id_fk",
           "tableFrom": "nomad_competition_account",
+          "tableTo": "nomad_competition_user",
           "columnsFrom": [
             "userId"
           ],
-          "tableTo": "nomad_competition_user",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -169,28 +171,28 @@
         "nomad_competition_age_groups_competition_id_nomad_competition_competitions_id_fk": {
           "name": "nomad_competition_age_groups_competition_id_nomad_competition_competitions_id_fk",
           "tableFrom": "nomad_competition_age_groups",
+          "tableTo": "nomad_competition_competitions",
           "columnsFrom": [
             "competition_id"
           ],
-          "tableTo": "nomad_competition_competitions",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "nomad_competition_age_groups_cube_type_id_nomad_competition_cube_types_id_fk": {
           "name": "nomad_competition_age_groups_cube_type_id_nomad_competition_cube_types_id_fk",
           "tableFrom": "nomad_competition_age_groups",
+          "tableTo": "nomad_competition_cube_types",
           "columnsFrom": [
             "cube_type_id"
           ],
-          "tableTo": "nomad_competition_cube_types",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -315,28 +317,28 @@
         "nomad_competition_competitions_to_cube_type_cube_type_id_nomad_competition_cube_types_id_fk": {
           "name": "nomad_competition_competitions_to_cube_type_cube_type_id_nomad_competition_cube_types_id_fk",
           "tableFrom": "nomad_competition_competitions_to_cube_type",
+          "tableTo": "nomad_competition_cube_types",
           "columnsFrom": [
             "cube_type_id"
           ],
-          "tableTo": "nomad_competition_cube_types",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "nomad_competition_competitions_to_cube_type_competition_id_nomad_competition_competitions_id_fk": {
           "name": "nomad_competition_competitions_to_cube_type_competition_id_nomad_competition_competitions_id_fk",
           "tableFrom": "nomad_competition_competitions_to_cube_type",
+          "tableTo": "nomad_competition_competitions",
           "columnsFrom": [
             "competition_id"
           ],
-          "tableTo": "nomad_competition_competitions",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -404,32 +406,41 @@
         "nomad_competition_competitors_user_id_nomad_competition_user_id_fk": {
           "name": "nomad_competition_competitors_user_id_nomad_competition_user_id_fk",
           "tableFrom": "nomad_competition_competitors",
+          "tableTo": "nomad_competition_user",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "nomad_competition_user",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "nomad_competition_competitors_competition_id_nomad_competition_competitions_id_fk": {
           "name": "nomad_competition_competitors_competition_id_nomad_competition_competitions_id_fk",
           "tableFrom": "nomad_competition_competitors",
+          "tableTo": "nomad_competition_competitions",
           "columnsFrom": [
             "competition_id"
           ],
-          "tableTo": "nomad_competition_competitions",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
-      "uniqueConstraints": {}
+      "uniqueConstraints": {
+        "nomad_competition_competitors_competition_id_user_id_unique": {
+          "name": "nomad_competition_competitors_competition_id_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "competition_id",
+            "user_id"
+          ]
+        }
+      }
     },
     "public.nomad_competition_competitors_to_cube_types": {
       "name": "nomad_competition_competitors_to_cube_types",
@@ -453,28 +464,28 @@
         "nomad_competition_competitors_to_cube_types_competitor_id_nomad_competition_competitors_id_fk": {
           "name": "nomad_competition_competitors_to_cube_types_competitor_id_nomad_competition_competitors_id_fk",
           "tableFrom": "nomad_competition_competitors_to_cube_types",
+          "tableTo": "nomad_competition_competitors",
           "columnsFrom": [
             "competitor_id"
           ],
-          "tableTo": "nomad_competition_competitors",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "nomad_competition_competitors_to_cube_types_cube_type_id_nomad_competition_cube_types_id_fk": {
           "name": "nomad_competition_competitors_to_cube_types_cube_type_id_nomad_competition_cube_types_id_fk",
           "tableFrom": "nomad_competition_competitors_to_cube_types",
+          "tableTo": "nomad_competition_cube_types",
           "columnsFrom": [
             "cube_type_id"
           ],
-          "tableTo": "nomad_competition_cube_types",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
@@ -558,28 +569,28 @@
         "nomad_competition_fees_cube_type_id_nomad_competition_cube_types_id_fk": {
           "name": "nomad_competition_fees_cube_type_id_nomad_competition_cube_types_id_fk",
           "tableFrom": "nomad_competition_fees",
+          "tableTo": "nomad_competition_cube_types",
           "columnsFrom": [
             "cube_type_id"
           ],
-          "tableTo": "nomad_competition_cube_types",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "nomad_competition_fees_competition_id_nomad_competition_competitions_id_fk": {
           "name": "nomad_competition_fees_competition_id_nomad_competition_competitions_id_fk",
           "tableFrom": "nomad_competition_fees",
+          "tableTo": "nomad_competition_competitions",
           "columnsFrom": [
             "competition_id"
           ],
-          "tableTo": "nomad_competition_competitions",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -632,28 +643,28 @@
         "nomad_competition_invoices_competitor_id_nomad_competition_competitors_id_fk": {
           "name": "nomad_competition_invoices_competitor_id_nomad_competition_competitors_id_fk",
           "tableFrom": "nomad_competition_invoices",
+          "tableTo": "nomad_competition_competitors",
           "columnsFrom": [
             "competitor_id"
           ],
-          "tableTo": "nomad_competition_competitors",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         },
         "nomad_competition_invoices_user_id_nomad_competition_user_id_fk": {
           "name": "nomad_competition_invoices_user_id_nomad_competition_user_id_fk",
           "tableFrom": "nomad_competition_invoices",
+          "tableTo": "nomad_competition_user",
           "columnsFrom": [
             "user_id"
           ],
-          "tableTo": "nomad_competition_user",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -666,6 +677,7 @@
         "type": {
           "name": "type",
           "type": "payment_type",
+          "typeSchema": "public",
           "primaryKey": true,
           "notNull": true
         },
@@ -700,12 +712,129 @@
       "uniqueConstraints": {
         "nomad_competition_qpay_type_unique": {
           "name": "nomad_competition_qpay_type_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "type"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
+    },
+    "public.nomad_competition_results": {
+      "name": "nomad_competition_results",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "solve1": {
+          "name": "solve1",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "solve2": {
+          "name": "solve2",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "solve3": {
+          "name": "solve3",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "solve4": {
+          "name": "solve4",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "solve5": {
+          "name": "solve5",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "best": {
+          "name": "best",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "result_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cube_type_id": {
+          "name": "cube_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competition_id": {
+          "name": "competition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competitor_id": {
+          "name": "competitor_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_results_cube_type_id_nomad_competition_cube_types_id_fk": {
+          "name": "nomad_competition_results_cube_type_id_nomad_competition_cube_types_id_fk",
+          "tableFrom": "nomad_competition_results",
+          "tableTo": "nomad_competition_cube_types",
+          "columnsFrom": [
+            "cube_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_results_competition_id_nomad_competition_competitions_id_fk": {
+          "name": "nomad_competition_results_competition_id_nomad_competition_competitions_id_fk",
+          "tableFrom": "nomad_competition_results",
+          "tableTo": "nomad_competition_competitions",
+          "columnsFrom": [
+            "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_results_competitor_id_nomad_competition_competitors_id_fk": {
+          "name": "nomad_competition_results_competitor_id_nomad_competition_competitors_id_fk",
+          "tableFrom": "nomad_competition_results",
+          "tableTo": "nomad_competition_competitors",
+          "columnsFrom": [
+            "competitor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
     },
     "public.nomad_competition_schedules": {
       "name": "nomad_competition_schedules",
@@ -771,15 +900,15 @@
         "nomad_competition_schedules_competition_id_nomad_competition_competitions_id_fk": {
           "name": "nomad_competition_schedules_competition_id_nomad_competition_competitions_id_fk",
           "tableFrom": "nomad_competition_schedules",
+          "tableTo": "nomad_competition_competitions",
           "columnsFrom": [
             "competition_id"
           ],
-          "tableTo": "nomad_competition_competitions",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -810,6 +939,7 @@
       },
       "indexes": {
         "session_userId_idx": {
+          "name": "session_userId_idx",
           "columns": [
             {
               "expression": "userId",
@@ -818,26 +948,25 @@
               "nulls": "last"
             }
           ],
-          "with": {},
-          "name": "session_userId_idx",
           "isUnique": false,
+          "concurrently": false,
           "method": "btree",
-          "concurrently": false
+          "with": {}
         }
       },
       "foreignKeys": {
         "nomad_competition_session_userId_nomad_competition_user_id_fk": {
           "name": "nomad_competition_session_userId_nomad_competition_user_id_fk",
           "tableFrom": "nomad_competition_session",
+          "tableTo": "nomad_competition_user",
           "columnsFrom": [
             "userId"
           ],
-          "tableTo": "nomad_competition_user",
           "columnsTo": [
             "id"
           ],
-          "onUpdate": "no action",
-          "onDelete": "no action"
+          "onDelete": "no action",
+          "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {},
@@ -922,17 +1051,17 @@
       "uniqueConstraints": {
         "nomad_competition_user_wca_id_unique": {
           "name": "nomad_competition_user_wca_id_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "wca_id"
-          ],
-          "nullsNotDistinct": false
+          ]
         },
         "nomad_competition_user_email_unique": {
           "name": "nomad_competition_user_email_unique",
+          "nullsNotDistinct": false,
           "columns": [
             "email"
-          ],
-          "nullsNotDistinct": false
+          ]
         }
       }
     },
@@ -980,14 +1109,20 @@
       "values": [
         "qpay"
       ]
+    },
+    "public.result_type": {
+      "name": "result_type",
+      "schema": "public",
+      "values": [
+        "ao5",
+        "ao3"
+      ]
     }
   },
   "schemas": {},
   "_meta": {
+    "columns": {},
     "schemas": {},
-    "tables": {},
-    "columns": {}
-  },
-  "id": "29d6719c-a335-4c79-9559-b647029dd5f1",
-  "prevId": "75efbbc0-73bb-457f-9da5-547e93eb0e57"
+    "tables": {}
+  }
 }
