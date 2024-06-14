@@ -28,6 +28,9 @@ export const createTable = pgTableCreator(
   (name) => `nomad_competition_${name}`,
 );
 
+export const resultType = pgEnum("result_type", ["ao5", "ao3"]);
+export type ResultType = (typeof resultType.enumValues)[number];
+
 export const users = createTable("user", {
   id: varchar("id", { length: 255 }).notNull().primaryKey(),
   firstname: varchar("firstname", { length: 255 }).notNull(),
@@ -117,6 +120,7 @@ export const cubeTypes = createTable("cube_types", {
   name: varchar("name").notNull(),
   image: varchar("image"),
   order: real("order").notNull().default(1),
+  type: resultType("type").notNull().default("ao5"),
 });
 
 export const cubeTypesRelations = relations(cubeTypes, ({ many }) => ({
@@ -350,7 +354,25 @@ export const feesRelation = relations(fees, ({ one }) => ({
   }),
 }));
 
-export const resultType = pgEnum("result_type", ["ao5", "ao3"]);
+export const rounds = createTable("rounds", {
+  id: serial("id").primaryKey(),
+  competitionId: integer("competition_id")
+    .notNull()
+    .references(() => competitions.id),
+  cubeTypeId: integer("cube_type_id")
+    .notNull()
+    .references(() => cubeTypes.id),
+  isDuel: boolean("is_duel").default(false),
+  name: varchar("name").notNull(),
+  nextCompetitor: integer("next_competitor").notNull(),
+});
+
+export const roundsRelation = relations(rounds, ({ one }) => ({
+  cubeType: one(cubeTypes, {
+    fields: [rounds.cubeTypeId],
+    references: [cubeTypes.id],
+  }),
+}));
 
 export const results = createTable("results", {
   id: serial("id").primaryKey(),
@@ -360,7 +382,11 @@ export const results = createTable("results", {
   solve4: integer("solve4"),
   solve5: integer("solve5"),
   best: integer("best").notNull(),
+  average: integer("average").notNull(),
   type: resultType("type").notNull(),
+  roundId: integer("round_id")
+    .notNull()
+    .references(() => rounds.id),
   cubeTypeId: integer("cube_type_id")
     .notNull()
     .references(() => cubeTypes.id),
@@ -370,4 +396,10 @@ export const results = createTable("results", {
   competitorId: integer("competitor_id")
     .notNull()
     .references(() => competitors.id),
+  createdUserId: varchar("created_user_id")
+    .notNull()
+    .references(() => users.id),
+  updatedUserId: varchar("updated_user_id")
+    .notNull()
+    .references(() => users.id),
 });

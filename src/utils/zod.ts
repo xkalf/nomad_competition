@@ -7,6 +7,8 @@ import {
   cubeTypes,
   fees,
   invoices,
+  results,
+  rounds,
   schedules,
   users,
 } from "~/server/db/schema";
@@ -93,3 +95,13 @@ export const createInvoiceSchema = createInsertSchema(invoices).omit({
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 
 export const createFeeSchema = createInsertSchema(fees).omit({ id: true });
+
+export const createRoundSchema = createInsertSchema(rounds).omit({ id: true });
+
+export const createResultSchema = createInsertSchema(results).omit({
+  id: true,
+  best: true,
+  average: true,
+  createdUserId: true,
+  updatedUserId: true,
+});

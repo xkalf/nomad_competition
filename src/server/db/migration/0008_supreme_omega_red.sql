@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_results" ADD COLUMN "average" integer NOT NULL;

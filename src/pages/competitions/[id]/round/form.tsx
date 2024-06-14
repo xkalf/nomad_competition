@@ -22,9 +22,9 @@ import {
 import { Sheet, SheetContent, SheetTrigger } from "~/components/ui/sheet";
 import { toast } from "~/components/ui/use-toast";
 import { RouterOutputs, api } from "~/utils/api";
-import { createFeeSchema } from "~/utils/zod";
+import { createRoundSchema } from "~/utils/zod";
 
-type Current = RouterOutputs["fee"]["getByCompetitionId"][number];
+type Current = RouterOutputs["round"]["getByCompetitionId"][number];
 
 interface Props {
   current?: Current;
@@ -34,13 +34,14 @@ interface Props {
   competitionId: number;
 }
 
-const defaultValues: z.infer<typeof createFeeSchema> = {
-  amount: "0",
+const defaultValues: z.infer<typeof createRoundSchema> = {
   competitionId: 0,
   cubeTypeId: 0,
+  name: "",
+  nextCompetitor: 0,
 };
 
-export default function FeeCreateForm({
+export default function RoundForm({
   current,
   reset,
   isOpen,
@@ -55,50 +56,49 @@ export default function FeeCreateForm({
       enabled: competitionId > 0,
     },
   );
-  const { mutate: create, isLoading: createLoading } =
-    api.fee.create.useMutation({
-      onSuccess: () => {
-        utils.fee.getByCompetitionId.invalidate(competitionId);
-        toast({
-          title: "Амжилттай бүртгэгдлээ.",
-        });
-        setIsOpen(false);
-      },
-      onError: (error) => {
-        toast({
-          title: "Алдаа гарлаа",
-          description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
-  const { mutate: update, isLoading: updateLoading } =
-    api.fee.update.useMutation({
-      onSuccess: () => {
-        utils.schedule.getByCompetitionId.invalidate(competitionId);
-        toast({
-          title: "Амжилттай засагдлаа.",
-        });
-        setIsOpen(false);
-      },
-      onError: (error) => {
-        toast({
-          title: "Алдаа гарлаа",
-          description: error.message,
-          variant: "destructive",
-        });
-      },
-    });
 
-  const form = useForm<z.infer<typeof createFeeSchema>>({
-    resolver: zodResolver(createFeeSchema),
+  const { mutate: create } = api.round.create.useMutation({
+    onSuccess: () => {
+      utils.round.getByCompetitionId.invalidate(competitionId);
+      toast({
+        title: "Амжилттай бүртгэгдлээ.",
+      });
+      setIsOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Алдаа гарлаа",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  const { mutate: update } = api.round.update.useMutation({
+    onSuccess: () => {
+      utils.round.getByCompetitionId.invalidate(competitionId);
+      toast({
+        title: "Амжилттай бүртгэгдлээ.",
+      });
+      setIsOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Алдаа гарлаа",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const form = useForm<z.infer<typeof createRoundSchema>>({
+    resolver: zodResolver(createRoundSchema),
     defaultValues: {
       ...defaultValues,
       competitionId,
     },
   });
 
-  const onSubmit = (values: z.infer<typeof createFeeSchema>) => {
+  const onSubmit = (values: z.infer<typeof createRoundSchema>) => {
     current
       ? update({
         id: current.id,
@@ -110,15 +110,13 @@ export default function FeeCreateForm({
   useEffect(() => {
     form.reset(
       current
-        ? {
-          ...current,
-        }
+        ? { ...current }
         : {
           ...defaultValues,
           competitionId,
         },
     );
-  }, [current, form]);
+  }, [current, form, competitionId]);
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -129,12 +127,25 @@ export default function FeeCreateForm({
             reset();
           }}
         >
-          Шинэ бүртгэлийн хураамж бүртгэх
+          Round Бүртгэх
         </Button>
       </SheetTrigger>
       <SheetContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Нэр</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="cubeTypeId"
@@ -165,26 +176,6 @@ export default function FeeCreateForm({
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Үнийн дүн</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      value={field.value}
-                      onChange={(e) => field.onChange(e.target.value)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={createLoading || updateLoading}>
-              Хадгалах
-            </Button>
           </form>
         </Form>
       </SheetContent>
