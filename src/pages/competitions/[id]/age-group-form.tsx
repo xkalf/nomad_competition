@@ -106,9 +106,9 @@ export default function AgeGroupForm({
       current
         ? current
         : {
-            ...defaultValues,
-            competitionId,
-          },
+          ...defaultValues,
+          competitionId,
+        },
     );
   }, [current, form]);
 
