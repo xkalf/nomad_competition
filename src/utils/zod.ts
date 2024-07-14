@@ -114,6 +114,18 @@ export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export const createFeeSchema = createInsertSchema(fees).omit({ id: true });
 
 export const createRoundSchema = createInsertSchema(rounds).omit({ id: true });
+export type CreateRoundInput = z.infer<typeof createRoundSchema>;
+
+export const createRoundManySchema = z.object({
+  data: createInsertSchema(rounds)
+    .omit({
+      id: true,
+      competitionId: true,
+    })
+    .array(),
+  competitionId: z.number().int().positive(),
+});
+export type CreateRoundManyInput = z.infer<typeof createRoundManySchema>;
 
 export const createResultSchema = createInsertSchema(results).omit({
   id: true,

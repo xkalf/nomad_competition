@@ -88,7 +88,7 @@ export default function AgeGroupsForm() {
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "data" as never,
+    name: "data",
   });
 
   const onSubmit = (values: CreateAgeGroupManyInput) => {
@@ -114,7 +114,17 @@ export default function AgeGroupsForm() {
     <Layout>
       <div className="flex gap-4">
         <h1 className="text-3xl font-bold">Насны ангилал бүртгэх</h1>
-        <Button type="button" onClick={append}>
+        <Button
+          type="button"
+          onClick={() =>
+            append({
+              name: "",
+              cubeTypes: [],
+              start: 0,
+              end: 0,
+            })
+          }
+        >
           Нэмэх
         </Button>
       </div>

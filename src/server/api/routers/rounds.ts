@@ -2,7 +2,11 @@ import { z } from "zod";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
 import { rounds } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
-import { createRoundSchema, getUpdateSchema } from "~/utils/zod";
+import {
+  createRoundManySchema,
+  createRoundSchema,
+  getUpdateSchema,
+} from "~/utils/zod";
 
 export const roundsRouter = createTRPCRouter({
   getByCompetitionId: publicProcedure
@@ -21,6 +25,22 @@ export const roundsRouter = createTRPCRouter({
       });
 
       return res;
+    }),
+  createMany: adminProcedure
+    .input(createRoundManySchema)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.transaction(async (db) => {
+        await db
+          .delete(rounds)
+          .where(eq(rounds.competitionId, input.competitionId));
+
+        await db.insert(rounds).values(
+          input.data.map((i) => ({
+            ...i,
+            competitionId: input.competitionId,
+          })),
+        );
+      });
     }),
   create: adminProcedure
     .input(createRoundSchema)
