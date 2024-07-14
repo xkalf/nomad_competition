@@ -92,11 +92,16 @@ export const competitionRouter = createTRPCRouter({
   update: adminProcedure
     .input(getUpdateSchema(createCompetitionSchema))
     .mutation(async ({ ctx, input: { cubeTypes, ...input } }) => {
-      await ctx.db.transaction(async (t) => {
-        await t
+      const res = await ctx.db.transaction(async (t) => {
+        const [res] = await t
           .update(competitions)
           .set(input)
-          .where(eq(competitions.id, input.id));
+          .where(eq(competitions.id, input.id))
+          .returning();
+
+        if (!res) {
+          throw new Error("Тэмцээн олдсонгүй.");
+        }
 
         const currentCubeTypes = await t.query.competitionsToCubeType.findMany({
           where: (table, { eq }) => eq(table.competitionId, input.id),
@@ -121,7 +126,11 @@ export const competitionRouter = createTRPCRouter({
             })),
           );
         }
+
+        return res;
       });
+
+      return res;
     }),
   delete: adminProcedure
     .input(z.number().int().positive())

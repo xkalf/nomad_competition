@@ -6,11 +6,16 @@ import { z } from "zod";
 
 export const cubeTypesRouter = createTRPCRouter({
   getAll: publicProcedure.query(async ({ ctx }) => {
-    const res = await ctx.db.query.cubeTypes.findMany({
-      orderBy: (t) => [t.order],
-    });
+    try {
+      const res = await ctx.db.query.cubeTypes.findMany({
+        orderBy: (t) => [t.order],
+      });
 
-    return res;
+      return res;
+    } catch (err) {
+      console.log(err);
+      return [];
+    }
   }),
   create: adminProcedure
     .input(createCubeTypeSchema)

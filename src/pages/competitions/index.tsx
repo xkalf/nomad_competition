@@ -13,15 +13,12 @@ import {
 } from "~/components/ui/table";
 import { api } from "~/utils/api";
 import { mnFormat } from "~/utils/date";
-import CompetitionCreateForm from "./form";
 import { toast } from "~/components/ui/use-toast";
 import DeleteButton from "~/components/delete-button";
 
 export default function CompetitionsPage() {
   const utils = api.useUtils();
   const [isActive, setIsActive] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(0);
   const { data: session } = useSession();
 
   const { data } = api.competition.getAll.useQuery(isActive);
@@ -47,12 +44,11 @@ export default function CompetitionsPage() {
   return (
     <Layout>
       {session?.user.isAdmin && (
-        <CompetitionCreateForm
-          current={data?.find((i) => i.id === selected)}
-          isOpen={isOpen}
-          setIsOpen={setIsOpen}
-          reset={() => setSelected(0)}
-        />
+        <>
+          <Button asChild>
+            <Link href="/competitions/create">Тэмцээн бүртгэх</Link>
+          </Button>
+        </>
       )}
       <div className="grid grid-cols-2 space-x-4">
         <Button
@@ -93,14 +89,12 @@ export default function CompetitionsPage() {
                 </Button>
                 {session?.user.isAdmin && (
                   <>
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        setSelected(item.id);
-                        setIsOpen(true);
-                      }}
-                    >
-                      Засах
+                    <Button type="button" asChild>
+                      <Link
+                        href={`/competitions/create?competitionId=${item.id}`}
+                      >
+                        Засах
+                      </Link>
                     </Button>
                     <DeleteButton
                       description={`${item.name} тэмцээнийг устгахдаа итгэлтэй байна уу?`}

@@ -1,6 +1,10 @@
 import { z } from "zod";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
-import { createAgeGroupSchema, getUpdateSchema } from "~/utils/zod";
+import {
+  createAgeGroupManySchema,
+  createAgeGroupSchema,
+  getUpdateSchema,
+} from "~/utils/zod";
 import { ageGroups } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
 
@@ -29,6 +33,29 @@ export const ageGroupRouter = createTRPCRouter({
         .update(ageGroups)
         .set(input)
         .where(eq(ageGroups.id, input.id));
+    }),
+  createMany: adminProcedure
+    .input(createAgeGroupManySchema)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.transaction(async (db) => {
+        await db
+          .delete(ageGroups)
+          .where(eq(ageGroups.competitionId, input.competitionId));
+
+        const values: (typeof ageGroups.$inferInsert)[] = input.data.flatMap(
+          (i) => {
+            const cubeTypes = i.cubeTypes;
+
+            return cubeTypes.map((ct) => ({
+              ...i,
+              competitionId: input.competitionId,
+              cubeTypeId: ct,
+            }));
+          },
+        );
+
+        await db.insert(ageGroups).values(values);
+      });
     }),
   delete: adminProcedure.input(z.number()).mutation(async ({ ctx, input }) => {
     await ctx.db.delete(ageGroups).where(eq(ageGroups.id, input));
