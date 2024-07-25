@@ -72,14 +72,26 @@ export default function CompetitionLayout({ children }: Props) {
             <Link href={`/competitions/${id}/schedule`}>Цагийн хуваарь</Link>
           </Button>
           {session.data?.user.isAdmin && (
-            <Button
-              asChild
-              variant={
-                isPage("/competitions/[id]/fees") ? "default" : "outline"
-              }
-            >
-              <Link href={`/competitions/${id}/fees`}>Бүртгэлийн хураамж</Link>
-            </Button>
+            <>
+              <Button
+                asChild
+                variant={
+                  isPage("/competitions/[id]/fees") ? "default" : "outline"
+                }
+              >
+                <Link href={`/competitions/${id}/fees`}>
+                  Бүртгэлийн хураамж
+                </Link>
+              </Button>
+              <Button
+                asChild
+                variant={
+                  isPage("/competitions/[id]/round") ? "default" : "outline"
+                }
+              >
+                <Link href={`/competitions/${id}/round`}>Round</Link>
+              </Button>{" "}
+            </>
           )}
         </div>
         <div className="col-span-4 md:px-4">{children}</div>

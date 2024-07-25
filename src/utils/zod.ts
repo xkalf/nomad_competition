@@ -22,6 +22,7 @@ export const getUpdateSchema = <T extends ZodRawShape>(input: ZodObject<T>) => {
 export const createCompetitionSchema = createInsertSchema(competitions).extend({
   cubeTypes: z.number().int().positive().array(),
 });
+export type CreateCompetitionInput = z.infer<typeof createCompetitionSchema>;
 
 export const registerSchema = createInsertSchema(users, {
   firstname: (t) =>
@@ -88,6 +89,22 @@ export const createScheduleSchema = createInsertSchema(schedules).omit({
 export const createAgeGroupSchema = createInsertSchema(ageGroups).omit({
   id: true,
 });
+export type CreateAgeGroupInput = z.infer<typeof createAgeGroupSchema>;
+
+export const createAgeGroupManySchema = z.object({
+  data: createInsertSchema(ageGroups)
+    .omit({
+      id: true,
+      cubeTypeId: true,
+      competitionId: true,
+    })
+    .extend({
+      cubeTypes: z.number().int().positive().array().min(1),
+    })
+    .array(),
+  competitionId: z.number().int().positive(),
+});
+export type CreateAgeGroupManyInput = z.infer<typeof createAgeGroupManySchema>;
 
 export const createInvoiceSchema = createInsertSchema(invoices).omit({
   id: true,
@@ -97,6 +114,18 @@ export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export const createFeeSchema = createInsertSchema(fees).omit({ id: true });
 
 export const createRoundSchema = createInsertSchema(rounds).omit({ id: true });
+export type CreateRoundInput = z.infer<typeof createRoundSchema>;
+
+export const createRoundManySchema = z.object({
+  data: createInsertSchema(rounds)
+    .omit({
+      id: true,
+      competitionId: true,
+    })
+    .array(),
+  competitionId: z.number().int().positive(),
+});
+export type CreateRoundManyInput = z.infer<typeof createRoundManySchema>;
 
 export const createResultSchema = createInsertSchema(results).omit({
   id: true,

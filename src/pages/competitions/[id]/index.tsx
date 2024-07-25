@@ -3,9 +3,7 @@ import { api } from "~/utils/api";
 import { mnFormat } from "~/utils/date";
 import CompetitionLayout from "./layout";
 import LoadingScreen from "~/components/loading-screen";
-import { useSession } from "next-auth/react";
-import AgeGroupForm from "./age-group-form";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -13,40 +11,19 @@ import {
   TableHead,
   TableRow,
 } from "~/components/ui/table";
-import { Button } from "~/components/ui/button";
 import { getImageUrl } from "~/utils/supabase";
 import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
-import { toast } from "~/components/ui/use-toast";
-import DeleteButton from "~/components/delete-button";
 
 export default function CompetitionShowPage() {
-  const ctx = api.useUtils();
-
   const router = useRouter();
   const id = parseInt(router.query.id?.toString() || "0");
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(0);
 
-  const { data: session } = useSession();
   const { data, error, isLoading } = api.competition.getById.useQuery(id, {
     enabled: id > 0,
   });
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(id, {
     enabled: id > 0,
-  });
-
-  const { mutate: deleteAgeGroup } = api.ageGroup.delete.useMutation({
-    onSuccess: () => {
-      ctx.ageGroup.getAll.invalidate();
-    },
-    onError: (error) => {
-      toast({
-        title: "Алдаа гарлаа",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
   });
 
   const groupAgeGroups = (input: typeof ageGroups = []) => {
@@ -148,15 +125,6 @@ export default function CompetitionShowPage() {
           <TableRow>
             <TableHead className="flex items-center justify-between">
               <span>Насны ангилал</span>
-              {session?.user.isAdmin && (
-                <AgeGroupForm
-                  isOpen={isOpen}
-                  setIsOpen={setIsOpen}
-                  reset={() => setSelected(0)}
-                  current={ageGroups?.find((i) => i.id === selected)}
-                  competitionId={id}
-                />
-              )}
             </TableHead>
             <TableCell className="p-0">
               {Object.entries(groupedAgeGroups).map(([key, value]) => (
@@ -178,23 +146,6 @@ export default function CompetitionShowPage() {
                               ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
                               : `${item.name} ${item.start} оноос өмнө төрсөн`}{" "}
                         </span>
-                        {session?.user.isAdmin && (
-                          <>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                setSelected(item.id);
-                                setIsOpen(true);
-                              }}
-                            >
-                              Засах
-                            </Button>
-                            <DeleteButton
-                              size="sm"
-                              onConfirm={() => deleteAgeGroup(item.id)}
-                            />
-                          </>
-                        )}
                       </li>
                     ))}
                 </ul>

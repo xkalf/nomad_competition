@@ -273,19 +273,29 @@ export const schedulesRelations = relations(schedules, ({ one }) => ({
   }),
 }));
 
-export const ageGroups = createTable("age_groups", {
-  id: serial("id").primaryKey(),
-  name: varchar("name").notNull(),
-  start: integer("start").notNull(),
-  end: integer("end"),
-  order: real("order").notNull().default(1),
-  competitionId: integer("competition_id")
-    .notNull()
-    .references(() => competitions.id),
-  cubeTypeId: integer("cube_type_id")
-    .references(() => cubeTypes.id)
-    .notNull(),
-});
+export const ageGroups = createTable(
+  "age_groups",
+  {
+    id: serial("id").primaryKey(),
+    name: varchar("name").notNull(),
+    start: integer("start").notNull(),
+    end: integer("end"),
+    order: real("order").notNull().default(1),
+    competitionId: integer("competition_id")
+      .notNull()
+      .references(() => competitions.id),
+    cubeTypeId: integer("cube_type_id")
+      .references(() => cubeTypes.id)
+      .notNull(),
+  },
+  (t) => ({
+    competitionCubeTypeUniq: unique().on(
+      t.competitionId,
+      t.cubeTypeId,
+      t.start,
+    ),
+  }),
+);
 
 export const ageGroupsRelations = relations(ageGroups, ({ one }) => ({
   competition: one(competitions, {
