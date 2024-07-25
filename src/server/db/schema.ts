@@ -365,6 +365,7 @@ export const rounds = createTable("rounds", {
   isDuel: boolean("is_duel").default(false),
   name: varchar("name").notNull(),
   nextCompetitor: integer("next_competitor").notNull(),
+  perGroupCount: integer("per_group_count").notNull(),
 });
 
 export const roundsRelation = relations(rounds, ({ one }) => ({
