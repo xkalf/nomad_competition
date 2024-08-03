@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
 import Layout from "~/components/layout";
@@ -38,7 +39,7 @@ export default function RoundsForm() {
       enabled: competitionId > 0,
     },
   );
-  const { mutate } = api.round.createMany.useMutation({});
+  const { mutate, isLoading } = api.round.createMany.useMutation({});
 
   const form = useForm<CreateRoundManyInput>({
     resolver: zodResolver(
@@ -74,6 +75,7 @@ export default function RoundsForm() {
               name: "",
               cubeTypeId: 0,
               nextCompetitor: 0,
+              perGroupCount: 20,
             })
           }
         >
@@ -105,9 +107,7 @@ export default function RoundsForm() {
                     <FormLabel>Шооны төрөл</FormLabel>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="outline">
-                          {field.value ?? "Төрөл сонгох"}
-                        </Button>
+                        <Button className="block">Төрөл сонгох</Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
                         <DropdownMenuRadioGroup
@@ -128,9 +128,79 @@ export default function RoundsForm() {
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name={`data.${index}.nextCompetitor`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Дараагийн раундэд үлдэх тамирчин</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        value={field.value ?? undefined}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={`data.${index}.perGroupCount`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Группын дахь тамирчны тоо</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        value={field.value ?? undefined}
+                        onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button variant={"destructive"} onClick={() => remove(index)}>
+                Устгах
+              </Button>
             </div>
           ))}
         </form>
+        <div className="space-x-2">
+          <Button type="button" variant={"outline"} asChild>
+            <Link
+              href={{
+                pathname: "/competitions/create/age-groups",
+                query: {
+                  competitionId,
+                },
+              }}
+            >
+              Буцах
+            </Link>
+          </Button>
+          <Button type="button" variant={"secondary"} asChild>
+            <Link
+              href={{
+                pathname: "/competitions/create/fees",
+                query: {
+                  competitionId,
+                },
+              }}
+            >
+              Дараах
+            </Link>
+          </Button>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            onClick={form.handleSubmit(onSubmit)}
+          >
+            Хадгалах
+          </Button>
+        </div>
       </Form>
     </Layout>
   );

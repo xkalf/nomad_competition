@@ -236,9 +236,26 @@ export default function AgeGroupsForm() {
           <div className="space-x-2">
             <Button type="button" variant={"outline"} asChild>
               <Link
-                href={"/competitions/create?competitionId=" + competitionId}
+                href={{
+                  pathname: "/competitions/create",
+                  query: {
+                    competitionId,
+                  },
+                }}
               >
                 Буцах
+              </Link>
+            </Button>
+            <Button type="button" variant={"secondary"} asChild>
+              <Link
+                href={{
+                  pathname: "/competitions/create/round",
+                  query: {
+                    competitionId,
+                  },
+                }}
+              >
+                Дараах
               </Link>
             </Button>
             <Button type="submit" disabled={isLoading}>

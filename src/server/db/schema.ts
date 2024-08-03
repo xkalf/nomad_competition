@@ -387,14 +387,15 @@ export const roundsRelation = relations(rounds, ({ one }) => ({
 
 export const results = createTable("results", {
   id: serial("id").primaryKey(),
-  solve1: integer("solve1").notNull(),
-  solve2: integer("solve2").notNull(),
-  solve3: integer("solve3").notNull(),
+  solve1: integer("solve1"),
+  solve2: integer("solve2"),
+  solve3: integer("solve3"),
   solve4: integer("solve4"),
   solve5: integer("solve5"),
-  best: integer("best").notNull(),
-  average: integer("average").notNull(),
+  best: integer("best"),
+  average: integer("average"),
   type: resultType("type").notNull(),
+  group: varchar("group").notNull(),
   roundId: integer("round_id")
     .notNull()
     .references(() => rounds.id),
