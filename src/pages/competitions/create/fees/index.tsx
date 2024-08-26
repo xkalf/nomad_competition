@@ -1,15 +1,16 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
-import { useFieldArray, useForm } from 'react-hook-form'
-import Layout from '~/components/layout'
-import { Button } from '~/components/ui/button'
+import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useFieldArray, useForm } from "react-hook-form";
+import CreateButtons from "~/components/create-buttons";
+import Layout from "~/components/layout";
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
+} from "~/components/ui/dropdown-menu";
 import {
   Form,
   FormControl,
@@ -17,40 +18,40 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
-import { toast } from '~/components/ui/use-toast'
-import { api } from '~/utils/api'
-import { CreateFeeManyInput, createFeeManySchema } from '~/utils/zod'
+} from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
+import { toast } from "~/components/ui/use-toast";
+import { api } from "~/utils/api";
+import { CreateFeeManyInput, createFeeManySchema } from "~/utils/zod";
 
 export default function FeesForm() {
-  const searchParams = useSearchParams()
-  const competitionId = +(searchParams.get('competitionId') || '0')
+  const searchParams = useSearchParams();
+  const competitionId = +(searchParams.get("competitionId") || "0");
 
   const { data: current } = api.fee.getByCompetitionId.useQuery(competitionId, {
     enabled: competitionId > 0,
-  })
+  });
   const { data: cubeTypes } = api.cubeTypes.getByCompetitionId.useQuery(
     competitionId,
     {
       enabled: competitionId > 0,
     },
-  )
+  );
 
   const { mutate, isLoading } = api.fee.createMany.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Амжилттай бүртгэгдлээ.',
-      })
+        title: "Амжилттай бүртгэгдлээ.",
+      });
     },
     onError: (error) => {
       toast({
-        title: 'Алдаа гарлаа',
+        title: "Алдаа гарлаа",
         description: error.message,
-        variant: 'destructive',
-      })
+        variant: "destructive",
+      });
     },
-  })
+  });
 
   const form = useForm<CreateFeeManyInput>({
     resolver: zodResolver(createFeeManySchema.omit({ competitionId: true })),
@@ -58,23 +59,23 @@ export default function FeesForm() {
       data:
         current ??
         cubeTypes?.map((i) => ({
-          amount: '0',
+          amount: "0",
           cubeTypeId: i.id,
         })),
     },
-  })
+  });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'data',
-  })
+    name: "data",
+  });
 
   const onSubmit = (input: CreateFeeManyInput) => {
     mutate({
       ...input,
       competitionId,
-    })
-  }
+    });
+  };
 
   return (
     <Layout>
@@ -84,7 +85,7 @@ export default function FeesForm() {
           type="button"
           onClick={() =>
             append({
-              amount: '0',
+              amount: "0",
               cubeTypeId: 0,
             })
           }
@@ -143,40 +144,11 @@ export default function FeesForm() {
             </div>
           ))}
         </form>
-        <div className="space-x-2">
-          <Button type="button" variant={'outline'} asChild>
-            <Link
-              href={{
-                pathname: '/competitions/create/round',
-                query: {
-                  competitionId,
-                },
-              }}
-            >
-              Буцах
-            </Link>
-          </Button>
-          {/* <Button type="button" variant={"secondary"} asChild> */}
-          {/*   <Link */}
-          {/*     href={{ */}
-          {/*       pathname: "/competitions/create/fees", */}
-          {/*       query: { */}
-          {/*         competitionId, */}
-          {/*       }, */}
-          {/*     }} */}
-          {/*   > */}
-          {/*     Дараах */}
-          {/*   </Link> */}
-          {/* </Button> */}
-          <Button
-            type="submit"
-            disabled={isLoading}
-            onClick={form.handleSubmit(onSubmit)}
-          >
-            Хадгалах
-          </Button>
-        </div>
+        <CreateButtons
+          onSubmit={form.handleSubmit(onSubmit)}
+          isLoading={isLoading}
+        />
       </Form>
     </Layout>
-  )
+  );
 }

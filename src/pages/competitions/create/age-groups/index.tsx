@@ -1,7 +1,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useFieldArray, useForm } from "react-hook-form";
+import CreateButtons from "~/components/create-buttons";
 import Layout from "~/components/layout";
 import { Button } from "~/components/ui/button";
 import {
@@ -233,35 +233,10 @@ export default function AgeGroupsForm() {
               </Button>
             </div>
           ))}
-          <div className="space-x-2">
-            <Button type="button" variant={"outline"} asChild>
-              <Link
-                href={{
-                  pathname: "/competitions/create",
-                  query: {
-                    competitionId,
-                  },
-                }}
-              >
-                Буцах
-              </Link>
-            </Button>
-            <Button type="button" variant={"secondary"} asChild>
-              <Link
-                href={{
-                  pathname: "/competitions/create/round",
-                  query: {
-                    competitionId,
-                  },
-                }}
-              >
-                Дараах
-              </Link>
-            </Button>
-            <Button type="submit" disabled={isLoading}>
-              Хадгалах
-            </Button>
-          </div>
+          <CreateButtons
+            onSubmit={form.handleSubmit(onSubmit)}
+            isLoading={isLoading}
+          />
         </form>
       </Form>
     </Layout>

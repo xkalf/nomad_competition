@@ -8,6 +8,7 @@ import { ageGroupRouter } from "./routers/ageGroups";
 import { paymentsRouter } from "./routers/payment";
 import { feeRouter } from "./routers/fees";
 import { roundsRouter } from "./routers/rounds";
+import { groupRouter } from "./routers/groups";
 
 /**
  * This is the primary router for your server.
@@ -24,6 +25,7 @@ export const appRouter = createTRPCRouter({
   payment: paymentsRouter,
   fee: feeRouter,
   round: roundsRouter,
+  group: groupRouter,
 });
 
 // export type definition of API

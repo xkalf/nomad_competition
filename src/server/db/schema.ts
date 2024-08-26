@@ -6,6 +6,7 @@ import {
   integer,
   numeric,
   pgEnum,
+  pgTable,
   pgTableCreator,
   primaryKey,
   real,
@@ -121,6 +122,7 @@ export const cubeTypes = createTable("cube_types", {
   image: varchar("image"),
   order: real("order").notNull().default(1),
   type: resultType("type").notNull().default("ao5"),
+  scrambleMapper: varchar("scramble_mapper"),
 });
 
 export const cubeTypesRelations = relations(cubeTypes, ({ many }) => ({
@@ -382,6 +384,30 @@ export const roundsRelation = relations(rounds, ({ one }) => ({
   cubeType: one(cubeTypes, {
     fields: [rounds.cubeTypeId],
     references: [cubeTypes.id],
+  }),
+}));
+
+export const groups = pgTable("groups", {
+  id: serial("id").primaryKey(),
+  name: varchar("name").notNull(),
+  roundId: integer("round_id").references(() => rounds.id),
+  scramble: varchar("scramble").notNull(),
+  cubeTypeId: integer("cube_type_id").references(() => cubeTypes.id),
+  competitionId: integer("competition_id").references(() => competitions.id),
+});
+
+export const groupsRelations = relations(groups, ({ one }) => ({
+  round: one(rounds, {
+    fields: [groups.roundId],
+    references: [rounds.id],
+  }),
+  cubeType: one(cubeTypes, {
+    fields: [groups.cubeTypeId],
+    references: [cubeTypes.id],
+  }),
+  competition: one(competitions, {
+    fields: [groups.competitionId],
+    references: [competitions.id],
   }),
 }));
 

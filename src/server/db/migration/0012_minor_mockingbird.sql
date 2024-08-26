@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_cube_types" ADD COLUMN "scramble_mapper" varchar;

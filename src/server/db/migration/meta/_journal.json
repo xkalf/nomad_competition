@@ -78,6 +78,20 @@
       "when": 1722069599147,
       "tag": "0010_public_slayback",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1724672756278,
+      "tag": "0011_silent_hex",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1724673985864,
+      "tag": "0012_minor_mockingbird",
+      "breakpoints": true
     }
   ]
 }
