@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
+import CreateButtons from "~/components/create-buttons";
 import Layout from "~/components/layout";
 import { Button } from "~/components/ui/button";
 import {
@@ -78,18 +79,18 @@ export default function CompetitionCreatePage() {
   const onSubmit = (values: CreateCompetitionInput) => {
     current
       ? update({
-        id: current.id,
-        ...values,
-      })
+          id: current.id,
+          ...values,
+        })
       : create(values);
   };
 
   useEffect(() => {
     current
       ? form.reset({
-        ...current,
-        cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
-      })
+          ...current,
+          cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
+        })
       : form.reset();
   }, [current]);
 
@@ -339,20 +340,10 @@ export default function CompetitionCreatePage() {
               </FormItem>
             )}
           />
-          <Button type="submit" disabled={createLoading || updateLoading}>
-            Хадгалах
-          </Button>
-          {current && (
-            <Button type="button" asChild variant={"outline"}>
-              <Link
-                href={
-                  "/competitions/create/age-groups?competitionId=" + current.id
-                }
-              >
-                Дараах
-              </Link>
-            </Button>
-          )}
+          <CreateButtons
+            isLoading={createLoading || updateLoading}
+            onSubmit={form.handleSubmit(onSubmit)}
+          />
         </form>
       </Form>
     </Layout>

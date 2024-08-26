@@ -1,4 +1,8 @@
-import { createFeeSchema, getUpdateSchema } from "~/utils/zod";
+import {
+  createFeeManySchema,
+  createFeeSchema,
+  getUpdateSchema,
+} from "~/utils/zod";
 import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
 import { fees } from "~/server/db/schema";
 import { eq } from "drizzle-orm";
@@ -25,6 +29,22 @@ export const feeRouter = createTRPCRouter({
       });
 
       return res.sort((t) => t.cubeType.order);
+    }),
+  createMany: adminProcedure
+    .input(createFeeManySchema)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db.transaction(async (db) => {
+        await db
+          .delete(fees)
+          .where(eq(fees.competitionId, input.competitionId));
+
+        await db.insert(fees).values(
+          input.data.map((i) => ({
+            ...i,
+            competitionId: input.competitionId,
+          })),
+        );
+      });
     }),
   create: adminProcedure
     .input(createFeeSchema)
