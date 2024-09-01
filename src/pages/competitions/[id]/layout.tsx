@@ -1,35 +1,31 @@
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import Layout from "~/components/layout";
-import { Button } from "~/components/ui/button";
-import { api } from "~/utils/api";
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import Layout from '~/components/layout'
+import { Button } from '~/components/ui/button'
+import { api } from '~/utils/api'
 
 interface Props {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export default function CompetitionLayout({ children }: Props) {
-  const session = useSession();
-  const router = useRouter();
-  const id = parseInt(router.query.id?.toString() || "0");
-  const { data: competition } = api.competition.getById.useQuery(id);
+  const session = useSession()
+  const router = useRouter()
+  const id = parseInt(router.query.id?.toString() || '0')
+  const { data: competition } = api.competition.getById.useQuery(id)
 
-  const isPage = (href: string) => router.pathname === href;
+  const isPage = (href: string) => router.pathname === href
   const isRegisterAllow = () => {
-    if (
-      competition &&
-      competition.registerStartDate &&
-      competition.registerEndDate
-    ) {
+    if (competition?.registerStartDate && competition.registerEndDate) {
       return (
         new Date(competition.registerStartDate) <= new Date() &&
         new Date() <= new Date(competition.registerEndDate)
-      );
+      )
     }
 
-    return false;
-  };
+    return false
+  }
 
   return (
     <Layout>
@@ -37,7 +33,7 @@ export default function CompetitionLayout({ children }: Props) {
         <div className="mb-8 flex flex-col space-y-2 lg:mb-0">
           <Button
             asChild
-            variant={isPage("/competitions/[id]") ? "default" : "outline"}
+            variant={isPage('/competitions/[id]') ? 'default' : 'outline'}
           >
             <Link href={`/competitions/${id}`}>Мэдээлэл</Link>
           </Button>
@@ -45,7 +41,7 @@ export default function CompetitionLayout({ children }: Props) {
             <Button
               asChild
               variant={
-                isPage("/competitions/[id]/register") ? "default" : "outline"
+                isPage('/competitions/[id]/register') ? 'default' : 'outline'
               }
             >
               <Link href={`/competitions/${id}/register`}>
@@ -56,7 +52,7 @@ export default function CompetitionLayout({ children }: Props) {
           <Button
             asChild
             variant={
-              isPage("/competitions/[id]/registrations") ? "default" : "outline"
+              isPage('/competitions/[id]/registrations') ? 'default' : 'outline'
             }
           >
             <Link href={`/competitions/${id}/registrations`}>
@@ -66,7 +62,7 @@ export default function CompetitionLayout({ children }: Props) {
           <Button
             asChild
             variant={
-              isPage("/competitions/[id]/schedule") ? "default" : "outline"
+              isPage('/competitions/[id]/schedule') ? 'default' : 'outline'
             }
           >
             <Link href={`/competitions/${id}/schedule`}>Цагийн хуваарь</Link>
@@ -76,26 +72,18 @@ export default function CompetitionLayout({ children }: Props) {
               <Button
                 asChild
                 variant={
-                  isPage("/competitions/[id]/fees") ? "default" : "outline"
+                  isPage('/competitions/[id]/fees') ? 'default' : 'outline'
                 }
               >
                 <Link href={`/competitions/${id}/fees`}>
                   Бүртгэлийн хураамж
                 </Link>
               </Button>
-              <Button
-                asChild
-                variant={
-                  isPage("/competitions/[id]/round") ? "default" : "outline"
-                }
-              >
-                <Link href={`/competitions/${id}/round`}>Round</Link>
-              </Button>{" "}
             </>
           )}
         </div>
         <div className="col-span-4 md:px-4">{children}</div>
       </div>
     </Layout>
-  );
+  )
 }

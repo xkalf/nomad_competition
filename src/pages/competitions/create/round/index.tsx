@@ -1,17 +1,20 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useFieldArray, useForm } from "react-hook-form";
-import CreateButtons from "~/components/create-buttons";
-import Layout from "~/components/layout";
-import { Button } from "~/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/router'
+import { useFieldArray, useForm } from 'react-hook-form'
+import CreateButtons, {
+  redirectNextCreatePage,
+} from '~/components/create-buttons'
+import CreateLinks from '~/components/create-links'
+import Layout from '~/components/layout'
+import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuRadioGroup,
   DropdownMenuRadioItem,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+} from '~/components/ui/dropdown-menu'
 import {
   Form,
   FormControl,
@@ -19,28 +22,44 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { api } from "~/utils/api";
-import { CreateRoundManyInput, createRoundManySchema } from "~/utils/zod";
+} from '~/components/ui/form'
+import { Input } from '~/components/ui/input'
+import { toast } from '~/components/ui/use-toast'
+import { api } from '~/utils/api'
+import { CreateRoundManyInput, createRoundManySchema } from '~/utils/zod'
 
 export default function RoundsForm() {
-  const searchParams = useSearchParams();
-  const competitionId = +(searchParams.get("competitionId") || "0");
+  const router = useRouter()
+  const searchParams = useSearchParams()
+  const competitionId = +(searchParams.get('competitionId') || '0')
 
   const { data: current } = api.round.getByCompetitionId.useQuery(
     competitionId,
     {
       enabled: competitionId > 0,
     },
-  );
+  )
   const { data: cubeTypes } = api.cubeTypes.getByCompetitionId.useQuery(
     competitionId,
     {
       enabled: competitionId > 0,
     },
-  );
-  const { mutate, isLoading } = api.round.createMany.useMutation({});
+  )
+  const { mutate, isLoading } = api.round.createMany.useMutation({
+    onSuccess: () => {
+      redirectNextCreatePage(router)
+      toast({
+        title: 'Амжилттаи бүртгэгдлээ.',
+      })
+    },
+    onError: (error) => {
+      toast({
+        title: 'Алдаа гарлаа',
+        description: error.message,
+        variant: 'destructive',
+      })
+    },
+  })
 
   const form = useForm<CreateRoundManyInput>({
     resolver: zodResolver(
@@ -52,28 +71,29 @@ export default function RoundsForm() {
       competitionId,
       data: current,
     },
-  });
+  })
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "data",
-  });
+    name: 'data',
+  })
 
   const onSubmit = (input: CreateRoundManyInput) => {
     mutate({
       ...input,
       competitionId,
-    });
-  };
+    })
+  }
 
   return (
     <Layout>
+      <CreateLinks />
       <div className="flex gap-4">
         <h1 className="text-3xl font-bold">Раунд бүртгэх</h1>
         <Button
           type="button"
           onClick={() =>
             append({
-              name: "",
+              name: '',
               cubeTypeId: 0,
               nextCompetitor: 0,
               perGroupCount: 20,
@@ -108,7 +128,13 @@ export default function RoundsForm() {
                     <FormLabel>Шооны төрөл</FormLabel>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button className="block">Төрөл сонгох</Button>
+                        <Button className="block">
+                          {field.value
+                            ? cubeTypes?.find(
+                                (cubeType) => cubeType.id === field.value,
+                              )?.name
+                            : 'Төрөл сонгох'}
+                        </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
                         <DropdownMenuRadioGroup
@@ -151,7 +177,7 @@ export default function RoundsForm() {
                 name={`data.${index}.perGroupCount`}
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Группын дахь тамирчны тоо</FormLabel>
+                    <FormLabel>Группын тоо</FormLabel>
                     <FormControl>
                       <Input
                         type="number"
@@ -163,7 +189,7 @@ export default function RoundsForm() {
                   </FormItem>
                 )}
               />
-              <Button variant={"destructive"} onClick={() => remove(index)}>
+              <Button variant={'destructive'} onClick={() => remove(index)}>
                 Устгах
               </Button>
             </div>
@@ -175,5 +201,5 @@ export default function RoundsForm() {
         />
       </Form>
     </Layout>
-  );
+  )
 }

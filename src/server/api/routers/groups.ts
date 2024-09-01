@@ -1,14 +1,13 @@
-import { z } from "zod";
-import { adminProcedure, createTRPCRouter } from "../trpc";
+import { z } from 'zod'
+import { adminProcedure, createTRPCRouter } from '../trpc'
 import {
   competitionsToCubeType,
   cubeTypes,
   groups,
   rounds,
-} from "~/server/db/schema";
-import { and, count, eq, exists, getTableColumns } from "drizzle-orm";
-import { Scrambow } from "scrambow";
-import { TRPCError } from "@trpc/server";
+} from '~/server/db/schema'
+import { and, eq, exists } from 'drizzle-orm'
+import { Scrambow } from 'scrambow'
 
 export const groupRouter = createTRPCRouter({
   getAll: adminProcedure
@@ -20,19 +19,22 @@ export const groupRouter = createTRPCRouter({
           cubeType: true,
           round: true,
         },
-      });
+      })
 
-      return res;
+      return res
     }),
   generate: adminProcedure
     .input(
       /**
        * @input {number}  competitionId
        */
-      z.number().int().positive(),
+      z
+        .number()
+        .int()
+        .positive(),
     )
     .mutation(async ({ ctx, input }) => {
-      const scrambow = new Scrambow();
+      const scrambow = new Scrambow()
 
       const types = await ctx.db
         .select({
@@ -49,9 +51,9 @@ export const groupRouter = createTRPCRouter({
               .from(competitionsToCubeType)
               .where(eq(competitionsToCubeType.competitionId, input)),
           ),
-        );
+        )
 
-      let insertValues: (typeof groups.$inferInsert)[] = [];
+      let insertValues: (typeof groups.$inferInsert)[] = []
 
       for (const type of types) {
         const roundCount = await ctx.db
@@ -65,32 +67,30 @@ export const groupRouter = createTRPCRouter({
               eq(rounds.competitionId, input),
               eq(rounds.cubeTypeId, type.id),
             ),
-          );
+          )
+
+        let num = 1
+
         for (const round of roundCount) {
           const scrambles = scrambow
             .setType(type.name)
-            .get(7 * round.perGroupCount);
-
-          let letter = "A";
+            .get(7 * round.perGroupCount)
 
           insertValues.push(
-            ...scrambles.map((scramble, index) => {
-              const curr = letter;
-              letter =
-                letter === "Z" || index % 7 === 0
-                  ? "A"
-                  : String.fromCharCode(letter.charCodeAt(0) + 1);
+            ...scrambles.map((scramble) => {
               return {
-                name: curr,
+                name: num.toString(),
                 competitionId: input,
                 cubeTypeId: type.id,
                 roundId: round.id,
                 scramble: scramble.scramble_string,
-              };
+              }
             }),
-          );
+          )
+
+          num++
         }
       }
-      await ctx.db.insert(groups).values(insertValues);
+      await ctx.db.insert(groups).values(insertValues)
     }),
-});
+})
