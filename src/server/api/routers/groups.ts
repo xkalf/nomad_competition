@@ -11,10 +11,20 @@ import { Scrambow } from 'scrambow'
 
 export const groupRouter = createTRPCRouter({
   getAll: adminProcedure
-    .input(z.number().int().positive())
+    .input(
+      z.object({
+        competitionId: z.number().int().positive(),
+        cubeTypeId: z.number().int().positive().optional(),
+        roundId: z.number().int().positive().optional(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const res = ctx.db.query.groups.findMany({
-        where: eq(groups.competitionId, input),
+        where: and(
+          eq(groups.competitionId, input.competitionId),
+          eq(groups.cubeTypeId, input.cubeTypeId ?? 0).if(input.cubeTypeId),
+          eq(groups.roundId, input.roundId ?? 0).if(input.roundId),
+        ),
         with: {
           cubeType: true,
           round: true,

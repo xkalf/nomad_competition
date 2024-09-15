@@ -12,6 +12,10 @@ export const CREATE_LINKS: { path: string; label: string }[] = [
     label: 'Раунд',
   },
   {
+    path: 'schedules',
+    label: 'Цагийн хуваарь',
+  },
+  {
     path: 'groups',
     label: 'Групп',
   },

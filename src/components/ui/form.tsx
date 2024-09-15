@@ -39,6 +39,36 @@ const FormField = <
   );
 };
 
+const FormFieldCustom = <
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>,
+>({
+  label,
+  description,
+  className,
+  render,
+  ...props
+}: {
+  label?: React.ReactNode;
+  description?: React.ReactNode;
+  className?: string;
+} & ControllerProps<TFieldValues, TName>) => {
+  return (
+    <FormFieldContext.Provider value={{ name: props.name }}>
+      <Controller
+        {...props}
+        render={(field) => (
+          <FormItem className={className}>
+            {!!label && <FormLabel>{label}</FormLabel>}
+            <FormControl>{render(field)}</FormControl>
+            {!!description && <FormDescription>{description}</FormDescription>}
+          </FormItem>
+        )}
+      />
+    </FormFieldContext.Provider>
+  );
+};
+
 const useFormField = () => {
   const fieldContext = React.useContext(FormFieldContext);
   const itemContext = React.useContext(FormItemContext);
@@ -174,4 +204,5 @@ export {
   FormDescription,
   FormMessage,
   FormField,
+  FormFieldCustom,
 };
