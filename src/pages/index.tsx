@@ -1,5 +1,5 @@
-import Layout from "~/components/layout";
-import HomeCarousel from "./carousel";
+import Layout from '~/components/layout'
+import HomeCarousel from './carousel'
 
 export default function Home() {
   return (
@@ -22,5 +22,5 @@ export default function Home() {
         </div>
       </div>
     </Layout>
-  );
+  )
 }

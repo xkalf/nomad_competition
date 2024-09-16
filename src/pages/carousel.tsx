@@ -2,17 +2,17 @@ import {
   Carousel,
   CarouselContent,
   CarouselItem,
-} from "~/components/ui/carousel";
-import Carousel1 from "~/assets/carousel-1.jpg";
-import Carousel2 from "~/assets/carousel-2.jpg";
-import Carousel3 from "~/assets/carousel-3.jpg";
-import Carousel4 from "~/assets/carousel-4.png";
-import Image, { StaticImageData } from "next/image";
-import AutoPlay from "embla-carousel-autoplay";
+} from '~/components/ui/carousel'
+import Carousel1 from '~/assets/carousel-1.jpg'
+import Carousel2 from '~/assets/carousel-2.jpg'
+import Carousel3 from '~/assets/carousel-3.jpg'
+import Carousel4 from '~/assets/carousel-4.png'
+import Image, { StaticImageData } from 'next/image'
+import AutoPlay from 'embla-carousel-autoplay'
 
 const data: {
-  image: StaticImageData;
-  description: string;
+  image: StaticImageData
+  description: string
 }[] = [
     {
       image: Carousel1,
@@ -31,9 +31,9 @@ const data: {
     },
     {
       image: Carousel3,
-      description: "Бид рубик шоог эвлүүлэх хүсэл сонирхлоороо нэгдсэн баг юм.",
+      description: 'Бид рубик шоог эвлүүлэх хүсэл сонирхлоороо нэгдсэн баг юм.',
     },
-  ];
+  ]
 
 export default function HomeCarousel() {
   return (
@@ -66,5 +66,5 @@ export default function HomeCarousel() {
         ))}
       </CarouselContent>
     </Carousel>
-  );
+  )
 }
