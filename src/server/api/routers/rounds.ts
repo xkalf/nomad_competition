@@ -55,19 +55,16 @@ export const roundsRouter = createTRPCRouter({
     .input(createRoundManySchema)
     .mutation(async ({ ctx, input }) => {
       await ctx.db.transaction(async (db) => {
+        const filtered = input.data
+          .map((i) => i.id)
+          .filter((i): i is NonNullable<typeof i> => !!i);
+
         const current = await db
           .select({
             id: rounds.id,
           })
           .from(rounds)
-          .where(
-            inArray(
-              rounds.id,
-              input.data
-                .map((i) => i.id)
-                .filter((i): i is NonNullable<typeof i> => !!i),
-            ),
-          );
+          .where(inArray(rounds.id, filtered).if(filtered.length > 0));
 
         const insertValues: (typeof rounds.$inferInsert)[] = [];
 
