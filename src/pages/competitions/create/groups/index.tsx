@@ -1,5 +1,4 @@
 import { ColumnDef } from '@tanstack/react-table'
-import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useState } from 'react'
 import CreateButtons, {
@@ -9,6 +8,7 @@ import CreateLinks from '~/components/create-links'
 import DataTable from '~/components/data-table/data-table'
 import Layout from '~/components/layout'
 import ScrambleDisplay from '~/components/scramble-display'
+import ScrambleSheetPDF from '~/components/scramble-sheet'
 import { Button } from '~/components/ui/button'
 import {
   Select,
@@ -19,29 +19,11 @@ import {
 } from '~/components/ui/select'
 import { toast } from '~/components/ui/use-toast'
 import { RouterOutputs, api } from '~/utils/api'
-import { getImageUrl } from '~/utils/supabase'
 import { useGetCompetitionId } from '~/utils/useGetCompetitionId'
 
 type Group = RouterOutputs['group']['getAll'][number]
 
 const columns: ColumnDef<Group>[] = [
-  {
-    accessorKey: 'cubeType.name',
-    header: 'Төрөл',
-    cell: ({ row }) => {
-      if (row.original.cubeType?.image) {
-        return (
-          <Image
-            src={getImageUrl(row.original.cubeType.image) ?? ''}
-            alt={row.original.cubeType.name}
-            width={50}
-            height={50}
-          />
-        )
-      }
-      return row.original.cubeType?.name
-    },
-  },
   {
     accessorKey: 'name',
     header: 'Нэр',
@@ -113,6 +95,17 @@ export default function GroupsPage() {
     },
   })
 
+  const downloadPdf = async () => {
+    const html2pdf = await require('html2pdf.js')
+    const element = document.querySelector('#scramble-sheet')
+    html2pdf(element, {
+      margin: 20,
+      filename: 'Холилт.pdf',
+      html2canvas: { scale: 2 },
+      jsPDF: { orientation: 'portrait' },
+    })
+  }
+
   return (
     <Layout>
       <CreateLinks />
@@ -134,6 +127,7 @@ export default function GroupsPage() {
         >
           Үүсгэх
         </Button>
+        <Button onClick={downloadPdf}>Татах</Button>
       </div>
       <div className="flex gap-4">
         <Select
@@ -177,6 +171,7 @@ export default function GroupsPage() {
           </SelectContent>
         </Select>
       </div>
+      <ScrambleSheetPDF groups={data ?? []} />
       <DataTable columns={columns} data={data ?? []} />
       <CreateButtons />
     </Layout>
