@@ -1,0 +1,1412 @@
+{
+  "id": "05bba27b-dba7-42dc-8e46-3886e6edec37",
+  "prevId": "df3abc2d-5cc8-4358-a9da-e3cbab82b939",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.nomad_competition_account": {
+      "name": "nomad_competition_account",
+      "schema": "",
+      "columns": {
+        "userId": {
+          "name": "userId",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "type": {
+          "name": "type",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "provider": {
+          "name": "provider",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "providerAccountId": {
+          "name": "providerAccountId",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "expires_at": {
+          "name": "expires_at",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "token_type": {
+          "name": "token_type",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scope": {
+          "name": "scope",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "id_token": {
+          "name": "id_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "session_state": {
+          "name": "session_state",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {
+        "account_userId_idx": {
+          "name": "account_userId_idx",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "nomad_competition_account_userId_nomad_competition_user_id_fk": {
+          "name": "nomad_competition_account_userId_nomad_competition_user_id_fk",
+          "tableFrom": "nomad_competition_account",
+          "tableTo": "nomad_competition_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "nomad_competition_account_provider_providerAccountId_pk": {
+          "name": "nomad_competition_account_provider_providerAccountId_pk",
+          "columns": [
+            "provider",
+            "providerAccountId"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_age_groups": {
+      "name": "nomad_competition_age_groups",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start": {
+          "name": "start",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end": {
+          "name": "end",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order": {
+          "name": "order",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "competition_id": {
+          "name": "competition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cube_type_id": {
+          "name": "cube_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_age_groups_competition_id_nomad_competition_competitions_id_fk": {
+          "name": "nomad_competition_age_groups_competition_id_nomad_competition_competitions_id_fk",
+          "tableFrom": "nomad_competition_age_groups",
+          "tableTo": "nomad_competition_competitions",
+          "columnsFrom": [
+            "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_age_groups_cube_type_id_nomad_competition_cube_types_id_fk": {
+          "name": "nomad_competition_age_groups_cube_type_id_nomad_competition_cube_types_id_fk",
+          "tableFrom": "nomad_competition_age_groups",
+          "tableTo": "nomad_competition_cube_types",
+          "columnsFrom": [
+            "cube_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "nomad_competition_age_groups_competition_id_cube_type_id_start_unique": {
+          "name": "nomad_competition_age_groups_competition_id_cube_type_id_start_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "competition_id",
+            "cube_type_id",
+            "start"
+          ]
+        }
+      }
+    },
+    "public.nomad_competition_competitions": {
+      "name": "nomad_competition_competitions",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address": {
+          "name": "address",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "address_link": {
+          "name": "address_link",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "max_competitors": {
+          "name": "max_competitors",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_date": {
+          "name": "start_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_date": {
+          "name": "end_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "register_start_date": {
+          "name": "register_start_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "register_end_date": {
+          "name": "register_end_date",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "contact": {
+          "name": "contact",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "registration_requirments": {
+          "name": "registration_requirments",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "base_fee": {
+          "name": "base_fee",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "guest_fee": {
+          "name": "guest_fee",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "free_guests": {
+          "name": "free_guests",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_competitions_to_cube_type": {
+      "name": "nomad_competition_competitions_to_cube_type",
+      "schema": "",
+      "columns": {
+        "cube_type_id": {
+          "name": "cube_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competition_id": {
+          "name": "competition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_competitions_to_cube_type_cube_type_id_nomad_competition_cube_types_id_fk": {
+          "name": "nomad_competition_competitions_to_cube_type_cube_type_id_nomad_competition_cube_types_id_fk",
+          "tableFrom": "nomad_competition_competitions_to_cube_type",
+          "tableTo": "nomad_competition_cube_types",
+          "columnsFrom": [
+            "cube_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_competitions_to_cube_type_competition_id_nomad_competition_competitions_id_fk": {
+          "name": "nomad_competition_competitions_to_cube_type_competition_id_nomad_competition_competitions_id_fk",
+          "tableFrom": "nomad_competition_competitions_to_cube_type",
+          "tableTo": "nomad_competition_competitions",
+          "columnsFrom": [
+            "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "nomad_competition_competitions_to_cube_type_competition_id_cube_type_id_pk": {
+          "name": "nomad_competition_competitions_to_cube_type_competition_id_cube_type_id_pk",
+          "columns": [
+            "competition_id",
+            "cube_type_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_competitors": {
+      "name": "nomad_competition_competitors",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competition_id": {
+          "name": "competition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "guest_count": {
+          "name": "guest_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 0
+        },
+        "description": {
+          "name": "description",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "requested_at": {
+          "name": "requested_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        },
+        "verified_at": {
+          "name": "verified_at",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_competitors_user_id_nomad_competition_user_id_fk": {
+          "name": "nomad_competition_competitors_user_id_nomad_competition_user_id_fk",
+          "tableFrom": "nomad_competition_competitors",
+          "tableTo": "nomad_competition_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_competitors_competition_id_nomad_competition_competitions_id_fk": {
+          "name": "nomad_competition_competitors_competition_id_nomad_competition_competitions_id_fk",
+          "tableFrom": "nomad_competition_competitors",
+          "tableTo": "nomad_competition_competitions",
+          "columnsFrom": [
+            "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "nomad_competition_competitors_competition_id_user_id_unique": {
+          "name": "nomad_competition_competitors_competition_id_user_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "competition_id",
+            "user_id"
+          ]
+        }
+      }
+    },
+    "public.nomad_competition_competitors_to_cube_types": {
+      "name": "nomad_competition_competitors_to_cube_types",
+      "schema": "",
+      "columns": {
+        "competitor_id": {
+          "name": "competitor_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cube_type_id": {
+          "name": "cube_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_competitors_to_cube_types_competitor_id_nomad_competition_competitors_id_fk": {
+          "name": "nomad_competition_competitors_to_cube_types_competitor_id_nomad_competition_competitors_id_fk",
+          "tableFrom": "nomad_competition_competitors_to_cube_types",
+          "tableTo": "nomad_competition_competitors",
+          "columnsFrom": [
+            "competitor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_competitors_to_cube_types_cube_type_id_nomad_competition_cube_types_id_fk": {
+          "name": "nomad_competition_competitors_to_cube_types_cube_type_id_nomad_competition_cube_types_id_fk",
+          "tableFrom": "nomad_competition_competitors_to_cube_types",
+          "tableTo": "nomad_competition_cube_types",
+          "columnsFrom": [
+            "cube_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "nomad_competition_competitors_to_cube_types_competitor_id_cube_type_id_pk": {
+          "name": "nomad_competition_competitors_to_cube_types_competitor_id_cube_type_id_pk",
+          "columns": [
+            "competitor_id",
+            "cube_type_id"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_cube_types": {
+      "name": "nomad_competition_cube_types",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "image": {
+          "name": "image",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "order": {
+          "name": "order",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "default": 1
+        },
+        "type": {
+          "name": "type",
+          "type": "result_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'ao5'"
+        },
+        "scramble_mapper": {
+          "name": "scramble_mapper",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_fees": {
+      "name": "nomad_competition_fees",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "cube_type_id": {
+          "name": "cube_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "'0'"
+        },
+        "competition_id": {
+          "name": "competition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_fees_cube_type_id_nomad_competition_cube_types_id_fk": {
+          "name": "nomad_competition_fees_cube_type_id_nomad_competition_cube_types_id_fk",
+          "tableFrom": "nomad_competition_fees",
+          "tableTo": "nomad_competition_cube_types",
+          "columnsFrom": [
+            "cube_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_fees_competition_id_nomad_competition_competitions_id_fk": {
+          "name": "nomad_competition_fees_competition_id_nomad_competition_competitions_id_fk",
+          "tableFrom": "nomad_competition_fees",
+          "tableTo": "nomad_competition_competitions",
+          "columnsFrom": [
+            "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.groups": {
+      "name": "groups",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "round_id": {
+          "name": "round_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "scramble": {
+          "name": "scramble",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cube_type_id": {
+          "name": "cube_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "competition_id": {
+          "name": "competition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "groups_round_id_nomad_competition_rounds_id_fk": {
+          "name": "groups_round_id_nomad_competition_rounds_id_fk",
+          "tableFrom": "groups",
+          "tableTo": "nomad_competition_rounds",
+          "columnsFrom": [
+            "round_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "groups_cube_type_id_nomad_competition_cube_types_id_fk": {
+          "name": "groups_cube_type_id_nomad_competition_cube_types_id_fk",
+          "tableFrom": "groups",
+          "tableTo": "nomad_competition_cube_types",
+          "columnsFrom": [
+            "cube_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "groups_competition_id_nomad_competition_competitions_id_fk": {
+          "name": "groups_competition_id_nomad_competition_competitions_id_fk",
+          "tableFrom": "groups",
+          "tableTo": "nomad_competition_competitions",
+          "columnsFrom": [
+            "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_invoices": {
+      "name": "nomad_competition_invoices",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "invoice_code": {
+          "name": "invoice_code",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "amount": {
+          "name": "amount",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_paid": {
+          "name": "is_paid",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "competitor_id": {
+          "name": "competitor_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "user_id": {
+          "name": "user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_invoices_competitor_id_nomad_competition_competitors_id_fk": {
+          "name": "nomad_competition_invoices_competitor_id_nomad_competition_competitors_id_fk",
+          "tableFrom": "nomad_competition_invoices",
+          "tableTo": "nomad_competition_competitors",
+          "columnsFrom": [
+            "competitor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_invoices_user_id_nomad_competition_user_id_fk": {
+          "name": "nomad_competition_invoices_user_id_nomad_competition_user_id_fk",
+          "tableFrom": "nomad_competition_invoices",
+          "tableTo": "nomad_competition_user",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_qpay": {
+      "name": "nomad_competition_qpay",
+      "schema": "",
+      "columns": {
+        "type": {
+          "name": "type",
+          "type": "payment_type",
+          "typeSchema": "public",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "access_token": {
+          "name": "access_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "refresh_token": {
+          "name": "refresh_token",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "access_expires_at": {
+          "name": "access_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "refresh_expires_at": {
+          "name": "refresh_expires_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "nomad_competition_qpay_type_unique": {
+          "name": "nomad_competition_qpay_type_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "type"
+          ]
+        }
+      }
+    },
+    "public.nomad_competition_results": {
+      "name": "nomad_competition_results",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "solve1": {
+          "name": "solve1",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "solve2": {
+          "name": "solve2",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "solve3": {
+          "name": "solve3",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "solve4": {
+          "name": "solve4",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "solve5": {
+          "name": "solve5",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "best": {
+          "name": "best",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "average": {
+          "name": "average",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "type": {
+          "name": "type",
+          "type": "result_type",
+          "typeSchema": "public",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "group": {
+          "name": "group",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "round_id": {
+          "name": "round_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cube_type_id": {
+          "name": "cube_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competition_id": {
+          "name": "competition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "competitor_id": {
+          "name": "competitor_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_user_id": {
+          "name": "created_user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "updated_user_id": {
+          "name": "updated_user_id",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_results_round_id_nomad_competition_rounds_id_fk": {
+          "name": "nomad_competition_results_round_id_nomad_competition_rounds_id_fk",
+          "tableFrom": "nomad_competition_results",
+          "tableTo": "nomad_competition_rounds",
+          "columnsFrom": [
+            "round_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_results_cube_type_id_nomad_competition_cube_types_id_fk": {
+          "name": "nomad_competition_results_cube_type_id_nomad_competition_cube_types_id_fk",
+          "tableFrom": "nomad_competition_results",
+          "tableTo": "nomad_competition_cube_types",
+          "columnsFrom": [
+            "cube_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_results_competition_id_nomad_competition_competitions_id_fk": {
+          "name": "nomad_competition_results_competition_id_nomad_competition_competitions_id_fk",
+          "tableFrom": "nomad_competition_results",
+          "tableTo": "nomad_competition_competitions",
+          "columnsFrom": [
+            "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_results_competitor_id_nomad_competition_competitors_id_fk": {
+          "name": "nomad_competition_results_competitor_id_nomad_competition_competitors_id_fk",
+          "tableFrom": "nomad_competition_results",
+          "tableTo": "nomad_competition_competitors",
+          "columnsFrom": [
+            "competitor_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_results_created_user_id_nomad_competition_user_id_fk": {
+          "name": "nomad_competition_results_created_user_id_nomad_competition_user_id_fk",
+          "tableFrom": "nomad_competition_results",
+          "tableTo": "nomad_competition_user",
+          "columnsFrom": [
+            "created_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_results_updated_user_id_nomad_competition_user_id_fk": {
+          "name": "nomad_competition_results_updated_user_id_nomad_competition_user_id_fk",
+          "tableFrom": "nomad_competition_results",
+          "tableTo": "nomad_competition_user",
+          "columnsFrom": [
+            "updated_user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_rounds": {
+      "name": "nomad_competition_rounds",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "competition_id": {
+          "name": "competition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cube_type_id": {
+          "name": "cube_type_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_duel": {
+          "name": "is_duel",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "next_competitor": {
+          "name": "next_competitor",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "per_group_count": {
+          "name": "per_group_count",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_rounds_competition_id_nomad_competition_competitions_id_fk": {
+          "name": "nomad_competition_rounds_competition_id_nomad_competition_competitions_id_fk",
+          "tableFrom": "nomad_competition_rounds",
+          "tableTo": "nomad_competition_competitions",
+          "columnsFrom": [
+            "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_rounds_cube_type_id_nomad_competition_cube_types_id_fk": {
+          "name": "nomad_competition_rounds_cube_type_id_nomad_competition_cube_types_id_fk",
+          "tableFrom": "nomad_competition_rounds",
+          "tableTo": "nomad_competition_cube_types",
+          "columnsFrom": [
+            "cube_type_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_schedules": {
+      "name": "nomad_competition_schedules",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "serial",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "start_time": {
+          "name": "start_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "end_time": {
+          "name": "end_time",
+          "type": "time",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "cut_off": {
+          "name": "cut_off",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "time_limit": {
+          "name": "time_limit",
+          "type": "varchar",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "competitor_limit": {
+          "name": "competitor_limit",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "competition_id": {
+          "name": "competition_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "round_id": {
+          "name": "round_id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "nomad_competition_schedules_competition_id_nomad_competition_competitions_id_fk": {
+          "name": "nomad_competition_schedules_competition_id_nomad_competition_competitions_id_fk",
+          "tableFrom": "nomad_competition_schedules",
+          "tableTo": "nomad_competition_competitions",
+          "columnsFrom": [
+            "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_schedules_round_id_nomad_competition_rounds_id_fk": {
+          "name": "nomad_competition_schedules_round_id_nomad_competition_rounds_id_fk",
+          "tableFrom": "nomad_competition_schedules",
+          "tableTo": "nomad_competition_rounds",
+          "columnsFrom": [
+            "round_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_session": {
+      "name": "nomad_competition_session",
+      "schema": "",
+      "columns": {
+        "sessionToken": {
+          "name": "sessionToken",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires": {
+          "name": "expires",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "session_userId_idx": {
+          "name": "session_userId_idx",
+          "columns": [
+            {
+              "expression": "userId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "nomad_competition_session_userId_nomad_competition_user_id_fk": {
+          "name": "nomad_competition_session_userId_nomad_competition_user_id_fk",
+          "tableFrom": "nomad_competition_session",
+          "tableTo": "nomad_competition_user",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "public.nomad_competition_user": {
+      "name": "nomad_competition_user",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(255)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "firstname": {
+          "name": "firstname",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "lastname": {
+          "name": "lastname",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "wca_id": {
+          "name": "wca_id",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "phone": {
+          "name": "phone",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "birth_date": {
+          "name": "birth_date",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "emailVerified": {
+          "name": "emailVerified",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "image": {
+          "name": "image",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "is_admin": {
+          "name": "is_admin",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": false
+        },
+        "password": {
+          "name": "password",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "is_male": {
+          "name": "is_male",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": true,
+          "default": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "nomad_competition_user_wca_id_unique": {
+          "name": "nomad_competition_user_wca_id_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "wca_id"
+          ]
+        },
+        "nomad_competition_user_email_unique": {
+          "name": "nomad_competition_user_email_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "email"
+          ]
+        }
+      }
+    },
+    "public.nomad_competition_verificationToken": {
+      "name": "nomad_competition_verificationToken",
+      "schema": "",
+      "columns": {
+        "identifier": {
+          "name": "identifier",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "token": {
+          "name": "token",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "expires": {
+          "name": "expires",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {
+        "nomad_competition_verificationToken_identifier_token_pk": {
+          "name": "nomad_competition_verificationToken_identifier_token_pk",
+          "columns": [
+            "identifier",
+            "token"
+          ]
+        }
+      },
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {
+    "public.payment_type": {
+      "name": "payment_type",
+      "schema": "public",
+      "values": [
+        "qpay"
+      ]
+    },
+    "public.result_type": {
+      "name": "result_type",
+      "schema": "public",
+      "values": [
+        "ao5",
+        "ao3"
+      ]
+    }
+  },
+  "schemas": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

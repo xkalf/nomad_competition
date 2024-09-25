@@ -1,16 +1,20 @@
-import { DrizzleAdapter } from "@auth/drizzle-adapter";
-import { compare } from "bcrypt";
-import { type GetServerSidePropsContext } from "next";
+import { DrizzleAdapter } from '@auth/drizzle-adapter'
+import { compare } from 'bcrypt'
+import { type GetServerSidePropsContext } from 'next'
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
-} from "next-auth";
-import { type Adapter } from "next-auth/adapters";
-import Credentials from "next-auth/providers/credentials";
+} from 'next-auth'
+import { type Adapter } from 'next-auth/adapters'
+import Credentials from 'next-auth/providers/credentials'
 
-import { db } from "~/server/db";
-import { createTable } from "~/server/db/schema";
+import { db, DBType } from '~/server/db'
+import { createTable, users, verificationTokens } from '~/server/db/schema'
+import { Resend } from 'resend'
+import { eq } from 'drizzle-orm'
+import { randomUUID } from 'crypto'
+import { VerifyAccountTemplate } from '~/components/emails/verify-account'
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -18,22 +22,22 @@ import { createTable } from "~/server/db/schema";
  *
  * @see https://next-auth.js.org/getting-started/typescript#module-augmentation
  */
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: {
-      id: string;
-      isAdmin: boolean;
-      firstname: string;
-      lastname: string;
+      id: string
+      isAdmin: boolean
+      firstname: string
+      lastname: string
       // ...other properties
       // role: UserRole;
-    } & DefaultSession["user"];
+    } & DefaultSession['user']
   }
 
   interface User {
-    isAdmin: boolean;
-    firstname: string;
-    lastname: string;
+    isAdmin: boolean
+    firstname: string
+    lastname: string
     // ...other properties
     // role: UserRole;
   }
@@ -46,21 +50,22 @@ declare module "next-auth" {
  */
 export const authOptions: NextAuthOptions = {
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
   callbacks: {
     session: ({ session, token }) => ({
       ...session,
       user: {
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
         ...(token.user as any),
       },
     }),
     jwt: ({ token, user }) => {
       if (user) {
-        token.user = user;
+        token.user = user
       }
 
-      return token;
+      return token
     },
   },
   adapter: DrizzleAdapter(db, createTable) as Adapter,
@@ -74,28 +79,41 @@ export const authOptions: NextAuthOptions = {
      * @see https://next-auth.js.org/providers/github
      */
     Credentials({
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {
-        email: { label: "И-Мэйл хаяг", type: "email" },
-        password: { label: "Нууц үг", type: "password" },
+        email: { label: 'И-Мэйл хаяг', type: 'email' },
+        password: { label: 'Нууц үг', type: 'password' },
       },
       async authorize(credentials) {
-        if (!credentials) return null;
+        if (!credentials) return null
 
         const user = await db.query.users.findFirst({
           where: (t, { eq }) =>
             eq(t.email, credentials?.email.trim().toLowerCase()),
-        });
+        })
 
-        if (!user) return null;
+        if (!user) {
+          throw new Error('Мэйл хаяг эсвэл нууц үг буруу байна.')
+        }
 
-        const ok = await compare(credentials.password, user.password);
+        const ok = await compare(credentials.password, user.password)
 
-        return ok ? user : null;
+        if (!ok) {
+          throw new Error('Мэйл хаяг эсвэл нууц үг буруу байна.')
+        }
+
+        if (!user.emailVerified) {
+          await generateVerifictionToken(user.email)
+          throw new Error(
+            'Мэйл хаяг баталгаажаагүй байна. Мэйл хаягаа шалгана уу',
+          )
+        }
+
+        return user
       },
     }),
   ],
-};
+}
 
 /**
  * Wrapper for `getServerSession` so that you don't need to import the `authOptions` in every file.
@@ -103,8 +121,49 @@ export const authOptions: NextAuthOptions = {
  * @see https://next-auth.js.org/configuration/nextjs
  */
 export const getServerAuthSession = (ctx: {
-  req: GetServerSidePropsContext["req"];
-  res: GetServerSidePropsContext["res"];
+  req: GetServerSidePropsContext['req']
+  res: GetServerSidePropsContext['res']
 }) => {
-  return getServerSession(ctx.req, ctx.res, authOptions);
-};
+  return getServerSession(ctx.req, ctx.res, authOptions)
+}
+
+const resend = new Resend()
+
+export async function generateVerifictionToken(email: string, d: DBType = db) {
+  await d
+    .delete(verificationTokens)
+    .where(eq(verificationTokens.identifier, email))
+
+  const [res] = await d
+    .insert(verificationTokens)
+    .values({
+      identifier: email,
+      token: randomUUID(),
+      expires: new Date(new Date().getTime() + 3600 * 1000),
+    })
+    .returning()
+
+  if (!res) {
+    throw new Error('Бүртгэлтэй хэрэглэгч олдсонгүй.')
+  }
+
+  const [user] = await d.select().from(users).where(eq(users.email, email))
+
+  if (!user) {
+    throw new Error('Бүртгэлтэй хэрэглэгч олдсонгүй.')
+  }
+
+  const { error } = await resend.emails.send({
+    from: 'info@nomad-team.com',
+    to: [res.identifier],
+    subject: 'Nomad Team Бүртгэл баталгаажуулалт',
+    react: VerifyAccountTemplate({
+      user: user,
+      token: res.token,
+    }),
+  })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+}

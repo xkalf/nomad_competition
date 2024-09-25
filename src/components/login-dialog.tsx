@@ -1,18 +1,17 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { toast } from "./ui/use-toast";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { signIn } from 'next-auth/react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { toast } from './ui/use-toast'
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialog";
-import { Button } from "./ui/button";
+} from './ui/dialog'
+import { Button } from './ui/button'
 import {
   Form,
   FormControl,
@@ -20,45 +19,42 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
+} from './ui/form'
+import { Input } from './ui/input'
 
 const schema = z.object({
   email: z.string().email(),
   password: z.string(),
-});
+})
 
 export default function LoginDialog() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
+  const [error, setError] = useState('')
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
-  });
+  })
 
   const onSubmit = async (values: z.infer<typeof schema>) => {
-    const res = await signIn("credentials", {
+    const res = await signIn('credentials', {
       redirect: false,
       ...values,
-    });
+    })
 
     if (res?.ok) {
       toast({
-        title: "Амжилттай нэвтэрлээ.",
-      });
-      setIsOpen(false);
-      return;
+        title: 'Амжилттай нэвтэрлээ.',
+      })
+      setIsOpen(false)
+      return
     }
 
-    toast({
-      title: "Алдаа гарлаа",
-      description: "Мэйл хаяг эсвэл нууц үг буруу байна.",
-      variant: "destructive",
-    });
-  };
+    setError(res?.error ?? '')
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -97,14 +93,13 @@ export default function LoginDialog() {
                 </FormItem>
               )}
             />
+            {error && <p className="text-red-500">{error}</p>}
+            <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
+              Нэвтрэх
+            </Button>
           </form>
         </Form>
-        <DialogFooter>
-          <Button type="button" onClick={form.handleSubmit(onSubmit)}>
-            Нэвтрэх
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

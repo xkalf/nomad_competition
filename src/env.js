@@ -1,5 +1,5 @@
-import { createEnv } from "@t3-oss/env-nextjs";
-import { z } from "zod";
+import { createEnv } from '@t3-oss/env-nextjs'
+import { z } from 'zod'
 
 export const env = createEnv({
   /**
@@ -11,14 +11,14 @@ export const env = createEnv({
       .string()
       .url()
       .refine(
-        (str) => !str.includes("YOUR_MYSQL_URL_HERE"),
-        "You forgot to change the default URL",
+        (str) => !str.includes('YOUR_MYSQL_URL_HERE'),
+        'You forgot to change the default URL',
       ),
     NODE_ENV: z
-      .enum(["development", "test", "production"])
-      .default("development"),
+      .enum(['development', 'test', 'production'])
+      .default('development'),
     NEXTAUTH_SECRET:
-      process.env.NODE_ENV === "production"
+      process.env.NODE_ENV === 'production'
         ? z.string()
         : z.string().optional(),
     NEXTAUTH_URL: z.preprocess(
@@ -33,6 +33,7 @@ export const env = createEnv({
     QPAY_USERNAME: z.string().min(1),
     QPAY_PASSWORD: z.string().min(1),
     QPAY_INVOICE_CODE: z.string().min(1),
+    RESEND_API_KEY: z.string().min(1),
   },
 
   /**
@@ -59,6 +60,7 @@ export const env = createEnv({
     QPAY_USERNAME: process.env.QPAY_USERNAME,
     QPAY_PASSWORD: process.env.QPAY_PASSWORD,
     QPAY_INVOICE_CODE: process.env.QPAY_INVOICE_CODE,
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
     // DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
     // DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
   },
@@ -72,4 +74,4 @@ export const env = createEnv({
    * `SOME_VAR=''` will throw an error.
    */
   emptyStringAsUndefined: true,
-});
+})

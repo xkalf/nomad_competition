@@ -3,7 +3,6 @@ import { Button } from './ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -170,17 +169,16 @@ export default function RegisterDialog() {
                 </>
               )}
             />
+            <Button
+              type="submit"
+              className="col-span-2"
+              disabled={isLoading}
+              onClick={form.handleSubmit(onSubmit)}
+            >
+              Бүртгүүлэх
+            </Button>
           </form>
         </Form>
-        <DialogFooter>
-          <Button
-            type="submit"
-            disabled={isLoading}
-            onClick={form.handleSubmit(onSubmit)}
-          >
-            Бүртгүүлэх
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

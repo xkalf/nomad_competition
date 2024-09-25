@@ -1,4 +1,4 @@
-import { relations, sql } from 'drizzle-orm'
+import { relations } from 'drizzle-orm'
 import {
   boolean,
   date,
@@ -40,7 +40,7 @@ export const users = createTable('user', {
   birthDate: date('birth_date').notNull(),
   emailVerified: timestamp('emailVerified', {
     mode: 'date',
-  }).default(sql`CURRENT_TIMESTAMP`),
+  }),
   image: varchar('image', { length: 255 }),
   isAdmin: boolean('is_admin').notNull().default(false),
   password: varchar('password', { length: 255 }).notNull(),

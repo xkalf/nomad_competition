@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_user" ALTER COLUMN "emailVerified" DROP DEFAULT;
