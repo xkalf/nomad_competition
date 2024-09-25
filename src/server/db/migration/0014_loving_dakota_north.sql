@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_user" ADD COLUMN "is_male" boolean DEFAULT true NOT NULL;

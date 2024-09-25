@@ -1,5 +1,5 @@
-import { useForm } from "react-hook-form";
-import { Button } from "./ui/button";
+import { useForm } from 'react-hook-form'
+import { Button } from './ui/button'
 import {
   Dialog,
   DialogContent,
@@ -7,58 +7,55 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialog";
-import { z } from "zod";
-import { registerSchema } from "~/utils/zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "./ui/form";
-import { api } from "~/utils/api";
-import { Input } from "./ui/input";
-import { useState } from "react";
-import { toast } from "./ui/use-toast";
+} from './ui/dialog'
+import { z } from 'zod'
+import { registerSchema } from '~/utils/zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Form, FormFieldCustom } from './ui/form'
+import { api } from '~/utils/api'
+import { Input } from './ui/input'
+import { useState } from 'react'
+import { toast } from './ui/use-toast'
+import { Switch } from './ui/switch'
+import { getImageUrl, handleFileUpload } from '~/utils/supabase'
+import Image from 'next/image'
 
 const defaultValues: z.infer<typeof registerSchema> = {
-  firstname: "",
-  lastname: "",
-  email: "",
+  firstname: '',
+  lastname: '',
+  email: '',
   phone: 0,
-  birthDate: "",
-  password: "",
-};
+  birthDate: '',
+  password: '',
+}
 
 export default function RegisterDialog() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   const { mutate: register } = api.auth.register.useMutation({
     onSuccess: () => {
       toast({
-        title: "Амжилттай бүртгэгдлээ.",
-      });
-      setIsOpen(false);
+        title: 'Амжилттай бүртгэгдлээ.',
+      })
+      setIsOpen(false)
     },
     onError: (error) => {
       toast({
-        title: "Алдаа гарлаа",
+        title: 'Алдаа гарлаа',
         description: error.message,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     },
-  });
+  })
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues,
-  });
+  })
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
-    register(values);
-  };
+    register(values)
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -74,112 +71,117 @@ export default function RegisterDialog() {
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid grid-cols-2 gap-x-8 gap-y-4"
           >
-            <FormField
+            <FormFieldCustom
               control={form.control}
               name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Мэйл хаяг</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Мэйл хаяг"
+              render={({ field }) => <Input {...field} />}
             />
-            <FormField
+            <FormFieldCustom
               control={form.control}
               name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Нууц үг</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Нууц үг"
+              render={({ field }) => <Input type="password" {...field} />}
             />
-            <FormField
+            <FormFieldCustom
               control={form.control}
               name="lastname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Овог</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Овог"
+              render={({ field }) => <Input {...field} />}
             />
-            <FormField
+            <FormFieldCustom
               control={form.control}
               name="firstname"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Нэр</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
+              label="Нэр"
+              render={({ field }) => <Input {...field} />}
             />
-            <FormField
+            <FormFieldCustom
               control={form.control}
               name="wcaId"
+              label="WCA ID"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>WCA ID</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={field.value || ""}
-                      onChange={field.onChange}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <Input value={field.value || ''} onChange={field.onChange} />
               )}
             />
-            <FormField
+            <FormFieldCustom
               control={form.control}
               name="phone"
+              label="Утасны дугаар"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Утасны дугаар</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      {...field}
-                      onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <Input
+                  type="number"
+                  {...field}
+                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                />
               )}
             />
-            <FormField
+            <FormFieldCustom
               control={form.control}
               name="birthDate"
+              label="Төрсөн өдөр"
+              render={({ field }) => <Input type="date" {...field} />}
+            />
+            <FormFieldCustom
+              control={form.control}
+              name="isMale"
+              label="Хүйс"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Төрсөн өдөр</FormLabel>
-                  <FormControl>
-                    <Input type="date" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+                <Switch
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                />
+              )}
+            />
+            <FormFieldCustom
+              control={form.control}
+              name="image"
+              label="Зураг"
+              description="Иргэний үнэмлэх болон төрсний гэрчилгээний зураг оруулна уу"
+              render={({ field }) => (
+                <>
+                  <Input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      setIsLoading(true)
+                      const { data, error } = await handleFileUpload(e, 'users')
+
+                      if (data) {
+                        field.onChange(data.path)
+                      } else if (error) {
+                        toast({
+                          title: 'Алдаа гарлаа',
+                          description: error.message,
+                          variant: 'destructive',
+                        })
+                      }
+
+                      setIsLoading(false)
+                    }}
+                  />
+                  {field.value && (
+                    <Image
+                      src={getImageUrl(field.value)}
+                      alt="Зураг"
+                      width={100}
+                      height={100}
+                    />
+                  )}
+                </>
               )}
             />
           </form>
         </Form>
         <DialogFooter>
-          <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
+          <Button
+            type="submit"
+            disabled={isLoading}
+            onClick={form.handleSubmit(onSubmit)}
+          >
             Бүртгүүлэх
           </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

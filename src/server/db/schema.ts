@@ -44,6 +44,7 @@ export const users = createTable('user', {
   image: varchar('image', { length: 255 }),
   isAdmin: boolean('is_admin').notNull().default(false),
   password: varchar('password', { length: 255 }).notNull(),
+  isMale: boolean('is_male').notNull().default(true),
 })
 
 export const usersRelations = relations(users, ({ many }) => ({
