@@ -1,19 +1,19 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useSearchParams } from 'next/navigation'
-import { useRouter } from 'next/router'
-import { useEffect } from 'react'
-import { useForm } from 'react-hook-form'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useSearchParams } from "next/navigation";
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import CreateButtons, {
   redirectNextCreatePage,
-} from '~/components/create-buttons'
-import Layout from '~/components/layout'
-import { Button } from '~/components/ui/button'
+} from "~/components/create-buttons";
+import Layout from "~/components/layout";
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
+} from "~/components/ui/dropdown-menu";
 import {
   Form,
   FormControl,
@@ -21,79 +21,79 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
-import { Textarea } from '~/components/ui/textarea'
-import { toast } from '~/components/ui/use-toast'
-import { api } from '~/utils/api'
-import { CreateCompetitionInput, createCompetitionSchema } from '~/utils/zod'
+} from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { toast } from "~/components/ui/use-toast";
+import { api } from "~/utils/api";
+import { CreateCompetitionInput, createCompetitionSchema } from "~/utils/zod";
 
 export default function CompetitionCreatePage() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const competitionId = +(searchParams.get('competitionId') || '0')
-  const utils = api.useUtils()
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const competitionId = +(searchParams.get("competitionId") || "0");
+  const utils = api.useUtils();
   const form = useForm<CreateCompetitionInput>({
     resolver: zodResolver(createCompetitionSchema),
-  })
+  });
 
   const { data: current } = api.competition.getById.useQuery(competitionId, {
     enabled: competitionId > 0,
-  })
-  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery()
+  });
+  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery();
 
   const { mutate: create, isLoading: createLoading } =
     api.competition.create.useMutation({
       onSuccess: (data) => {
-        utils.competition.getAll.invalidate()
+        utils.competition.getAll.invalidate();
         toast({
-          title: 'Амжилттай бүртгэгдлээ.',
-        })
-        router.push('/competitions/create/age-groups?competitionId=' + data.id)
+          title: "Амжилттай бүртгэгдлээ.",
+        });
+        router.push("/competitions/create/age-groups?competitionId=" + data.id);
       },
       onError: (error) => {
         toast({
-          title: 'Алдаа гарлаа',
+          title: "Алдаа гарлаа",
           description: error.message,
-          variant: 'destructive',
-        })
+          variant: "destructive",
+        });
       },
-    })
+    });
   const { mutate: update, isLoading: updateLoading } =
     api.competition.update.useMutation({
       onSuccess: () => {
-        utils.competition.getAll.invalidate()
+        utils.competition.getAll.invalidate();
         toast({
-          title: 'Амжилттай шинэчлэгдлээ.',
-        })
-        redirectNextCreatePage(router)
+          title: "Амжилттай шинэчлэгдлээ.",
+        });
+        redirectNextCreatePage(router);
       },
       onError: (error) => {
         toast({
-          title: 'Алдаа гарлаа',
+          title: "Алдаа гарлаа",
           description: error.message,
-          variant: 'destructive',
-        })
+          variant: "destructive",
+        });
       },
-    })
+    });
 
   const onSubmit = (values: CreateCompetitionInput) => {
     current
       ? update({
-          id: current.id,
-          ...values,
-        })
-      : create(values)
-  }
+        id: current.id,
+        ...values,
+      })
+      : create(values);
+  };
 
   useEffect(() => {
     current
       ? form.reset({
-          ...current,
-          cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
-        })
-      : form.reset()
-  }, [current])
+        ...current,
+        cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
+      })
+      : form.reset();
+  }, [current]);
 
   return (
     <Layout>
@@ -185,18 +185,18 @@ export default function CompetitionCreatePage() {
                         checked={field.value?.includes(cubeType.id)}
                         onCheckedChange={(value) => {
                           if (!field.value) {
-                            field.value = []
+                            field.value = [];
                           }
 
                           if (value && !field.value.includes(cubeType.id)) {
-                            field.onChange([...field.value, cubeType.id])
+                            field.onChange([...field.value, cubeType.id]);
                           } else if (
                             !value &&
                             field.value.includes(cubeType.id)
                           ) {
                             field.onChange(
                               field.value.filter((id) => id !== cubeType.id),
-                            )
+                            );
                           }
                         }}
                       >
@@ -236,9 +236,9 @@ export default function CompetitionCreatePage() {
                   <Input
                     type="datetime-local"
                     onChange={(e) => {
-                      field.onChange(new Date(e.target.value))
+                      field.onChange(e.target.value);
                     }}
-                    value={field.value?.toLocaleString('sv-SE')}
+                    value={field.value ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -255,9 +255,9 @@ export default function CompetitionCreatePage() {
                   <Input
                     type="datetime-local"
                     onChange={(e) => {
-                      field.onChange(new Date(e.target.value))
+                      field.onChange(e.target.value);
                     }}
-                    value={field.value?.toLocaleString('sv-SE')}
+                    value={field.value ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -348,5 +348,5 @@ export default function CompetitionCreatePage() {
         </form>
       </Form>
     </Layout>
-  )
+  );
 }

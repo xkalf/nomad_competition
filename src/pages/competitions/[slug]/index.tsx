@@ -1,4 +1,4 @@
-import { api } from "~/utils/api";
+import { api, RouterOutputs } from "~/utils/api";
 import { mnFormat } from "~/utils/date";
 import CompetitionLayout from "./layout";
 import LoadingScreen from "~/components/loading-screen";
@@ -14,12 +14,22 @@ import { getImageUrl } from "~/utils/supabase";
 import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
 import { useGetCompetitionSlug } from "~/utils/hooks";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
+import { competitionRouter } from "~/server/api/routers/competitions";
+import { db } from "~/server/db";
+import { createCallerFactory } from "@trpc/server";
+import Head from "next/head";
 
-export default function CompetitionShowPage() {
+type Competition = RouterOutputs["competition"]["getBySlug"];
+
+export default function CompetitionShowPage({
+  competition,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const slug = useGetCompetitionSlug();
 
   const { data, error, isLoading } = api.competition.getBySlug.useQuery(slug, {
     enabled: !!slug,
+    initialData: competition ?? undefined,
   });
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(data?.id ?? 0, {
     enabled: !!data?.id,
@@ -58,6 +68,9 @@ export default function CompetitionShowPage() {
 
   return (
     <CompetitionLayout>
+      <Head>
+        <meta property="og:title" content={competition?.name} />
+      </Head>
       <h1 className="text-4xl font-bold capitalize">{data.name}</h1>
       <Table className="mt-4">
         <TableBody>
@@ -155,4 +168,27 @@ export default function CompetitionShowPage() {
       </Table>
     </CompetitionLayout>
   );
+}
+
+export async function getServerSideProps({
+  params,
+}: GetServerSidePropsContext<{ slug: string }>) {
+  const factory = createCallerFactory();
+
+  const caller = factory(competitionRouter)({
+    session: null,
+    db: db,
+  });
+
+  let competition: Competition | null = null;
+
+  if (params?.slug) {
+    competition = await caller.getBySlug(params?.slug ?? "");
+  }
+
+  return {
+    props: {
+      competition,
+    },
+  };
 }
