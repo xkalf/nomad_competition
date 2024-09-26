@@ -1,5 +1,4 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/router";
 import { useFieldArray, useForm } from "react-hook-form";
 import CreateButtons, {
@@ -25,12 +24,12 @@ import {
 import { Input } from "~/components/ui/input";
 import { toast } from "~/components/ui/use-toast";
 import { api } from "~/utils/api";
+import { useGetCompetitionId } from "~/utils/hooks";
 import { CreateRoundManyInput, createRoundManySchema } from "~/utils/zod";
 
 export default function RoundsForm() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const competitionId = +(searchParams.get("competitionId") || "0");
+  const competitionId = useGetCompetitionId();
 
   const { data: current } = api.round.getByCompetitionId.useQuery(
     competitionId,
@@ -130,11 +129,11 @@ export default function RoundsForm() {
                         <Button className="block">
                           {field.value
                             ? cubeTypes
-                              ?.filter((cubeType) =>
-                                field.value.includes(cubeType.id),
-                              )
-                              .map((cubeType) => cubeType.name)
-                              .join(", ")
+                                ?.filter((cubeType) =>
+                                  field.value.includes(cubeType.id),
+                                )
+                                .map((cubeType) => cubeType.name)
+                                .join(", ")
                             : "Төрөл сонгох"}
                         </Button>
                       </DropdownMenuTrigger>

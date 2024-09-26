@@ -1,4 +1,3 @@
-import { useRouter } from "next/router";
 import { api } from "~/utils/api";
 import { mnFormat } from "~/utils/date";
 import CompetitionLayout from "./layout";
@@ -14,16 +13,16 @@ import {
 import { getImageUrl } from "~/utils/supabase";
 import Image from "next/image";
 import { Badge } from "~/components/ui/badge";
+import { useGetCompetitionSlug } from "~/utils/hooks";
 
 export default function CompetitionShowPage() {
-  const router = useRouter();
-  const id = parseInt(router.query.id?.toString() || "0");
+  const slug = useGetCompetitionSlug();
 
-  const { data, error, isLoading } = api.competition.getById.useQuery(id, {
-    enabled: id > 0,
+  const { data, error, isLoading } = api.competition.getBySlug.useQuery(slug, {
+    enabled: !!slug,
   });
-  const { data: ageGroups } = api.ageGroup.getAll.useQuery(id, {
-    enabled: id > 0,
+  const { data: ageGroups } = api.ageGroup.getAll.useQuery(data?.id ?? 0, {
+    enabled: !!data?.id,
   });
 
   const groupAgeGroups = (input: typeof ageGroups = []) => {

@@ -1,7 +1,4 @@
-import { useRouter } from "next/router";
-import CompetitionLayout from "../layout";
-import { useSession } from "next-auth/react";
-import { api } from "~/utils/api";
+import { useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -10,38 +7,22 @@ import {
   TableHeader,
   TableRow,
 } from "~/components/ui/table";
-import { Button } from "~/components/ui/button";
-import ScheduleCreateForm from "./form";
-import { useMemo, useState } from "react";
-import { toast } from "~/components/ui/use-toast";
-import DeleteButton from "~/components/delete-button";
+import { api } from "~/utils/api";
+import { useGetCompetitionSlug } from "~/utils/hooks";
+import CompetitionLayout from "../layout";
 
 export default function SchedulePage() {
-  const router = useRouter();
-  const id = parseInt(router.query.id?.toString() || "0");
-  const utils = api.useUtils();
-  const { data: session } = useSession();
-  const [isOpen, setIsOpen] = useState(false);
-  const [selected, setSelected] = useState(0);
+  const slug = useGetCompetitionSlug();
 
-  const { data } = api.schedule.getByCompetitionId.useQuery(id, {
-    enabled: id > 0,
+  const { data: competition } = api.competition.getBySlug.useQuery(slug, {
+    enabled: !!slug,
   });
-  const { mutate: remove } = api.schedule.delete.useMutation({
-    onSuccess: () => {
-      utils.schedule.getByCompetitionId.invalidate(id);
-      toast({
-        title: "Амжилттай устгалаа.",
-      });
+  const { data } = api.schedule.getByCompetitionId.useQuery(
+    competition?.id ?? 0,
+    {
+      enabled: !!competition?.id,
     },
-    onError: (error) => {
-      toast({
-        title: "Алдаа гарлаа",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
+  );
 
   const groupSchedule = (input: typeof data = []) => {
     const grouped = input.reduce(
@@ -64,25 +45,10 @@ export default function SchedulePage() {
 
   const groupedData = useMemo(() => groupSchedule(data), [data]);
 
-  const handleEdit = (id: number) => () => {
-    setSelected(id);
-    setIsOpen(true);
-  };
-  const handleRemove = (id: number) => () => remove(id);
-
   return (
     <CompetitionLayout>
       <div className="flex justify-between">
         <h1 className="text-4xl">Цагийн хуваарь</h1>
-        {session?.user.isAdmin && (
-          <ScheduleCreateForm
-            reset={() => setSelected(0)}
-            isOpen={isOpen}
-            setIsOpen={setIsOpen}
-            competitionId={id}
-            current={data?.find((i) => i.id === selected)}
-          />
-        )}
       </div>
       {Object.keys(groupedData).map((key) => (
         <div key={key}>
@@ -96,7 +62,6 @@ export default function SchedulePage() {
                 <TableHead>Таслах хугацаа</TableHead>
                 <TableHead>Цагийн хязгаар</TableHead>
                 <TableHead>Дараагийн үед үлдэх тамирчид</TableHead>
-                {session?.user.isAdmin && <TableHead>Үйлдэл</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -108,14 +73,6 @@ export default function SchedulePage() {
                   <TableCell>{item.cutOff}</TableCell>
                   <TableCell>{item.timeLimit}</TableCell>
                   <TableCell>{item.competitorLimit}</TableCell>
-                  <TableCell className="space-x-2">
-                    {session?.user.isAdmin && (
-                      <>
-                        <Button onClick={handleEdit(item.id)}>Засах</Button>
-                        <DeleteButton onConfirm={handleRemove(item.id)} />
-                      </>
-                    )}
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

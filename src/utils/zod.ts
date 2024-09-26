@@ -19,9 +19,13 @@ export const getUpdateSchema = <T extends ZodRawShape>(input: ZodObject<T>) => {
   });
 };
 
-export const createCompetitionSchema = createInsertSchema(competitions).extend({
-  cubeTypes: z.number().int().positive().array(),
-});
+export const createCompetitionSchema = createInsertSchema(competitions)
+  .extend({
+    cubeTypes: z.number().int().positive().array(),
+  })
+  .omit({
+    slug: true,
+  });
 export type CreateCompetitionInput = z.infer<typeof createCompetitionSchema>;
 
 export const registerSchema = createInsertSchema(users, {

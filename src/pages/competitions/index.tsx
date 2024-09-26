@@ -85,7 +85,7 @@ export default function CompetitionsPage() {
               <TableCell className="hidden md:block">{item.address}</TableCell>
               <TableCell className="space-x-2">
                 <Button variant="outline" asChild>
-                  <Link href={`/competitions/${item.id}`}>Дэлгэрэнгүй</Link>
+                  <Link href={`/competitions/${item.slug}`}>Дэлгэрэнгүй</Link>
                 </Button>
                 {session?.user.isAdmin && (
                   <>

@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_competitions" ALTER COLUMN "slug" SET NOT NULL;

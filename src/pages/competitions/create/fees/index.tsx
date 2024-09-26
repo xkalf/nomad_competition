@@ -1,19 +1,18 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useSearchParams } from 'next/navigation'
-import { useRouter } from 'next/router'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/router";
+import { useFieldArray, useForm } from "react-hook-form";
 import CreateButtons, {
   redirectNextCreatePage,
-} from '~/components/create-buttons'
-import CreateLinks from '~/components/create-links'
-import Layout from '~/components/layout'
-import { Button } from '~/components/ui/button'
+} from "~/components/create-buttons";
+import CreateLinks from "~/components/create-links";
+import Layout from "~/components/layout";
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
+} from "~/components/ui/dropdown-menu";
 import {
   Form,
   FormControl,
@@ -21,42 +20,42 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
-import { toast } from '~/components/ui/use-toast'
-import { api } from '~/utils/api'
-import { CreateFeeManyInput, createFeeManySchema } from '~/utils/zod'
+} from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
+import { toast } from "~/components/ui/use-toast";
+import { api } from "~/utils/api";
+import { useGetCompetitionId } from "~/utils/hooks";
+import { CreateFeeManyInput, createFeeManySchema } from "~/utils/zod";
 
 export default function FeesForm() {
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const competitionId = +(searchParams.get('competitionId') || '0')
+  const router = useRouter();
+  const competitionId = useGetCompetitionId();
 
   const { data: current } = api.fee.getByCompetitionId.useQuery(competitionId, {
     enabled: competitionId > 0,
-  })
+  });
   const { data: cubeTypes } = api.cubeTypes.getByCompetitionId.useQuery(
     competitionId,
     {
       enabled: competitionId > 0,
     },
-  )
+  );
 
   const { mutate, isLoading } = api.fee.createMany.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Амжилттай бүртгэгдлээ.',
-      })
-      redirectNextCreatePage(router)
+        title: "Амжилттай бүртгэгдлээ.",
+      });
+      redirectNextCreatePage(router);
     },
     onError: (error) => {
       toast({
-        title: 'Алдаа гарлаа',
+        title: "Алдаа гарлаа",
         description: error.message,
-        variant: 'destructive',
-      })
+        variant: "destructive",
+      });
     },
-  })
+  });
 
   const form = useForm<CreateFeeManyInput>({
     resolver: zodResolver(createFeeManySchema.omit({ competitionId: true })),
@@ -64,23 +63,23 @@ export default function FeesForm() {
       data:
         current ??
         cubeTypes?.map((i) => ({
-          amount: '0',
+          amount: "0",
           cubeTypeId: i.id,
         })),
     },
-  })
+  });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'data',
-  })
+    name: "data",
+  });
 
   const onSubmit = (input: CreateFeeManyInput) => {
     mutate({
       ...input,
       competitionId,
-    })
-  }
+    });
+  };
 
   return (
     <Layout>
@@ -91,7 +90,7 @@ export default function FeesForm() {
           type="button"
           onClick={() =>
             append({
-              amount: '0',
+              amount: "0",
               cubeTypeId: 0,
             })
           }
@@ -114,7 +113,7 @@ export default function FeesForm() {
                         <Button className="block">
                           {field.value
                             ? cubeTypes?.find((i) => i.id === field.value)?.name
-                            : 'Төрөл сонгох'}
+                            : "Төрөл сонгох"}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
@@ -164,5 +163,5 @@ export default function FeesForm() {
         />
       </Form>
     </Layout>
-  )
+  );
 }

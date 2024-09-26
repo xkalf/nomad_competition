@@ -1,57 +1,57 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import { useRouter } from 'next/router'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/router";
+import { useFieldArray, useForm } from "react-hook-form";
 import CreateButtons, {
   redirectNextCreatePage,
-} from '~/components/create-buttons'
-import CreateLinks from '~/components/create-links'
-import Layout from '~/components/layout'
-import { Button } from '~/components/ui/button'
-import { Form, FormFieldCustom } from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
+} from "~/components/create-buttons";
+import CreateLinks from "~/components/create-links";
+import Layout from "~/components/layout";
+import { Button } from "~/components/ui/button";
+import { Form, FormFieldCustom } from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '~/components/ui/select'
-import { toast } from '~/components/ui/use-toast'
-import { api } from '~/utils/api'
-import { useGetCompetitionId } from '~/utils/useGetCompetitionId'
-import { CreateScheduleManyInput, createScheduleManySchema } from '~/utils/zod'
+} from "~/components/ui/select";
+import { toast } from "~/components/ui/use-toast";
+import { api } from "~/utils/api";
+import { useGetCompetitionId } from "~/utils/hooks";
+import { CreateScheduleManyInput, createScheduleManySchema } from "~/utils/zod";
 
 export default function SchedulesForm() {
-  const router = useRouter()
-  const competitionId = useGetCompetitionId()
+  const router = useRouter();
+  const competitionId = useGetCompetitionId();
 
   const { data: current } = api.schedule.getByCompetitionId.useQuery(
     competitionId,
     {
       enabled: competitionId > 0,
     },
-  )
+  );
   const { data: rounds } = api.round.getByCompetitionId.useQuery(
     competitionId,
     {
       enabled: competitionId > 0,
     },
-  )
+  );
   const { mutate, isLoading } = api.schedule.createMany.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Амжилттай бүртгэгдлээ.',
-      })
-      redirectNextCreatePage(router)
+        title: "Амжилттай бүртгэгдлээ.",
+      });
+      redirectNextCreatePage(router);
     },
     onError: (error) => {
       toast({
-        title: 'Алдаа гарлаа',
+        title: "Алдаа гарлаа",
         description: error.message,
-        variant: 'destructive',
-      })
+        variant: "destructive",
+      });
     },
-  })
+  });
 
   const form = useForm<CreateScheduleManyInput>({
     resolver: zodResolver(
@@ -60,19 +60,19 @@ export default function SchedulesForm() {
     defaultValues: {
       data: current,
     },
-  })
+  });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: 'data',
-  })
+    name: "data",
+  });
 
   const onSubmit = (input: CreateScheduleManyInput) => {
     mutate({
       ...input,
       competitionId,
-    })
-  }
+    });
+  };
 
   return (
     <Layout>
@@ -83,10 +83,10 @@ export default function SchedulesForm() {
           type="button"
           onClick={() =>
             append({
-              date: '',
-              startTime: '',
-              endTime: '',
-              name: '',
+              date: "",
+              startTime: "",
+              endTime: "",
+              name: "",
             })
           }
         >
@@ -105,14 +105,14 @@ export default function SchedulesForm() {
                   <Select
                     value={String(field.value)}
                     onValueChange={(value) => {
-                      const round = rounds?.find((r) => r.id === +value)
+                      const round = rounds?.find((r) => r.id === +value);
                       if (round) {
-                        field.onChange(+value)
-                        form.setValue(`data.${index}.name`, round.name)
+                        field.onChange(+value);
+                        form.setValue(`data.${index}.name`, round.name);
                         form.setValue(
                           `data.${index}.competitorLimit`,
                           round.nextCompetitor,
-                        )
+                        );
                       }
                     }}
                   >
@@ -188,7 +188,7 @@ export default function SchedulesForm() {
                 type="button"
                 onClick={() => remove(index)}
                 disabled={isLoading}
-                variant={'destructive'}
+                variant={"destructive"}
               >
                 Устгах
               </Button>
@@ -201,5 +201,5 @@ export default function SchedulesForm() {
         />
       </Form>
     </Layout>
-  )
+  );
 }

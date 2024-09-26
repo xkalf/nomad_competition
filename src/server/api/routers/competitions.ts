@@ -1,4 +1,5 @@
 import { and, count, eq, inArray, sql } from "drizzle-orm";
+import slugify from "slugify";
 import { z } from "zod";
 import {
   adminProcedure,
@@ -35,6 +36,38 @@ export const competitionRouter = createTRPCRouter({
         },
       });
     }),
+  getBySlug: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const res = await ctx.db.query.competitions.findFirst({
+      where: eq(competitions.slug, input),
+      extras: {
+        isRegisterAble:
+          sql`${competitions.registerStartDate} <= now() AND ${competitions.registerEndDate} >= now() AND ${competitions.maxCompetitors} > (${ctx.db
+            .select({
+              count: count(),
+            })
+            .from(competitions)
+            .where(eq(competitions.slug, input))})`.as("is_register_able"),
+      },
+      with: {
+        competitionsToCubeTypes: {
+          with: {
+            cubeType: true,
+          },
+        },
+        fees: {
+          with: {
+            cubeType: true,
+          },
+        },
+      },
+    });
+
+    if (!res) {
+      throw new Error("Тэмцээн олдсонгүй.");
+    }
+
+    return res;
+  }),
   getById: publicProcedure
     .input(z.number().int().positive())
     .query(async ({ ctx, input }) => {
@@ -73,7 +106,13 @@ export const competitionRouter = createTRPCRouter({
     .input(createCompetitionSchema)
     .mutation(async ({ ctx, input }) => {
       return ctx.db.transaction(async (t) => {
-        const [res] = await t.insert(competitions).values(input).returning();
+        const [res] = await t
+          .insert(competitions)
+          .values({
+            ...input,
+            slug: slugify(input.name, { lower: true }),
+          })
+          .returning();
 
         if (!res) {
           throw new Error("Тэмцээн үүсгэхэд алдаа гарлаа.");
@@ -95,7 +134,12 @@ export const competitionRouter = createTRPCRouter({
       const res = await ctx.db.transaction(async (t) => {
         const [res] = await t
           .update(competitions)
-          .set(input)
+          .set({
+            ...input,
+            ...(input.name
+              ? { slug: slugify(input.name, { lower: true }) }
+              : {}),
+          })
           .where(eq(competitions.id, input.id))
           .returning();
 

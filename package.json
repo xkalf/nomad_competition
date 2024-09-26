@@ -64,6 +64,7 @@
     "scramble-display": "^0.5.5",
     "scrambow": "^1.8.1",
     "sharp": "^0.33.5",
+    "slugify": "^1.6.6",
     "superjson": "^2.2.1",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",

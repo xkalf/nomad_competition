@@ -10,6 +10,7 @@ import { getImageUrl } from "~/utils/supabase";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDownIcon } from "lucide-react";
 import DataTable from "~/components/data-table/data-table";
+import { useGetCompetitionSlug } from "~/utils/hooks";
 
 type Competitor = RouterOutputs["competitor"]["getByCompetitionId"][number];
 
@@ -17,28 +18,28 @@ export default function RegistrationsPage() {
   const router = useRouter();
   const utils = api.useUtils();
   const { data: session } = useSession();
-  const id = parseInt(router.query.id?.toString() || "0");
+  const slug = useGetCompetitionSlug();
 
   const [isVerified, setIsVerified] = useState(
     router.query.isVerified === "true" ? true : false,
   );
 
-  const { data: competition } = api.competition.getById.useQuery(id, {
-    enabled: id > 0,
+  const { data: competition } = api.competition.getBySlug.useQuery(slug, {
+    enabled: !!slug,
   });
   const { data } = api.competitor.getByCompetitionId.useQuery(
     {
-      competitionId: id,
+      competitionId: competition?.id ?? 0,
       isVerified,
     },
     {
-      enabled: id > 0,
+      enabled: !!competition?.id,
     },
   );
   const { mutate: verify } = api.competitor.verify.useMutation({
     onSuccess: () => {
       utils.competitor.getByCompetitionId.invalidate({
-        competitionId: id,
+        competitionId: competition?.id ?? 0,
         isVerified,
       });
       toast({
@@ -162,24 +163,32 @@ export default function RegistrationsPage() {
       ),
     ...(session?.user.isAdmin && !isVerified
       ? [
-        {
-          accessorKey: "action",
-          header: "Үйлдэл",
-          cell: ({ row }: any) => {
-            if (!session?.user.isAdmin || isVerified) return <></>;
+          {
+            accessorKey: "action",
+            header: "Үйлдэл",
+            cell: ({
+              row,
+            }: {
+              row: {
+                original: {
+                  id: number;
+                };
+              };
+            }) => {
+              if (!session?.user.isAdmin || isVerified) return <></>;
 
-            return (
-              <Button
-                onClick={() => {
-                  verify(row.original.id);
-                }}
-              >
-                Баталгаажуулах
-              </Button>
-            );
+              return (
+                <Button
+                  onClick={() => {
+                    verify(row.original.id);
+                  }}
+                >
+                  Баталгаажуулах
+                </Button>
+              );
+            },
           },
-        },
-      ]
+        ]
       : []),
   ];
 

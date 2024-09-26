@@ -1,10 +1,14 @@
-import { useRouter } from "next/router";
-import CompetitionLayout from "../layout";
-import { RouterOutputs, api } from "~/utils/api";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { competitionRegisterSchema } from "~/utils/zod";
+import { useSession } from "next-auth/react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/router";
+import { useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
+import LoadingScreen from "~/components/loading-screen";
+import { Alert, AlertTitle } from "~/components/ui/alert";
+import { Button } from "~/components/ui/button";
 import {
   Form,
   FormControl,
@@ -13,16 +17,13 @@ import {
   FormLabel,
   FormMessage,
 } from "~/components/ui/form";
-import { toast } from "~/components/ui/use-toast";
 import { Input } from "~/components/ui/input";
 import { MultiSelect } from "~/components/ui/multi-select";
-import { Button } from "~/components/ui/button";
-import { useSession } from "next-auth/react";
-import { Alert, AlertTitle } from "~/components/ui/alert";
-import LoadingScreen from "~/components/loading-screen";
-import { useMemo, useState } from "react";
-import Image from "next/image";
-import Link from "next/link";
+import { toast } from "~/components/ui/use-toast";
+import { RouterOutputs, api } from "~/utils/api";
+import { competitionRegisterSchema } from "~/utils/zod";
+import CompetitionLayout from "../layout";
+import { useGetCompetitionSlug } from "~/utils/hooks";
 
 const defaultValues: z.infer<typeof competitionRegisterSchema> = {
   competitionId: 0,
@@ -34,17 +35,17 @@ type InvoiceResponse = RouterOutputs["payment"]["createInvoice"];
 
 export default function CompetitionRegisterPage() {
   const router = useRouter();
-  const id = parseInt(router.query.id?.toString() || "0");
+  const slug = useGetCompetitionSlug();
   const session = useSession();
 
   const [qpayResponse, setQpayResponse] = useState<InvoiceResponse | null>(
     null,
   );
 
-  const { data: competition, isLoading } = api.competition.getById.useQuery(
-    id,
+  const { data: competition, isLoading } = api.competition.getBySlug.useQuery(
+    slug,
     {
-      enabled: id > 0,
+      enabled: !!slug,
     },
   );
 
@@ -52,17 +53,20 @@ export default function CompetitionRegisterPage() {
     data: current,
     isLoading: currentLoading,
     refetch: currentRefetch,
-  } = api.competition.getRegisterByCompetitionId.useQuery(+id, {
-    enabled: +id > 0,
-    onSuccess: (data) => {
-      if (!data) return;
-      form.reset({
-        competitionId: data?.competitionId,
-        cubeTypes: data?.competitorsToCubeTypes.map((i) => i.cubeTypeId),
-        guestCount: data?.guestCount,
-      });
+  } = api.competition.getRegisterByCompetitionId.useQuery(
+    competition?.id ?? 0,
+    {
+      enabled: !!competition?.id,
+      onSuccess: (data) => {
+        if (!data) return;
+        form.reset({
+          competitionId: data?.competitionId,
+          cubeTypes: data?.competitorsToCubeTypes.map((i) => i.cubeTypeId),
+          guestCount: data?.guestCount,
+        });
+      },
     },
-  });
+  );
   const { mutate: register, isLoading: registerLoading } =
     api.competition.register.useMutation({
       onSuccess: () => {
@@ -114,7 +118,7 @@ export default function CompetitionRegisterPage() {
     refetchInterval: 1000,
     onSuccess: (data) => {
       if (data === true) {
-        router.push(`/competitions/${id}/registrations?isVerified=true`);
+        router.push(`/competitions/${slug}/registrations?isVerified=true`);
         toast({
           title: "Амжилттай төлөгдлөө.",
         });
@@ -131,9 +135,9 @@ export default function CompetitionRegisterPage() {
     current
       ? updateRegister({ id: current.id, ...values })
       : register({
-        ...values,
-        competitionId: +id,
-      });
+          ...values,
+          competitionId: competition?.id ?? 0,
+        });
   };
 
   const mappedCubeTypes = useMemo(() => {
@@ -166,7 +170,7 @@ export default function CompetitionRegisterPage() {
       current.guestCount < competition.freeGuests
         ? 0
         : (current?.guestCount - competition?.freeGuests) *
-        +competition.guestFee;
+          +competition.guestFee;
     const cubeTypesFee = competition.fees
       .filter((fee) =>
         current.competitorsToCubeTypes
@@ -260,7 +264,7 @@ export default function CompetitionRegisterPage() {
           <FormField
             control={form.control}
             name="competitionId"
-            defaultValue={+id}
+            defaultValue={competition?.id}
             render={() => (
               <FormItem>
                 <FormMessage />
@@ -282,7 +286,7 @@ export default function CompetitionRegisterPage() {
             {session?.data?.user.id &&
               current &&
               current.invoices.reduce((a, b) => a + +b.amount, 0) <
-              totalAmount && (
+                totalAmount && (
                 <>
                   <Button
                     className="ml-2"

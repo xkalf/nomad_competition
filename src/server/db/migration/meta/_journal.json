@@ -113,6 +113,20 @@
       "when": 1727262063828,
       "tag": "0015_abnormal_jane_foster",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1727314087780,
+      "tag": "0016_gigantic_manta",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1727316072026,
+      "tag": "0017_closed_marvex",
+      "breakpoints": true
     }
   ]
 }
