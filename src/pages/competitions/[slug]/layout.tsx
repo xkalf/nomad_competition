@@ -33,6 +33,7 @@ export default function CompetitionLayout({ children }: Props) {
     <Layout>
       <Head>
         <title>{competition?.name}</title>
+        <meta property="og:title" content={competition?.name} />
       </Head>
       <div className="grid grid-cols-1 lg:grid-cols-5">
         <div className="mb-8 flex flex-col space-y-2 lg:mb-0">

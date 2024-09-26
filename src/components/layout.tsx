@@ -3,6 +3,7 @@ import { MainNav } from "./main-nav";
 import { UserNav } from "./user-nav";
 import RegisterDialog from "./register-dialog";
 import LoginDialog from "./login-dialog";
+import Head from "next/head";
 
 interface Props {
   children: React.ReactNode;
@@ -12,6 +13,9 @@ export default function Layout({ children }: Props) {
   const { data: session } = useSession();
   return (
     <div className="space-y-4 p-2 md:p-8">
+      <Head>
+        <title>Nomad Competition</title>
+      </Head>
       <div className="flex h-16 items-center justify-between px-4">
         <MainNav />
         <div className="hidden md:block">
