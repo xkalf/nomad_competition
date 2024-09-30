@@ -1,60 +1,61 @@
-import { useForm } from 'react-hook-form'
-import { Button } from './ui/button'
+import { useForm } from "react-hook-form";
+import { Button } from "./ui/button";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from './ui/dialog'
-import { z } from 'zod'
-import { registerSchema } from '~/utils/zod'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { Form, FormFieldCustom } from './ui/form'
-import { api } from '~/utils/api'
-import { Input } from './ui/input'
-import { useState } from 'react'
-import { toast } from './ui/use-toast'
-import { Switch } from './ui/switch'
-import { getImageUrl, handleFileUpload } from '~/utils/supabase'
-import Image from 'next/image'
+} from "./ui/dialog";
+import { z } from "zod";
+import { registerSchema } from "~/utils/zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Form, FormFieldCustom } from "./ui/form";
+import { api } from "~/utils/api";
+import { Input } from "./ui/input";
+import { useState } from "react";
+import { toast } from "./ui/use-toast";
+import { Switch } from "./ui/switch";
+import { Label } from "./ui/label";
 
 const defaultValues: z.infer<typeof registerSchema> = {
-  firstname: '',
-  lastname: '',
-  email: '',
+  firstname: "",
+  lastname: "",
+  email: "",
   phone: 0,
-  birthDate: '',
-  password: '',
-}
+  birthDate: "",
+  password: "",
+  isMale: true,
+};
 
 export default function RegisterDialog() {
-  const [isLoading, setIsLoading] = useState(false)
-  const [isOpen, setIsOpen] = useState(false)
-  const { mutate: register } = api.auth.register.useMutation({
+  const [isOpen, setIsOpen] = useState(false);
+  const { mutate: register, isLoading } = api.auth.register.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Амжилттай бүртгэгдлээ.',
-      })
-      setIsOpen(false)
+        title: "Амжилттай бүртгэгдлээ.",
+        description:
+          "Имэйл хаяг баталгаажуулах хугацаа 1 цаг. Та амжиж баталгаажуулна уу.",
+      });
+      setIsOpen(false);
     },
     onError: (error) => {
       toast({
-        title: 'Алдаа гарлаа',
+        title: "Алдаа гарлаа",
         description: error.message,
-        variant: 'destructive',
-      })
+        variant: "destructive",
+      });
     },
-  })
+  });
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues,
-  })
+  });
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
-    register(values)
-  }
+    register(values);
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -99,7 +100,7 @@ export default function RegisterDialog() {
               name="wcaId"
               label="WCA ID"
               render={({ field }) => (
-                <Input value={field.value || ''} onChange={field.onChange} />
+                <Input value={field.value || ""} onChange={field.onChange} />
               )}
             />
             <FormFieldCustom
@@ -125,48 +126,14 @@ export default function RegisterDialog() {
               name="isMale"
               label="Хүйс"
               render={({ field }) => (
-                <Switch
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              )}
-            />
-            <FormFieldCustom
-              control={form.control}
-              name="image"
-              label="Зураг"
-              description="Иргэний үнэмлэх болон төрсний гэрчилгээний зураг оруулна уу"
-              render={({ field }) => (
-                <>
-                  <Input
-                    type="file"
-                    accept="image/*"
-                    onChange={async (e) => {
-                      setIsLoading(true)
-                      const { data, error } = await handleFileUpload(e, 'users')
-
-                      if (data) {
-                        field.onChange(data.path)
-                      } else if (error) {
-                        toast({
-                          title: 'Алдаа гарлаа',
-                          description: error.message,
-                          variant: 'destructive',
-                        })
-                      }
-
-                      setIsLoading(false)
-                    }}
+                <div className="flex gap-2 items-center">
+                  <Label>Эмэгтэй</Label>
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
                   />
-                  {field.value && (
-                    <Image
-                      src={getImageUrl(field.value)}
-                      alt="Зураг"
-                      width={100}
-                      height={100}
-                    />
-                  )}
-                </>
+                  <Label>Эрэгтэй</Label>
+                </div>
               )}
             />
             <Button
@@ -175,11 +142,11 @@ export default function RegisterDialog() {
               disabled={isLoading}
               onClick={form.handleSubmit(onSubmit)}
             >
-              Бүртгүүлэх
+              {isLoading ? "Уншиж байна..." : "Бүртгүүлэх"}
             </Button>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

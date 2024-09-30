@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_competitions" DROP COLUMN IF EXISTS "image";

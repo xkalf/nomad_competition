@@ -163,3 +163,17 @@ export const createScheduleManySchema = z.object({
   competitionId: z.number().int().positive(),
 });
 export type CreateScheduleManyInput = z.infer<typeof createScheduleManySchema>;
+
+export const passwordResetSchema = z
+  .object({
+    password: z.string().min(6, {
+      message: "Нууц үг хамгийн багадаа 6 тэмдэгтээс их байх ёстой",
+    }),
+    passwordRe: z.string(),
+    token: z.string(),
+  })
+  .refine((data) => data.password === data.passwordRe, {
+    message: "Давтан нууц үг таарахгүй байна.",
+    path: ["passwordRe"],
+  });
+export type PasswordResetInput = z.infer<typeof passwordResetSchema>;

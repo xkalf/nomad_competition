@@ -69,7 +69,12 @@ export default function CompetitionShowPage({
   return (
     <CompetitionLayout>
       <Head>
-        <meta property="og:title" content={competition?.name} />
+        <meta property="og:title" content={competition?.name} key="title" />
+        <meta
+          property="og:image"
+          content={getImageUrl(competition?.image)}
+          key="image"
+        />
       </Head>
       <h1 className="text-4xl font-bold capitalize">{data.name}</h1>
       <Table className="mt-4">
