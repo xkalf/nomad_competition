@@ -1,17 +1,17 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { signIn } from "next-auth/react";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { toast } from "./ui/use-toast";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { signIn } from 'next-auth/react'
+import { useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { toast } from './ui/use-toast'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialog";
-import { Button } from "./ui/button";
+} from './ui/dialog'
+import { Button } from './ui/button'
 import {
   Form,
   FormControl,
@@ -19,65 +19,65 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "./ui/form";
-import { Input } from "./ui/input";
-import { api } from "~/utils/api";
+} from './ui/form'
+import { Input } from './ui/input'
+import { api } from '~/utils/api'
 
 const schema = z.object({
   email: z.string().email(),
   password: z.string(),
-});
+})
 
 export default function LoginDialog() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [error, setError] = useState("");
+  const [isOpen, setIsOpen] = useState(false)
+  const [error, setError] = useState('')
 
   const { mutate: sendPasswordResetEmail } =
     api.auth.sendPasswordResetEmail.useMutation({
       onError: (err) => {
-        setError(err.message);
+        setError(err.message)
       },
       onSuccess: () => {
         toast({
-          title: "",
-        });
+          title: '',
+        })
       },
-    });
+    })
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
-  });
+  })
 
   const onSubmit = async (values: z.infer<typeof schema>) => {
-    const res = await signIn("credentials", {
+    const res = await signIn('credentials', {
       redirect: false,
       ...values,
-    });
+    })
 
     if (res?.ok) {
       toast({
-        title: "Амжилттай нэвтэрлээ.",
-      });
-      setIsOpen(false);
-      return;
+        title: 'Амжилттай нэвтэрлээ.',
+      })
+      setIsOpen(false)
+      return
     }
 
-    setError(res?.error ?? "");
-  };
+    setError(res?.error ?? '')
+  }
 
   const onPasswordResetClick = () => {
-    const email = form.getValues("email");
+    const email = form.getValues('email')
 
-    const parsed = z.string().email().safeParse(email);
+    const parsed = z.string().email().safeParse(email)
     if (parsed.success) {
-      sendPasswordResetEmail(parsed.data);
+      sendPasswordResetEmail(parsed.data)
     } else {
-      setError("Имэйл хаяг оруулна уу.");
+      setError('Имэйл хаяг оруулна уу.')
     }
-  };
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -119,7 +119,15 @@ export default function LoginDialog() {
             {error && <p className="text-red-500">{error}</p>}
             <div>
               <Button
-                variant={"link"}
+                type="button"
+                onClick={async () => {
+                  await signIn('wca')
+                }}
+              >
+                WCA
+              </Button>
+              <Button
+                variant={'link'}
                 className="block text-gray-500 px-0"
                 type="button"
                 onClick={() => onPasswordResetClick()}
@@ -134,5 +142,5 @@ export default function LoginDialog() {
         </Form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

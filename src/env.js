@@ -34,6 +34,8 @@ export const env = createEnv({
     QPAY_PASSWORD: z.string().min(1),
     QPAY_INVOICE_CODE: z.string().min(1),
     RESEND_API_KEY: z.string().min(1),
+    WCA_CLIENT_ID: z.string().min(1),
+    WCA_CLIENT_SECRET: z.string().min(1),
   },
 
   /**
@@ -61,6 +63,8 @@ export const env = createEnv({
     QPAY_PASSWORD: process.env.QPAY_PASSWORD,
     QPAY_INVOICE_CODE: process.env.QPAY_INVOICE_CODE,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
+    WCA_CLIENT_ID: process.env.WCA_CLIENT_ID,
+    WCA_CLIENT_SECRET: process.env.WCA_CLIENT_SECRET,
     // DISCORD_CLIENT_ID: process.env.DISCORD_CLIENT_ID,
     // DISCORD_CLIENT_SECRET: process.env.DISCORD_CLIENT_SECRET,
   },
