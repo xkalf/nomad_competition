@@ -5,6 +5,7 @@ import {
   Container,
   Head,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -28,6 +29,13 @@ export const ResetPasswordTemplate: FC<Readonly<ResetPasswordProps>> = ({
       <Preview>Нууц үг сэргээх</Preview>
       <Body style={main}>
         <Container style={container}>
+          <Img
+            src="https://sepqgdowngdjrimbdsop.supabase.co/storage/v1/object/public/Storage/mail%20cover%20(1).png"
+            width="170"
+            height="50"
+            alt="nomad team banner"
+            style={logo}
+          />
           <Text style={paragraph}>
             Сайна байна уу? {user.lastname[0]?.toUpperCase()}.{user.firstname},
           </Text>
@@ -63,6 +71,10 @@ const main = {
   backgroundColor: '#ffffff',
   fontFamily:
     '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif',
+}
+
+const logo = {
+  margin: '0 auto',
 }
 
 const container = {

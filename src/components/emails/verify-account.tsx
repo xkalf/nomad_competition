@@ -5,6 +5,7 @@ import {
   Container,
   Head,
   Html,
+  Img,
   Link,
   Preview,
   Section,
@@ -28,18 +29,18 @@ export const VerifyAccountTemplate: FC<Readonly<VerifyAccountProps>> = ({
       <Preview>Имэйл баталгаажлаа</Preview>
       <Body style={main}>
         <Container style={container}>
-          {/* <Img */}
-          {/*   src={`${baseUrl}/static/koala-logo.png`} */}
-          {/*   width="170" */}
-          {/*   height="50" */}
-          {/*   alt="Koala" */}
-          {/*   style={logo} */}
-          {/* /> */}
+          <Img
+            src="https://sepqgdowngdjrimbdsop.supabase.co/storage/v1/object/public/Storage/mail%20cover%20(1).png"
+            width="170"
+            height="50"
+            alt="nomad team banner"
+            style={logo}
+          />
           <Text style={paragraph}>
             Сайна байна уу? {user.lastname[0]?.toUpperCase()}.{user.firstname},
           </Text>
           <Text style={paragraph}>
-            Манай кубын тэмцээнд оролцохоор бүртгүүлсэнд баярлалаа. Таныг
+            Манай шооны тэмцээнд оролцохоор бүртгүүлсэнд баярлалаа. Таныг
             бидэнтэй хамт гайхалтай туршлага хүлээж байна гэж найдаж байна.
             Тэмцээнд амжилт хүсье!
           </Text>
