@@ -17,11 +17,12 @@ import { api } from '~/utils/api'
 import { Form, FormFieldCustom } from '~/components/ui/form'
 import { useRouter } from 'next/router'
 import { toast } from '~/components/ui/use-toast'
-import { useSearchParams } from 'next/navigation'
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 
-export default function PasswordResetPage() {
+export default function PasswordResetPage({
+  token,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter()
-  const searchParams = useSearchParams()
 
   const { mutate, isLoading, error } = api.auth.passwordReset.useMutation({
     onSuccess: () => {
@@ -36,7 +37,7 @@ export default function PasswordResetPage() {
   const form = useForm<PasswordResetInput>({
     resolver: zodResolver(passwordResetSchema),
     defaultValues: {
-      token: searchParams.get('token') ?? '',
+      token: token,
     },
   })
 
@@ -112,4 +113,13 @@ export default function PasswordResetPage() {
       </Card>
     </div>
   )
+}
+
+export async function getServerSideProps(context: GetServerSidePropsContext) {
+  console.log(context.query.token)
+  return {
+    props: {
+      token: context.query.token?.toString() ?? '',
+    },
+  }
 }
