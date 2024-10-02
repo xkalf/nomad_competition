@@ -148,6 +148,13 @@
       "when": 1727675839930,
       "tag": "0020_wooden_tag",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1727879380756,
+      "tag": "0021_lovely_miss_america",
+      "breakpoints": true
     }
   ]
 }

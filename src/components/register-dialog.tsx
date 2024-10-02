@@ -1,61 +1,61 @@
-import { useForm } from "react-hook-form";
-import { Button } from "./ui/button";
+import { useForm } from 'react-hook-form'
+import { Button } from './ui/button'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "./ui/dialog";
-import { z } from "zod";
-import { registerSchema } from "~/utils/zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { Form, FormFieldCustom } from "./ui/form";
-import { api } from "~/utils/api";
-import { Input } from "./ui/input";
-import { useState } from "react";
-import { toast } from "./ui/use-toast";
-import { Switch } from "./ui/switch";
-import { Label } from "./ui/label";
+} from './ui/dialog'
+import { z } from 'zod'
+import { registerSchema } from '~/utils/zod'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { Form, FormFieldCustom } from './ui/form'
+import { api } from '~/utils/api'
+import { Input } from './ui/input'
+import { useState } from 'react'
+import { toast } from './ui/use-toast'
+import { Switch } from './ui/switch'
+import { Label } from './ui/label'
 
 const defaultValues: z.infer<typeof registerSchema> = {
-  firstname: "",
-  lastname: "",
-  email: "",
+  firstname: '',
+  lastname: '',
+  email: '',
   phone: 0,
-  birthDate: "",
-  password: "",
+  birthDate: '',
+  password: '',
   isMale: true,
-};
+}
 
 export default function RegisterDialog() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false)
   const { mutate: register, isLoading } = api.auth.register.useMutation({
     onSuccess: () => {
       toast({
-        title: "Амжилттай бүртгэгдлээ.",
+        title: 'Амжилттай бүртгэгдлээ.',
         description:
-          "Имэйл хаяг баталгаажуулах хугацаа 1 цаг. Та амжиж баталгаажуулна уу.",
-      });
-      setIsOpen(false);
+          'Имэйл хаяг баталгаажуулах хугацаа 20 минут. Та амжиж баталгаажуулна уу.',
+      })
+      setIsOpen(false)
     },
     onError: (error) => {
       toast({
-        title: "Алдаа гарлаа",
+        title: 'Алдаа гарлаа',
         description: error.message,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     },
-  });
+  })
 
   const form = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues,
-  });
+  })
 
   const onSubmit = async (values: z.infer<typeof registerSchema>) => {
-    register(values);
-  };
+    register(values)
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -100,7 +100,7 @@ export default function RegisterDialog() {
               name="wcaId"
               label="WCA ID"
               render={({ field }) => (
-                <Input value={field.value || ""} onChange={field.onChange} />
+                <Input value={field.value || ''} onChange={field.onChange} />
               )}
             />
             <FormFieldCustom
@@ -142,11 +142,11 @@ export default function RegisterDialog() {
               disabled={isLoading}
               onClick={form.handleSubmit(onSubmit)}
             >
-              {isLoading ? "Уншиж байна..." : "Бүртгүүлэх"}
+              {isLoading ? 'Уншиж байна...' : 'Бүртгүүлэх'}
             </Button>
           </form>
         </Form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
