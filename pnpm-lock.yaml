@@ -140,6 +140,9 @@ importers:
       react-hook-form:
         specifier: ^7.53.0
         version: 7.53.0(react@18.2.0)
+      react-to-print:
+        specifier: ^3.0.1
+        version: 3.0.1(react@18.2.0)
       resend:
         specifier: ^4.0.0
         version: 4.0.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -3002,6 +3005,11 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  react-to-print@3.0.1:
+    resolution: {integrity: sha512-WcGiim2VWiHW7TR0PB9Xqv/SOOtnDJbjhlSOeMB1N+lxyFLuoQ8GIoNAw/ci7+sCkbXreEKmiy1ZWgd87v7U2Q==}
+    peerDependencies:
+      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ~19
 
   react@18.2.0:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
@@ -5899,6 +5907,10 @@ snapshots:
       tslib: 2.7.0
     optionalDependencies:
       '@types/react': 18.3.10
+
+  react-to-print@3.0.1(react@18.2.0):
+    dependencies:
+      react: 18.2.0
 
   react@18.2.0:
     dependencies:
