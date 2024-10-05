@@ -95,6 +95,9 @@ importers:
       cmdk:
         specifier: ^0.2.1
         version: 0.2.1(@types/react@18.3.10)(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      cstimer_module:
+        specifier: ^0.1.4
+        version: 0.1.4
       csv:
         specifier: ^6.3.10
         version: 6.3.10
@@ -2065,6 +2068,9 @@ packages:
 
   csstype@3.1.3:
     resolution: {integrity: sha512-M1uQkMl8rQK/szD0LNhtqxIPLpimGm8sOBwU7lLnCpSbTyY3yeU1Vc7l4KT5zT4s/yOxHH5O7tIuuLOCnLADRw==}
+
+  cstimer_module@0.1.4:
+    resolution: {integrity: sha512-mSrcPu0FyrJhfqYGTvzorR5V4gRdaVyX+10AxLk3WEKwEA0M4RXietvXwiibiJQ6ch6b3IyGqtvAN6dUBrxJfw==}
 
   csv-generate@4.4.1:
     resolution: {integrity: sha512-O/einO0v4zPmXaOV+sYqGa02VkST4GP5GLpWBNHEouIU7pF3kpGf3D0kCCvX82ydIY4EKkOK+R8b1BYsRXravg==}
@@ -5007,6 +5013,8 @@ snapshots:
   cssesc@3.0.0: {}
 
   csstype@3.1.3: {}
+
+  cstimer_module@0.1.4: {}
 
   csv-generate@4.4.1: {}
 

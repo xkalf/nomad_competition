@@ -1,12 +1,12 @@
-import { z } from "zod";
-import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
-import { rounds } from "~/server/db/schema";
-import { and, eq, inArray } from "drizzle-orm";
+import { z } from 'zod'
+import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
+import { rounds } from '~/server/db/schema'
+import { and, eq, inArray } from 'drizzle-orm'
 import {
   createRoundManySchema,
   createRoundSchema,
   getUpdateSchema,
-} from "~/utils/zod";
+} from '~/utils/zod'
 
 export const roundsRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -30,9 +30,9 @@ export const roundsRouter = createTRPCRouter({
             },
           },
         },
-      });
+      })
 
-      return res;
+      return res
     }),
   getByCompetitionId: publicProcedure
     .input(z.number().int().positive())
@@ -47,9 +47,9 @@ export const roundsRouter = createTRPCRouter({
             },
           },
         },
-      });
+      })
 
-      return res;
+      return res
     }),
   createMany: adminProcedure
     .input(createRoundManySchema)
@@ -57,22 +57,26 @@ export const roundsRouter = createTRPCRouter({
       await ctx.db.transaction(async (db) => {
         const filtered = input.data
           .map((i) => i.id)
-          .filter((i): i is NonNullable<typeof i> => !!i);
+          .filter((i): i is NonNullable<typeof i> => !!i)
 
-        const current = await db
-          .select({
-            id: rounds.id,
-          })
-          .from(rounds)
-          .where(inArray(rounds.id, filtered).if(filtered.length > 0));
+        let current: { id: number }[] = []
 
-        const insertValues: (typeof rounds.$inferInsert)[] = [];
+        if (filtered.length > 0) {
+          current = await db
+            .select({
+              id: rounds.id,
+            })
+            .from(rounds)
+            .where(inArray(rounds.id, filtered))
+        }
+
+        const insertValues: (typeof rounds.$inferInsert)[] = []
 
         for (const i of input.data) {
-          const found = current.find((c) => c.id === i.id);
+          const found = current.find((c) => c.id === i.id)
 
           if (found) {
-            await db.update(rounds).set(i).where(eq(rounds.id, found.id));
+            await db.update(rounds).set(i).where(eq(rounds.id, found.id))
           } else {
             insertValues.push(
               ...i.cubeTypes.map((j) => {
@@ -80,28 +84,28 @@ export const roundsRouter = createTRPCRouter({
                   ...i,
                   cubeTypeId: j,
                   competitionId: input.competitionId,
-                };
+                }
               }),
-            );
+            )
           }
         }
 
-        await db.insert(rounds).values(insertValues);
-      });
+        await db.insert(rounds).values(insertValues)
+      })
     }),
   create: adminProcedure
     .input(createRoundSchema)
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.insert(rounds).values(input);
+      await ctx.db.insert(rounds).values(input)
     }),
   update: adminProcedure
     .input(getUpdateSchema(createRoundSchema))
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.update(rounds).set(input).where(eq(rounds.id, input.id));
+      await ctx.db.update(rounds).set(input).where(eq(rounds.id, input.id))
     }),
   delete: adminProcedure
     .input(z.number().int().positive())
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.delete(rounds).where(eq(rounds.id, input));
+      await ctx.db.delete(rounds).where(eq(rounds.id, input))
     }),
-});
+})
