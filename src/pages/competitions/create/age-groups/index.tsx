@@ -1,18 +1,19 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/router";
-import { useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
+import { useFieldArray, useForm } from 'react-hook-form'
 import CreateButtons, {
   redirectNextCreatePage,
-} from "~/components/create-buttons";
-import CreateLinks from "~/components/create-links";
-import Layout from "~/components/layout";
-import { Button } from "~/components/ui/button";
+} from '~/components/create-buttons'
+import CreateLinks from '~/components/create-links'
+import Layout from '~/components/layout'
+import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+} from '~/components/ui/dropdown-menu'
 import {
   Form,
   FormControl,
@@ -20,45 +21,45 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { toast } from "~/components/ui/use-toast";
-import { api } from "~/utils/api";
-import { useGetCompetitionId } from "~/utils/hooks";
-import { CreateAgeGroupManyInput, createAgeGroupManySchema } from "~/utils/zod";
+} from '~/components/ui/form'
+import { Input } from '~/components/ui/input'
+import { toast } from '~/components/ui/use-toast'
+import { api } from '~/utils/api'
+import { useGetCompetitionId } from '~/utils/hooks'
+import { CreateAgeGroupManyInput, createAgeGroupManySchema } from '~/utils/zod'
 
 export default function AgeGroupsForm() {
-  const router = useRouter();
-  const competitionId = useGetCompetitionId();
-  const utils = api.useUtils();
+  const router = useRouter()
+  const competitionId = useGetCompetitionId()
+  const utils = api.useUtils()
 
   const { data: cubeTypes } = api.cubeTypes.getByCompetitionId.useQuery(
     competitionId,
     {
       enabled: competitionId > 0,
     },
-  );
+  )
 
   const { data: current } = api.ageGroup.getAll.useQuery(competitionId, {
     enabled: competitionId > 0,
-  });
+  })
 
   const { mutate, isLoading } = api.ageGroup.createMany.useMutation({
     onSuccess: () => {
-      utils.ageGroup.getAll.invalidate();
-      redirectNextCreatePage(router);
+      utils.ageGroup.getAll.invalidate()
+      redirectNextCreatePage(router)
       toast({
-        title: "Амжилттай бүртгэгдлээ.",
-      });
+        title: 'Амжилттай бүртгэгдлээ.',
+      })
     },
     onError: (error) => {
       toast({
-        title: "Алдаа гарлаа",
+        title: 'Алдаа гарлаа',
         description: error.message,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     },
-  });
+  })
 
   const form = useForm<CreateAgeGroupManyInput>({
     resolver: zodResolver(
@@ -66,54 +67,57 @@ export default function AgeGroupsForm() {
         competitionId: true,
       }),
     ),
-    defaultValues: {
-      competitionId: competitionId,
-      data: Object.values(
-        current?.reduce(
-          (
-            base: Record<string, CreateAgeGroupManyInput["data"][number]>,
-            curr,
-          ) => {
-            if (!base[curr.name]) {
-              base[curr.name] = {
-                ...curr,
-                cubeTypes: [],
-              };
+  })
+
+  useEffect(() => {
+    if (current) {
+      const newData = current.reduce(
+        (
+          base: Record<string, CreateAgeGroupManyInput['data'][number]>,
+          curr,
+        ) => {
+          if (!base[curr.name]) {
+            base[curr.name] = {
+              ...curr,
+              cubeTypes: [],
             }
+          }
 
-            base[curr.name]?.cubeTypes.push(curr.cubeTypeId);
+          base[curr.name]?.cubeTypes.push(curr.cubeTypeId)
 
-            return base;
-          },
-          {},
-        ) ?? {},
-      ),
-    },
-  });
+          return base
+        },
+        {},
+      )
+      form.setValue('data', Object.values(newData))
+    }
+  }, [current])
+
+  console.log(form.getValues())
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "data",
-  });
+    name: 'data',
+  })
 
   const onSubmit = (values: CreateAgeGroupManyInput) => {
     mutate({
       ...values,
       competitionId,
-    });
-  };
+    })
+  }
 
   const calculateName = (index: number) => {
-    const start = form.getValues(`data.${index}.start`);
-    const end = form.getValues(`data.${index}.end`);
-    const nowYear = new Date().getFullYear();
-    const startAge = nowYear - start;
-    const endAge = nowYear - (end ?? 0);
+    const start = form.getValues(`data.${index}.start`)
+    const end = form.getValues(`data.${index}.end`)
+    const nowYear = new Date().getFullYear()
+    const startAge = nowYear - start
+    const endAge = nowYear - (end ?? 0)
 
-    const text = `${!end ? `${startAge}+` : startAge === endAge ? startAge : `${endAge} - ${startAge}`} насны ангилал`;
+    const text = `${!end ? `${startAge}+` : startAge === endAge ? startAge : `${endAge} - ${startAge}`} насны ангилал`
 
-    form.setValue(`data.${index}.name`, text);
-  };
+    form.setValue(`data.${index}.name`, text)
+  }
 
   return (
     <Layout>
@@ -124,7 +128,7 @@ export default function AgeGroupsForm() {
           type="button"
           onClick={() =>
             append({
-              name: "",
+              name: '',
               cubeTypes: [],
               start: 0,
               end: 0,
@@ -149,8 +153,8 @@ export default function AgeGroupsForm() {
                         type="number"
                         {...field}
                         onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber);
-                          calculateName(index);
+                          field.onChange(e.target.valueAsNumber)
+                          calculateName(index)
                         }}
                       />
                     </FormControl>
@@ -169,8 +173,8 @@ export default function AgeGroupsForm() {
                         type="number"
                         value={field.value || undefined}
                         onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber);
-                          calculateName(index);
+                          field.onChange(e.target.valueAsNumber)
+                          calculateName(index)
                         }}
                       />
                     </FormControl>
@@ -206,8 +210,8 @@ export default function AgeGroupsForm() {
                                   field.value.includes(cubeType.id),
                                 )
                                 .map((cubeType) => cubeType.name)
-                                .join(", ")
-                            : "Төрөл сонгох"}
+                                .join(', ')
+                            : 'Төрөл сонгох'}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent>
@@ -217,11 +221,11 @@ export default function AgeGroupsForm() {
                             checked={field.value?.includes(cubeType.id)}
                             onCheckedChange={(value) => {
                               if (!field.value) {
-                                field.value = [];
+                                field.value = []
                               }
 
                               if (value && !field.value.includes(cubeType.id)) {
-                                field.onChange([...field.value, cubeType.id]);
+                                field.onChange([...field.value, cubeType.id])
                               } else if (
                                 !value &&
                                 field.value.includes(cubeType.id)
@@ -230,7 +234,7 @@ export default function AgeGroupsForm() {
                                   field.value.filter(
                                     (id) => id !== cubeType.id,
                                   ),
-                                );
+                                )
                               }
                             }}
                           >
@@ -243,7 +247,7 @@ export default function AgeGroupsForm() {
                   </FormItem>
                 )}
               />
-              <Button variant={"destructive"} onClick={() => remove(index)}>
+              <Button variant={'destructive'} onClick={() => remove(index)}>
                 Устгах
               </Button>
             </div>
@@ -255,5 +259,5 @@ export default function AgeGroupsForm() {
         </form>
       </Form>
     </Layout>
-  );
+  )
 }

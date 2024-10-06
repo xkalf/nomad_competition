@@ -1,18 +1,19 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/router";
-import { useFieldArray, useForm } from "react-hook-form";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useRouter } from 'next/router'
+import { useEffect } from 'react'
+import { useFieldArray, useForm } from 'react-hook-form'
 import CreateButtons, {
   redirectNextCreatePage,
-} from "~/components/create-buttons";
-import CreateLinks from "~/components/create-links";
-import Layout from "~/components/layout";
-import { Button } from "~/components/ui/button";
+} from '~/components/create-buttons'
+import CreateLinks from '~/components/create-links'
+import Layout from '~/components/layout'
+import { Button } from '~/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from "~/components/ui/dropdown-menu";
+} from '~/components/ui/dropdown-menu'
 import {
   Form,
   FormControl,
@@ -20,44 +21,44 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { toast } from "~/components/ui/use-toast";
-import { api } from "~/utils/api";
-import { useGetCompetitionId } from "~/utils/hooks";
-import { CreateRoundManyInput, createRoundManySchema } from "~/utils/zod";
+} from '~/components/ui/form'
+import { Input } from '~/components/ui/input'
+import { toast } from '~/components/ui/use-toast'
+import { api } from '~/utils/api'
+import { useGetCompetitionId } from '~/utils/hooks'
+import { CreateRoundManyInput, createRoundManySchema } from '~/utils/zod'
 
 export default function RoundsForm() {
-  const router = useRouter();
-  const competitionId = useGetCompetitionId();
+  const router = useRouter()
+  const competitionId = useGetCompetitionId()
 
   const { data: current } = api.round.getByCompetitionId.useQuery(
     competitionId,
     {
       enabled: competitionId > 0,
     },
-  );
+  )
   const { data: cubeTypes } = api.cubeTypes.getByCompetitionId.useQuery(
     competitionId,
     {
       enabled: competitionId > 0,
     },
-  );
+  )
   const { mutate, isLoading } = api.round.createMany.useMutation({
     onSuccess: () => {
-      redirectNextCreatePage(router);
+      redirectNextCreatePage(router)
       toast({
-        title: "Амжилттаи бүртгэгдлээ.",
-      });
+        title: 'Амжилттаи бүртгэгдлээ.',
+      })
     },
     onError: (error) => {
       toast({
-        title: "Алдаа гарлаа",
+        title: 'Алдаа гарлаа',
         description: error.message,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     },
-  });
+  })
 
   const form = useForm<CreateRoundManyInput>({
     resolver: zodResolver(
@@ -65,22 +66,41 @@ export default function RoundsForm() {
         competitionId: true,
       }),
     ),
-    defaultValues: {
-      competitionId,
-      data: current,
-    },
-  });
+  })
+
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "data",
-  });
+    name: 'data',
+  })
+
+  useEffect(() => {
+    if (current) {
+      const newData = current.reduce(
+        (base: Record<string, CreateRoundManyInput['data'][number]>, curr) => {
+          if (!base[curr.name]) {
+            base[curr.name] = {
+              ...curr,
+              cubeTypes: [],
+            }
+          }
+
+          base[curr.name]?.cubeTypes.push(curr.cubeTypeId)
+
+          return base
+        },
+        {},
+      )
+
+      form.setValue('data', Object.values(newData))
+    }
+  }, [current])
 
   const onSubmit = (input: CreateRoundManyInput) => {
     mutate({
       ...input,
       competitionId,
-    });
-  };
+    })
+  }
 
   return (
     <Layout>
@@ -91,7 +111,7 @@ export default function RoundsForm() {
           type="button"
           onClick={() =>
             append({
-              name: "",
+              name: '',
               cubeTypes: [],
               nextCompetitor: 0,
               perGroupCount: 20,
@@ -133,8 +153,8 @@ export default function RoundsForm() {
                                   field.value.includes(cubeType.id),
                                 )
                                 .map((cubeType) => cubeType.name)
-                                .join(", ")
-                            : "Төрөл сонгох"}
+                                .join(', ')
+                            : 'Төрөл сонгох'}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="w-56">
@@ -144,11 +164,11 @@ export default function RoundsForm() {
                             checked={field.value?.includes(cubeType.id)}
                             onCheckedChange={(value) => {
                               if (!field.value) {
-                                field.value = [];
+                                field.value = []
                               }
 
                               if (value && !field.value.includes(cubeType.id)) {
-                                field.onChange([...field.value, cubeType.id]);
+                                field.onChange([...field.value, cubeType.id])
                               } else if (
                                 !value &&
                                 field.value.includes(cubeType.id)
@@ -157,7 +177,7 @@ export default function RoundsForm() {
                                   field.value.filter(
                                     (id) => id !== cubeType.id,
                                   ),
-                                );
+                                )
                               }
                             }}
                           >
@@ -204,7 +224,7 @@ export default function RoundsForm() {
                   </FormItem>
                 )}
               />
-              <Button variant={"destructive"} onClick={() => remove(index)}>
+              <Button variant={'destructive'} onClick={() => remove(index)}>
                 Устгах
               </Button>
             </div>
@@ -216,5 +236,5 @@ export default function RoundsForm() {
         />
       </Form>
     </Layout>
-  );
+  )
 }

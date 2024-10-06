@@ -90,7 +90,8 @@ export const roundsRouter = createTRPCRouter({
           }
         }
 
-        await db.insert(rounds).values(insertValues)
+        if (insertValues.length > 0)
+          await db.insert(rounds).values(insertValues)
       })
     }),
   create: adminProcedure
