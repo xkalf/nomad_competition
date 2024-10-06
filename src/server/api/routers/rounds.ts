@@ -58,6 +58,7 @@ export const roundsRouter = createTRPCRouter({
         const filtered = input.data
           .map((i) => i.id)
           .filter((i): i is NonNullable<typeof i> => !!i)
+          .flat()
 
         let current: { id: number }[] = []
 
@@ -74,16 +75,17 @@ export const roundsRouter = createTRPCRouter({
         const founds: number[] = []
 
         for (const i of input.data) {
-          const found = current.find((c) => c.id === i.id)
+          const found = current.find((c) => i.id?.includes(c.id))
+          const { id: _, ...rest } = i
 
           if (found) {
             founds.push(found.id)
-            await db.update(rounds).set(i).where(eq(rounds.id, found.id))
+            await db.update(rounds).set(rest).where(eq(rounds.id, found.id))
           } else {
             insertValues.push(
               ...i.cubeTypes.map((j) => {
                 return {
-                  ...i,
+                  ...rest,
                   cubeTypeId: j,
                   competitionId: input.competitionId,
                 }

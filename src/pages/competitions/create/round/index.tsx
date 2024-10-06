@@ -80,10 +80,12 @@ export default function RoundsForm() {
           if (!base[curr.name]) {
             base[curr.name] = {
               ...curr,
+              id: [],
               cubeTypes: [],
             }
           }
 
+          base[curr.name]?.id?.push(curr.id)
           base[curr.name]?.cubeTypes.push(curr.cubeTypeId)
 
           return base
