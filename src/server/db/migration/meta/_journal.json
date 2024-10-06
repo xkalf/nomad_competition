@@ -155,6 +155,13 @@
       "when": 1727879380756,
       "tag": "0021_lovely_miss_america",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1728222623226,
+      "tag": "0022_curly_texas_twister",
+      "breakpoints": true
     }
   ]
 }

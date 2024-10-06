@@ -101,6 +101,9 @@ export const groupRouter = createTRPCRouter({
           num++
         }
       }
-      await ctx.db.insert(groups).values(insertValues)
+      await ctx.db.transaction(async (db) => {
+        await db.delete(groups).where(eq(groups.competitionId, input))
+        await db.insert(groups).values(insertValues)
+      })
     }),
 })

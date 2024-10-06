@@ -397,7 +397,9 @@ export const roundsRelation = relations(rounds, ({ one }) => ({
 export const groups = pgTable('groups', {
   id: serial('id').primaryKey(),
   name: varchar('name').notNull(),
-  roundId: integer('round_id').references(() => rounds.id),
+  roundId: integer('round_id').references(() => rounds.id, {
+    onDelete: 'cascade',
+  }),
   scramble: varchar('scramble').notNull(),
   cubeTypeId: integer('cube_type_id').references(() => cubeTypes.id),
   competitionId: integer('competition_id').references(() => competitions.id),

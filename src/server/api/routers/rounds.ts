@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
 import { rounds } from '~/server/db/schema'
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, notInArray } from 'drizzle-orm'
 import {
   createRoundManySchema,
   createRoundSchema,
@@ -71,11 +71,13 @@ export const roundsRouter = createTRPCRouter({
         }
 
         const insertValues: (typeof rounds.$inferInsert)[] = []
+        const founds: number[] = []
 
         for (const i of input.data) {
           const found = current.find((c) => c.id === i.id)
 
           if (found) {
+            founds.push(found.id)
             await db.update(rounds).set(i).where(eq(rounds.id, found.id))
           } else {
             insertValues.push(
@@ -90,6 +92,16 @@ export const roundsRouter = createTRPCRouter({
           }
         }
 
+        if (founds.length > 0) {
+          await db
+            .delete(rounds)
+            .where(
+              and(
+                notInArray(rounds.id, founds),
+                eq(rounds.competitionId, input.competitionId),
+              ),
+            )
+        }
         if (insertValues.length > 0)
           await db.insert(rounds).values(insertValues)
       })
