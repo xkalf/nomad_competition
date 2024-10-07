@@ -20,9 +20,9 @@ import { toast } from "~/components/ui/use-toast";
 import { RouterOutputs, api } from "~/utils/api";
 import { useGetCompetitionId } from "~/utils/hooks";
 import { getImageUrl } from "~/utils/supabase";
-import cstimer from "cstimer_module";
 import { useReactToPrint } from "react-to-print";
 import RoundPdf from "~/components/round-pdf";
+import ScrambleImage from "~/utils/scrambleImage";
 
 type Group = RouterOutputs["group"]["getAll"][number];
 
@@ -60,14 +60,9 @@ const columns: ColumnDef<Group>[] = [
     accessorKey: "scramble-display",
     header: "Зураг",
     cell: ({ row }) => (
-      <div
-        className="svg-container w-20"
-        dangerouslySetInnerHTML={{
-          __html: cstimer.getImage(
-            row.original.scramble,
-            row.original.cubeType?.scrambleMapper ?? "",
-          ),
-        }}
+      <ScrambleImage
+        scramble={row.original.scramble}
+        cubeType={row.original.cubeType?.scrambleMapper}
       />
     ),
   },

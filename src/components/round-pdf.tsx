@@ -1,8 +1,8 @@
 import { ColumnDef } from "@tanstack/react-table";
 import { RouterOutputs } from "~/utils/api";
-import cstimer from "cstimer_module";
 import DataTable from "./data-table/data-table";
 import { forwardRef } from "react";
+import ScrambleImage from "~/utils/scrambleImage";
 
 type Group = RouterOutputs["group"]["getAll"][number];
 
@@ -27,13 +27,9 @@ const columns: ColumnDef<Group>[] = [
     accessorKey: "scramble-display",
     header: "Зураг",
     cell: ({ row }) => (
-      <div
-        dangerouslySetInnerHTML={{
-          __html: cstimer.getImage(
-            row.original.scramble,
-            row.original.cubeType?.scrambleMapper ?? "",
-          ),
-        }}
+      <ScrambleImage
+        scramble={row.original.scramble}
+        cubeType={row.original.cubeType?.scrambleMapper}
       />
     ),
   },
