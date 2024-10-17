@@ -19,7 +19,6 @@ import {
 import { toast } from "~/components/ui/use-toast";
 import { RouterOutputs, api } from "~/utils/api";
 import { useGetCompetitionId } from "~/utils/hooks";
-import { getImageUrl } from "~/utils/supabase";
 import { useReactToPrint } from "react-to-print";
 import RoundPdf from "~/components/round-pdf";
 import ScrambleImage from "~/utils/scrambleImage";
@@ -28,21 +27,9 @@ type Group = RouterOutputs["group"]["getAll"][number];
 
 const columns: ColumnDef<Group>[] = [
   {
-    accessorKey: "cubeType.name",
-    header: "Төрөл",
-    cell: ({ row }) => {
-      if (row.original.cubeType?.image) {
-        return (
-          <Image
-            src={getImageUrl(row.original.cubeType.image) ?? ""}
-            alt={row.original.cubeType.name}
-            width={50}
-            height={50}
-          />
-        );
-      }
-      return row.original.cubeType?.name;
-    },
+    accessorKey: "count",
+    header: "№",
+    cell: ({ row }) => (row.index % 7) + 1,
   },
   {
     accessorKey: "name",

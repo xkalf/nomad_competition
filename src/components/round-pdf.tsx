@@ -5,12 +5,18 @@ import { forwardRef } from "react";
 import ScrambleImage from "~/utils/scrambleImage";
 
 type Group = RouterOutputs["group"]["getAll"][number];
+type Competition = RouterOutputs["competition"]["getById"];
 
 interface Props {
   groups: Group[];
 }
 
 const columns: ColumnDef<Group>[] = [
+  {
+    accessorKey: "index",
+    header: "№",
+    cell: ({ row }) => (row.index % 7) + 1,
+  },
   {
     accessorKey: "name",
     header: "Нэр",
