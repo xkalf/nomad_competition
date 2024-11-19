@@ -67,6 +67,14 @@ export default function CompetitionRegisterPage() {
       },
     },
   );
+
+  const { data: totalAmount } = api.competitor.getTotalAmount.useQuery(
+    current?.id ?? 0,
+    {
+      enabled: !!current?.id,
+    },
+  );
+
   const { mutate: register, isLoading: registerLoading } =
     api.competition.register.useMutation({
       onSuccess: () => {
@@ -161,26 +169,6 @@ export default function CompetitionRegisterPage() {
       .sort((a, b) => a.order - b.order);
     return filtered || [];
   }, [competition]);
-
-  const totalAmount = useMemo(() => {
-    if (!competition || !current) return 0;
-
-    const baseFee = competition.baseFee;
-    const guestFee =
-      current.guestCount < competition.freeGuests
-        ? 0
-        : (current?.guestCount - competition?.freeGuests) *
-          +competition.guestFee;
-    const cubeTypesFee = competition.fees
-      .filter((fee) =>
-        current.competitorsToCubeTypes
-          .map((i) => i.cubeTypeId)
-          .includes(fee.cubeTypeId),
-      )
-      .reduce((a, b) => a + +b.amount, 0);
-
-    return +baseFee + +guestFee + +cubeTypesFee;
-  }, [competition, current]);
 
   if (isLoading || currentLoading) {
     return <LoadingScreen />;
@@ -285,8 +273,9 @@ export default function CompetitionRegisterPage() {
             )}
             {session?.data?.user.id &&
               current &&
-              current.invoices.reduce((a, b) => a + +b.amount, 0) <
-                totalAmount && (
+              current.invoices
+                .filter((i) => i.isPaid === true)
+                .reduce((a, b) => a + +b.amount, 0) < (totalAmount ?? 0) && (
                 <>
                   <Button
                     className="ml-2"
@@ -296,10 +285,6 @@ export default function CompetitionRegisterPage() {
                       createInvoice({
                         userId: session.data.user.id,
                         competitorId: current.id,
-                        amount: (
-                          totalAmount -
-                          current.invoices.reduce((a, b) => a + +b.amount, 0)
-                        ).toString(),
                       })
                     }
                   >

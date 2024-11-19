@@ -162,6 +162,20 @@
       "when": 1728222623226,
       "tag": "0022_curly_texas_twister",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1731994844301,
+      "tag": "0023_medical_sugar_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1731995074503,
+      "tag": "0024_greedy_human_robot",
+      "breakpoints": true
     }
   ]
 }

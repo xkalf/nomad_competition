@@ -122,6 +122,9 @@ importers:
       lucide-react:
         specifier: ^0.316.0
         version: 0.316.0(react@18.2.0)
+      mn-payment:
+        specifier: ^0.0.4
+        version: 0.0.4
       next:
         specifier: ^14.2.13
         version: 14.2.13(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -2687,6 +2690,9 @@ packages:
     resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
     engines: {node: '>=10'}
     hasBin: true
+
+  mn-payment@0.0.4:
+    resolution: {integrity: sha512-qq8lkK3ShUfsnFjcJyg1gSF4XwI9+nbXQ17P1kWjBDcM/QT3RNSviTex9vudn/aKtnvPlYzHasmfl/5r5EbV5g==}
 
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
@@ -5625,6 +5631,8 @@ snapshots:
       yallist: 4.0.0
 
   mkdirp@1.0.4: {}
+
+  mn-payment@0.0.4: {}
 
   ms@2.1.3: {}
 

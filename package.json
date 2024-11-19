@@ -55,6 +55,7 @@
     "embla-carousel-autoplay": "^8.3.0",
     "embla-carousel-react": "^8.3.0",
     "lucide-react": "^0.316.0",
+    "mn-payment": "^0.0.4",
     "next": "^14.2.13",
     "next-auth": "^4.24.8",
     "postgres": "^3.4.4",

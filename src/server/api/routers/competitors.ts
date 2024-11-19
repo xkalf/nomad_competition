@@ -1,7 +1,13 @@
 import { z } from "zod";
-import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
-import { competitors } from "~/server/db/schema";
-import { and, eq, sql } from "drizzle-orm";
+import {
+  adminProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "../trpc";
+import { competitors, competitorsToCubeTypes } from "~/server/db/schema";
+import { eq, sql } from "drizzle-orm";
+import { getTotalAmount } from "~/server/utils/getTotalAmount";
 
 export const competitorRouter = createTRPCRouter({
   getByCompetitionId: publicProcedure
@@ -51,11 +57,25 @@ export const competitorRouter = createTRPCRouter({
   verify: adminProcedure
     .input(z.number().int().positive())
     .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .update(competitors)
-        .set({
-          verifiedAt: sql`now()`,
-        })
-        .where(and(eq(competitors.id, input)));
+      await ctx.db.transaction(async (db) => {
+        await db
+          .update(competitors)
+          .set({
+            verifiedAt: sql`now()`,
+          })
+          .where(eq(competitors.id, input));
+
+        await db
+          .update(competitorsToCubeTypes)
+          .set({
+            status: "Paid",
+          })
+          .where(eq(competitorsToCubeTypes.competitorId, input));
+      });
+    }),
+  getTotalAmount: protectedProcedure
+    .input(z.number().int().positive())
+    .query(async ({ ctx, input }) => {
+      return await getTotalAmount(input, ctx.db);
     }),
 });

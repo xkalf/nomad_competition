@@ -12,7 +12,6 @@ import {
   competitionsToCubeType,
   competitors,
   competitorsToCubeTypes,
-  fees,
 } from "~/server/db/schema";
 import {
   competitionRegisterSchema,
@@ -218,6 +217,10 @@ export const competitionRouter = createTRPCRouter({
           .where(eq(competitors.id, input.id))
           .returning();
 
+        if (!res) {
+          throw new Error("Тэмцээнд бүртгэл үүсгэхэд алдаа гарлаа.");
+        }
+
         const currentCubeTypes = await t.query.competitorsToCubeTypes.findMany({
           where: (table, { eq }) => eq(table.competitorId, input.id),
         });
@@ -229,48 +232,52 @@ export const competitionRouter = createTRPCRouter({
           (i) => !currentCubeTypes.map((j) => j.cubeTypeId).includes(i),
         );
 
+        const currFees = await t.query.fees.findMany({
+          where: (t, { eq, and, inArray }) =>
+            and(
+              eq(t.competitionId, res?.competitionId),
+              inArray(t.cubeTypeId, toDelete),
+            ),
+        });
+
         if (toDelete.length > 0) {
-          await t
-            .delete(competitorsToCubeTypes)
-            .where(
-              and(
-                inArray(competitorsToCubeTypes.cubeTypeId, toDelete),
-                eq(competitorsToCubeTypes.competitorId, input.id),
+          await t.delete(competitorsToCubeTypes).where(
+            and(
+              inArray(
+                competitorsToCubeTypes.cubeTypeId,
+                currFees
+                  .filter((i) => +i.amount === 0)
+                  .map((i) => i.cubeTypeId),
               ),
-            );
-        }
-        if (toInsert && toInsert?.length > 0) {
-          await t.insert(competitorsToCubeTypes).values(
-            toInsert.map((cubeType) => ({
-              cubeTypeId: cubeType,
-              competitorId: input.id,
-            })),
+              eq(competitorsToCubeTypes.competitorId, input.id),
+            ),
           );
 
-          if (res?.verifiedAt) {
-            const cubeTypes = await t
-              .select({
-                amount: fees.amount,
+          const toUpdate = currFees
+            .filter((i) => +i.amount > 0)
+            .map((i) => i.cubeTypeId);
+
+          if (toUpdate.length > 0) {
+            await t
+              .update(competitorsToCubeTypes)
+              .set({
+                status: "Cancelled",
               })
-              .from(fees)
               .where(
                 and(
-                  eq(fees.competitionId, res.competitionId),
-                  inArray(
-                    fees.cubeTypeId,
-                    toInsert.map((i) => i),
-                  ),
+                  inArray(competitorsToCubeTypes.cubeTypeId, toUpdate),
+                  eq(competitorsToCubeTypes.competitorId, res.id),
                 ),
               );
+          }
 
-            if (cubeTypes.reduce((acc, i) => acc + +i.amount, 0) > 0) {
-              await t
-                .update(competitors)
-                .set({
-                  verifiedAt: null,
-                })
-                .where(eq(competitors.id, input.id));
-            }
+          if (toInsert && toInsert?.length > 0) {
+            await t.insert(competitorsToCubeTypes).values(
+              toInsert.map((cubeType) => ({
+                cubeTypeId: cubeType,
+                competitorId: input.id,
+              })),
+            );
           }
         }
       });
