@@ -144,11 +144,9 @@ export const competitions = createTable("competitions", {
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
   registerStartDate: timestamp("register_start_date", {
-    withTimezone: true,
     mode: "string",
   }),
   registerEndDate: timestamp("register_end_date", {
-    withTimezone: true,
     mode: "string",
   }),
   contact: text("contact"),

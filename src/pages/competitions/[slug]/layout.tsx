@@ -1,3 +1,4 @@
+import { isAfter, isBefore } from "date-fns";
 import Head from "next/head";
 import Link from "next/link";
 import { useRouter } from "next/router";
@@ -21,8 +22,8 @@ export default function CompetitionLayout({ children }: Props) {
   const isRegisterAllow = () => {
     if (competition?.registerStartDate && competition.registerEndDate) {
       return (
-        new Date(competition.registerStartDate) <= new Date() &&
-        new Date() <= new Date(competition.registerEndDate)
+        isBefore(competition.registerStartDate, new Date()) &&
+        isAfter(competition.registerEndDate, new Date())
       );
     }
 

@@ -1,95 +1,133 @@
-import { zodResolver } from '@hookform/resolvers/zod'
-import Image from 'next/image'
-import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import Image from "next/image";
+import { useRouter } from "next/router";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import CreateButtons, {
   redirectNextCreatePage,
-} from '~/components/create-buttons'
-import Layout from '~/components/layout'
-import { Button } from '~/components/ui/button'
+} from "~/components/create-buttons";
+import Layout from "~/components/layout";
+import { Button } from "~/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu'
-import { Form, FormFieldCustom } from '~/components/ui/form'
-import { Input } from '~/components/ui/input'
-import { Textarea } from '~/components/ui/textarea'
-import { toast } from '~/components/ui/use-toast'
-import { api } from '~/utils/api'
-import { useGetCompetitionId } from '~/utils/hooks'
-import { getImageUrl, handleFileUpload } from '~/utils/supabase'
-import { CreateCompetitionInput, createCompetitionSchema } from '~/utils/zod'
+} from "~/components/ui/dropdown-menu";
+import { Form, FormFieldCustom } from "~/components/ui/form";
+import { Input } from "~/components/ui/input";
+import { Textarea } from "~/components/ui/textarea";
+import { toast } from "~/components/ui/use-toast";
+import { api } from "~/utils/api";
+import { useGetCompetitionId } from "~/utils/hooks";
+import { getImageUrl, handleFileUpload } from "~/utils/supabase";
+import { CreateCompetitionInput, createCompetitionSchema } from "~/utils/zod";
 
 export default function CompetitionCreatePage() {
-  const router = useRouter()
-  const competitionId = useGetCompetitionId()
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const competitionId = useGetCompetitionId();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const utils = api.useUtils()
+  const utils = api.useUtils();
   const form = useForm<CreateCompetitionInput>({
     resolver: zodResolver(createCompetitionSchema),
-  })
+  });
 
   const { data: current } = api.competition.getById.useQuery(competitionId, {
     enabled: competitionId > 0,
-  })
-  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery()
+  });
+  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery();
 
   const { mutate: create, isLoading: createLoading } =
     api.competition.create.useMutation({
       onSuccess: (data) => {
-        utils.competition.getAll.invalidate()
+        utils.competition.getAll.invalidate();
         toast({
-          title: 'Амжилттай бүртгэгдлээ.',
-        })
-        router.push('/competitions/create/age-groups?competitionId=' + data.id)
+          title: "Амжилттай бүртгэгдлээ.",
+        });
+        router.push("/competitions/create/age-groups?competitionId=" + data.id);
       },
       onError: (error) => {
         toast({
-          title: 'Алдаа гарлаа',
+          title: "Алдаа гарлаа",
           description: error.message,
-          variant: 'destructive',
-        })
+          variant: "destructive",
+        });
       },
-    })
+    });
   const { mutate: update, isLoading: updateLoading } =
     api.competition.update.useMutation({
       onSuccess: () => {
-        utils.competition.getAll.invalidate()
+        utils.competition.getAll.invalidate();
         toast({
-          title: 'Амжилттай шинэчлэгдлээ.',
-        })
-        redirectNextCreatePage(router)
+          title: "Амжилттай шинэчлэгдлээ.",
+        });
+        redirectNextCreatePage(router);
       },
       onError: (error) => {
         toast({
-          title: 'Алдаа гарлаа',
+          title: "Алдаа гарлаа",
           description: error.message,
-          variant: 'destructive',
-        })
+          variant: "destructive",
+        });
       },
-    })
-
+    });
   const onSubmit = (values: CreateCompetitionInput) => {
+    const localeStartDate = values.registerStartDate
+      ? new Date(values.registerStartDate)
+      : undefined;
+    const localeEndDate = values.registerEndDate
+      ? new Date(values.registerEndDate)
+      : undefined;
+    const utcStartDate = localeStartDate
+      ? new Date(
+          localeStartDate.getTime() +
+            localeStartDate.getTimezoneOffset() * 60000,
+        )
+      : undefined;
+    const utcEndDate = localeEndDate
+      ? new Date(
+          localeEndDate.getTime() + localeEndDate.getTimezoneOffset() * 60000,
+        )
+      : undefined;
+
     current
       ? update({
-        id: current.id,
-        ...values,
-      })
-      : create(values)
-  }
+          id: current.id,
+          ...values,
+          registerStartDate: utcStartDate
+            ?.toISOString()
+            .slice(0, 19)
+            .replace("T", " "),
+          registerEndDate: utcEndDate
+            ?.toISOString()
+            .slice(0, 19)
+            .replace("T", " "),
+        })
+      : create({
+          ...values,
+          registerStartDate: utcStartDate
+            ?.toISOString()
+            .slice(0, 19)
+            .replace("T", " "),
+          registerEndDate: utcEndDate
+            ?.toISOString()
+            .slice(0, 19)
+            .replace("T", " "),
+        });
+  };
 
   useEffect(() => {
     current
       ? form.reset({
-        ...current,
-        cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
-      })
-      : form.reset()
-  }, [current])
+          ...current,
+          cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
+        })
+      : form.reset();
+  }, [current]);
+
+  form.watch("registerStartDate");
 
   return (
     <Layout>
@@ -147,18 +185,18 @@ export default function CompetitionCreatePage() {
                       checked={field.value?.includes(cubeType.id)}
                       onCheckedChange={(value) => {
                         if (!field.value) {
-                          field.value = []
+                          field.value = [];
                         }
 
                         if (value && !field.value.includes(cubeType.id)) {
-                          field.onChange([...field.value, cubeType.id])
+                          field.onChange([...field.value, cubeType.id]);
                         } else if (
                           !value &&
                           field.value.includes(cubeType.id)
                         ) {
                           field.onChange(
                             field.value.filter((id) => id !== cubeType.id),
-                          )
+                          );
                         }
                       }}
                     >
@@ -189,9 +227,22 @@ export default function CompetitionCreatePage() {
               <Input
                 type="datetime-local"
                 onChange={(e) => {
-                  field.onChange(e.target.value)
+                  const utcDate = new Date(e.target.value).toUTCString();
+                  console.log(utcDate);
+                  const formatted = format(utcDate, "yyyy-MM-dd HH:mm");
+                  console.log(formatted);
+                  const locale = new Date(e.target.value).toUTCString();
+                  field.onChange(locale);
                 }}
-                value={field.value ?? ''}
+                value={
+                  // !field.value
+                  //   ? ""
+                  //   : format(
+                  //       new Date(field.value).toLocaleString(),
+                  //       "yyyy-MM-dd HH:mm",
+                  //     )
+                  ""
+                }
               />
             )}
           />
@@ -203,9 +254,9 @@ export default function CompetitionCreatePage() {
               <Input
                 type="datetime-local"
                 onChange={(e) => {
-                  field.onChange(e.target.value)
+                  field.onChange(e.target.value); // UTC 형식으로 변환하여 yyyy-MM-dd HH:mm 포맷으로 저장
                 }}
-                value={field.value ?? ''}
+                value={field.value ?? ""}
               />
             )}
           />
@@ -271,23 +322,23 @@ export default function CompetitionCreatePage() {
                   type="file"
                   accept="image/*"
                   onChange={async (e) => {
-                    setIsLoading(true)
+                    setIsLoading(true);
                     const { data, error } = await handleFileUpload(
                       e,
-                      'competitions',
-                    )
+                      "competitions",
+                    );
 
                     if (data) {
-                      field.onChange(data.path)
+                      field.onChange(data.path);
                     } else if (error) {
                       toast({
-                        title: 'Алдаа гарлаа',
+                        title: "Алдаа гарлаа",
                         description: error.message,
-                        variant: 'destructive',
-                      })
+                        variant: "destructive",
+                      });
                     }
 
-                    setIsLoading(false)
+                    setIsLoading(false);
                   }}
                 />
                 {field.value && (
@@ -308,5 +359,5 @@ export default function CompetitionCreatePage() {
         </form>
       </Form>
     </Layout>
-  )
+  );
 }
