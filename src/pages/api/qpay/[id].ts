@@ -69,7 +69,7 @@ export default async function handler(
             inArray(
               competitorsToCubeTypes.cubeTypeId,
               invoice.cubeTypeIds ?? [],
-            ),
+            ).if(!!invoice.cubeTypeIds),
           ),
         );
     }

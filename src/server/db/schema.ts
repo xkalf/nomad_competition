@@ -143,12 +143,8 @@ export const competitions = createTable("competitions", {
   maxCompetitors: integer("max_competitors").notNull(),
   startDate: date("start_date").notNull(),
   endDate: date("end_date").notNull(),
-  registerStartDate: timestamp("register_start_date", {
-    mode: "string",
-  }),
-  registerEndDate: timestamp("register_end_date", {
-    mode: "string",
-  }),
+  registerStartDate: timestamp("register_start_date"),
+  registerEndDate: timestamp("register_end_date"),
   contact: text("contact"),
   registrationRequirments: text("registration_requirments"),
   baseFee: numeric("base_fee").notNull().default("0"),

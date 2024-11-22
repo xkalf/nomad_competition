@@ -74,47 +74,13 @@ export default function CompetitionCreatePage() {
       },
     });
   const onSubmit = (values: CreateCompetitionInput) => {
-    const localeStartDate = values.registerStartDate
-      ? new Date(values.registerStartDate)
-      : undefined;
-    const localeEndDate = values.registerEndDate
-      ? new Date(values.registerEndDate)
-      : undefined;
-    const utcStartDate = localeStartDate
-      ? new Date(
-          localeStartDate.getTime() +
-            localeStartDate.getTimezoneOffset() * 60000,
-        )
-      : undefined;
-    const utcEndDate = localeEndDate
-      ? new Date(
-          localeEndDate.getTime() + localeEndDate.getTimezoneOffset() * 60000,
-        )
-      : undefined;
-
     current
       ? update({
           id: current.id,
           ...values,
-          registerStartDate: utcStartDate
-            ?.toISOString()
-            .slice(0, 19)
-            .replace("T", " "),
-          registerEndDate: utcEndDate
-            ?.toISOString()
-            .slice(0, 19)
-            .replace("T", " "),
         })
       : create({
           ...values,
-          registerStartDate: utcStartDate
-            ?.toISOString()
-            .slice(0, 19)
-            .replace("T", " "),
-          registerEndDate: utcEndDate
-            ?.toISOString()
-            .slice(0, 19)
-            .replace("T", " "),
         });
   };
 
@@ -227,21 +193,12 @@ export default function CompetitionCreatePage() {
               <Input
                 type="datetime-local"
                 onChange={(e) => {
-                  const utcDate = new Date(e.target.value).toUTCString();
-                  console.log(utcDate);
-                  const formatted = format(utcDate, "yyyy-MM-dd HH:mm");
-                  console.log(formatted);
-                  const locale = new Date(e.target.value).toUTCString();
-                  field.onChange(locale);
+                  field.onChange(
+                    e.target.value ? new Date(e.target.value) : null,
+                  );
                 }}
                 value={
-                  // !field.value
-                  //   ? ""
-                  //   : format(
-                  //       new Date(field.value).toLocaleString(),
-                  //       "yyyy-MM-dd HH:mm",
-                  //     )
-                  ""
+                  field.value ? format(field.value, "yyyy-MM-dd HH:mm") : ""
                 }
               />
             )}
@@ -254,9 +211,13 @@ export default function CompetitionCreatePage() {
               <Input
                 type="datetime-local"
                 onChange={(e) => {
-                  field.onChange(e.target.value); // UTC 형식으로 변환하여 yyyy-MM-dd HH:mm 포맷으로 저장
+                  field.onChange(
+                    e.target.value ? new Date(e.target.value) : null,
+                  );
                 }}
-                value={field.value ?? ""}
+                value={
+                  field.value ? format(field.value, "yyyy-MM-dd HH:mm") : ""
+                }
               />
             )}
           />
