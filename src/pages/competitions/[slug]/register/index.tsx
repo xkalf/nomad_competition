@@ -37,6 +37,7 @@ export default function CompetitionRegisterPage() {
   const router = useRouter()
   const slug = useGetCompetitionSlug()
   const session = useSession()
+  const utils = api.useUtils()
 
   const [qpayResponse, setQpayResponse] = useState<InvoiceResponse | null>(null)
 
@@ -47,13 +48,8 @@ export default function CompetitionRegisterPage() {
     },
   )
 
-  const {
-    data: current,
-    isLoading: currentLoading,
-    refetch: currentRefetch,
-  } = api.competition.getRegisterByCompetitionId.useQuery(
-    competition?.id ?? 0,
-    {
+  const { data: current, isLoading: currentLoading } =
+    api.competition.getRegisterByCompetitionId.useQuery(competition?.id ?? 0, {
       enabled: !!competition?.id,
       onSuccess: (data) => {
         if (!data) return
@@ -63,8 +59,7 @@ export default function CompetitionRegisterPage() {
           guestCount: data?.guestCount,
         })
       },
-    },
-  )
+    })
 
   const { data: totalAmount } = api.competitor.getTotalAmount.useQuery(
     current?.id ?? 0,
@@ -76,7 +71,8 @@ export default function CompetitionRegisterPage() {
   const { mutate: register, isLoading: registerLoading } =
     api.competition.register.useMutation({
       onSuccess: () => {
-        currentRefetch()
+        utils.competition.getRegisterByCompetitionId.invalidate()
+        utils.competitor.getTotalAmount.invalidate()
         toast({
           title: 'Амжилттай бүртгэгдлээ.',
         })
@@ -92,7 +88,8 @@ export default function CompetitionRegisterPage() {
   const { mutate: updateRegister, isLoading: updateRegisterLoading } =
     api.competition.updateRegister.useMutation({
       onSuccess: () => {
-        currentRefetch()
+        utils.competition.getRegisterByCompetitionId.invalidate()
+        utils.competitor.getTotalAmount.invalidate()
         toast({
           title: 'Амжилттай шинэчлэгдлээ.',
         })

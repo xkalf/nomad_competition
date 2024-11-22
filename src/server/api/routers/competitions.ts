@@ -231,9 +231,10 @@ export const competitionRouter = createTRPCRouter({
         const toDelete = currentCubeTypes
           .filter((i) => !cubeTypes?.includes(i.cubeTypeId))
           .map((i) => i.cubeTypeId)
-        const toInsert = cubeTypes?.filter(
-          (i) => !currentCubeTypes.map((j) => j.cubeTypeId).includes(i),
-        )
+        const toInsert =
+          cubeTypes?.filter(
+            (i) => !currentCubeTypes.map((j) => j.cubeTypeId).includes(i),
+          ) ?? []
 
         if (toDelete.length > 0) {
           const currFees = await t.query.fees.findMany({
@@ -244,17 +245,14 @@ export const competitionRouter = createTRPCRouter({
               ),
           })
 
-          await t.delete(competitorsToCubeTypes).where(
-            and(
-              inArray(
-                competitorsToCubeTypes.cubeTypeId,
-                currFees
-                  .filter((i) => +i.amount === 0)
-                  .map((i) => i.cubeTypeId),
+          await t
+            .delete(competitorsToCubeTypes)
+            .where(
+              and(
+                inArray(competitorsToCubeTypes.cubeTypeId, toDelete),
+                eq(competitorsToCubeTypes.competitorId, input.id),
               ),
-              eq(competitorsToCubeTypes.competitorId, input.id),
-            ),
-          )
+            )
 
           const toUpdate = currFees
             .filter((i) => +i.amount > 0)
@@ -273,15 +271,15 @@ export const competitionRouter = createTRPCRouter({
                 ),
               )
           }
+        }
 
-          if (toInsert && toInsert?.length > 0) {
-            await t.insert(competitorsToCubeTypes).values(
-              toInsert.map((cubeType) => ({
-                cubeTypeId: cubeType,
-                competitorId: input.id,
-              })),
-            )
-          }
+        if (toInsert.length > 0) {
+          await t.insert(competitorsToCubeTypes).values(
+            toInsert.map((cubeType) => ({
+              cubeTypeId: cubeType,
+              competitorId: input.id,
+            })),
+          )
         }
       })
     }),

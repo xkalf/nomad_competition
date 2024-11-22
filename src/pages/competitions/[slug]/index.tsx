@@ -1,78 +1,75 @@
-import { api, RouterOutputs } from "~/utils/api";
-import { mnFormat } from "~/utils/date";
-import CompetitionLayout from "./layout";
-import LoadingScreen from "~/components/loading-screen";
-import { useMemo } from "react";
+import { api, RouterOutputs } from '~/utils/api'
+import { mnFormat } from '~/utils/date'
+import CompetitionLayout from './layout'
+import LoadingScreen from '~/components/loading-screen'
+import { useMemo } from 'react'
 import {
   Table,
   TableBody,
   TableCell,
   TableHead,
   TableRow,
-} from "~/components/ui/table";
-import { getImageUrl } from "~/utils/supabase";
-import Image from "next/image";
-import { Badge } from "~/components/ui/badge";
-import { useGetCompetitionSlug } from "~/utils/hooks";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { competitionRouter } from "~/server/api/routers/competitions";
-import { db } from "~/server/db";
-import { createCallerFactory } from "@trpc/server";
-import Head from "next/head";
+} from '~/components/ui/table'
+import { getImageUrl } from '~/utils/supabase'
+import Image from 'next/image'
+import { Badge } from '~/components/ui/badge'
+import { useGetCompetitionSlug } from '~/utils/hooks'
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
+import { competitionRouter } from '~/server/api/routers/competitions'
+import { db } from '~/server/db'
+import { createCallerFactory } from '@trpc/server'
+import Head from 'next/head'
 
-type Competition = RouterOutputs["competition"]["getBySlug"];
+type Competition = RouterOutputs['competition']['getBySlug']
 
 export default function CompetitionShowPage({
   competition,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const slug = useGetCompetitionSlug();
+  const slug = useGetCompetitionSlug()
 
   const { data, error, isLoading } = api.competition.getBySlug.useQuery(slug, {
     enabled: !!slug,
-    initialData: competition ?? undefined,
-  });
+    initialData: competition ? JSON.parse(competition) : undefined,
+  })
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(data?.id ?? 0, {
     enabled: !!data?.id,
-  });
+  })
 
   const groupAgeGroups = (input: typeof ageGroups = []) => {
     const grouped = input
       ?.sort((a, b) => a.cubeType.order - b.cubeType.order)
       .reduce((acc: { [key: string]: typeof ageGroups }, item) => {
-        const key = item.cubeType.name;
+        const key = item.cubeType.name
 
         if (!acc[key]) {
-          acc[key] = [];
+          acc[key] = []
         }
 
-        acc[key]?.push(item);
+        acc[key]?.push(item)
 
-        return acc;
-      }, {});
+        return acc
+      }, {})
 
-    return grouped;
-  };
+    return grouped
+  }
 
-  const groupedAgeGroups = useMemo(
-    () => groupAgeGroups(ageGroups),
-    [ageGroups],
-  );
+  const groupedAgeGroups = useMemo(() => groupAgeGroups(ageGroups), [ageGroups])
 
   if (error) {
-    return <div></div>;
+    return <div></div>
   }
 
   if (isLoading) {
-    return <LoadingScreen />;
+    return <LoadingScreen />
   }
 
   return (
     <CompetitionLayout>
       <Head>
-        <meta property="og:title" content={competition?.name} key="title" />
+        <meta property="og:title" content={data.name} key="title" />
         <meta
           property="og:image"
-          content={getImageUrl(competition?.image)}
+          content={getImageUrl(data?.image)}
           key="image"
         />
       </Head>
@@ -88,19 +85,19 @@ export default function CompetitionShowPage({
                   if (i.cubeType.image) {
                     return (
                       <Image
-                        src={getImageUrl(i.cubeType.image) || ""}
+                        src={getImageUrl(i.cubeType.image) || ''}
                         alt={i.cubeType.name}
                         width={40}
                         height={40}
                         key={i.cubeTypeId}
                       />
-                    );
+                    )
                   } else {
                     return (
                       <Badge className="mr-2" key={i.cubeTypeId}>
                         {i.cubeType.name}
                       </Badge>
-                    );
+                    )
                   }
                 })}
             </TableCell>
@@ -131,7 +128,7 @@ export default function CompetitionShowPage({
             <TableHead>Бүртгэлийн хугацаа</TableHead>
             <TableCell>
               {data.registerStartDate?.toLocaleString()}
-              {" ~ "}
+              {' ~ '}
               {data.registerEndDate?.toLocaleString()}
             </TableCell>
           </TableRow>
@@ -153,7 +150,7 @@ export default function CompetitionShowPage({
                     ?.sort((a, b) => a.order - b.order)
                     .map((item) => (
                       <li
-                        key={"age-group" + item.id}
+                        key={'age-group' + item.id}
                         className="space-x-4 p-2 even:bg-gray-200"
                       >
                         <span>
@@ -161,7 +158,7 @@ export default function CompetitionShowPage({
                             ? `${item.name} ${item.start} онд төрсөн`
                             : item.end
                               ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
-                              : `${item.name} ${item.start} оноос өмнө төрсөн`}{" "}
+                              : `${item.name} ${item.start} оноос өмнө төрсөн`}{' '}
                         </span>
                       </li>
                     ))}
@@ -172,28 +169,28 @@ export default function CompetitionShowPage({
         </TableBody>
       </Table>
     </CompetitionLayout>
-  );
+  )
 }
 
 export async function getServerSideProps({
   params,
 }: GetServerSidePropsContext<{ slug: string }>) {
-  const factory = createCallerFactory();
+  const factory = createCallerFactory()
 
   const caller = factory(competitionRouter)({
     session: null,
     db: db,
-  });
+  })
 
-  let competition: Competition | null = null;
+  let competition: Competition | null = null
 
   if (params?.slug) {
-    competition = await caller.getBySlug(params?.slug ?? "");
+    competition = await caller.getBySlug(params?.slug ?? '')
   }
 
   return {
     props: {
-      competition,
+      competition: competition ? JSON.stringify(competition) : null,
     },
-  };
+  }
 }
