@@ -136,7 +136,10 @@ export default function RegistrationsPage() {
             const result = row.original.competitorsToCubeTypes
             const found = result.find((i) => i.cubeTypeId === cubeType.id)
 
-            if (found && found.status === 'Paid') {
+            if (
+              found &&
+              (isVerified === true ? found.status === 'Paid' : true)
+            ) {
               return (
                 <Image
                   src={getImageUrl(cubeType.image) || ''}
