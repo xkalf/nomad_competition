@@ -1,14 +1,14 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "next-auth/react";
-import Image from "next/image";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import { useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import LoadingScreen from "~/components/loading-screen";
-import { Alert, AlertTitle } from "~/components/ui/alert";
-import { Button } from "~/components/ui/button";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useSession } from 'next-auth/react'
+import Image from 'next/image'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import { useMemo, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import LoadingScreen from '~/components/loading-screen'
+import { Alert, AlertTitle } from '~/components/ui/alert'
+import { Button } from '~/components/ui/button'
 import {
   Form,
   FormControl,
@@ -16,38 +16,36 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { MultiSelect } from "~/components/ui/multi-select";
-import { toast } from "~/components/ui/use-toast";
-import { RouterOutputs, api } from "~/utils/api";
-import { competitionRegisterSchema } from "~/utils/zod";
-import CompetitionLayout from "../layout";
-import { useGetCompetitionSlug } from "~/utils/hooks";
+} from '~/components/ui/form'
+import { Input } from '~/components/ui/input'
+import { MultiSelect } from '~/components/ui/multi-select'
+import { toast } from '~/components/ui/use-toast'
+import { RouterOutputs, api } from '~/utils/api'
+import { competitionRegisterSchema } from '~/utils/zod'
+import CompetitionLayout from '../layout'
+import { useGetCompetitionSlug } from '~/utils/hooks'
 
 const defaultValues: z.infer<typeof competitionRegisterSchema> = {
   competitionId: 0,
   cubeTypes: [],
   guestCount: 0,
-};
+}
 
-type InvoiceResponse = RouterOutputs["payment"]["createInvoice"];
+type InvoiceResponse = RouterOutputs['payment']['createInvoice']
 
 export default function CompetitionRegisterPage() {
-  const router = useRouter();
-  const slug = useGetCompetitionSlug();
-  const session = useSession();
+  const router = useRouter()
+  const slug = useGetCompetitionSlug()
+  const session = useSession()
 
-  const [qpayResponse, setQpayResponse] = useState<InvoiceResponse | null>(
-    null,
-  );
+  const [qpayResponse, setQpayResponse] = useState<InvoiceResponse | null>(null)
 
   const { data: competition, isLoading } = api.competition.getBySlug.useQuery(
     slug,
     {
       enabled: !!slug,
     },
-  );
+  )
 
   const {
     data: current,
@@ -58,95 +56,95 @@ export default function CompetitionRegisterPage() {
     {
       enabled: !!competition?.id,
       onSuccess: (data) => {
-        if (!data) return;
+        if (!data) return
         form.reset({
           competitionId: data?.competitionId,
           cubeTypes: data?.competitorsToCubeTypes.map((i) => i.cubeTypeId),
           guestCount: data?.guestCount,
-        });
+        })
       },
     },
-  );
+  )
 
   const { data: totalAmount } = api.competitor.getTotalAmount.useQuery(
     current?.id ?? 0,
     {
       enabled: !!current?.id,
     },
-  );
+  )
 
   const { mutate: register, isLoading: registerLoading } =
     api.competition.register.useMutation({
       onSuccess: () => {
-        currentRefetch();
+        currentRefetch()
         toast({
-          title: "Амжилттай бүртгэгдлээ.",
-        });
+          title: 'Амжилттай бүртгэгдлээ.',
+        })
       },
       onError: (error) => {
         toast({
-          title: "Алдаа гарлаа",
+          title: 'Алдаа гарлаа',
           description: error.message,
-          variant: "destructive",
-        });
+          variant: 'destructive',
+        })
       },
-    });
+    })
   const { mutate: updateRegister, isLoading: updateRegisterLoading } =
     api.competition.updateRegister.useMutation({
       onSuccess: () => {
-        currentRefetch();
+        currentRefetch()
         toast({
-          title: "Амжилттай шинэчлэгдлээ.",
-        });
+          title: 'Амжилттай шинэчлэгдлээ.',
+        })
       },
       onError(error) {
         toast({
-          title: "Алдаа гарлаа",
+          title: 'Алдаа гарлаа',
           description: error.message,
-          variant: "destructive",
-        });
+          variant: 'destructive',
+        })
       },
-    });
+    })
   const { mutate: createInvoice, isLoading: invoiceLoading } =
     api.payment.createInvoice.useMutation({
       onSuccess(data) {
-        setQpayResponse(data);
+        setQpayResponse(data)
       },
       onError(error) {
         toast({
-          title: "Алдаа гарлаа",
+          title: 'Алдаа гарлаа',
           description: error.message,
-          variant: "destructive",
-        });
+          variant: 'destructive',
+        })
       },
-    });
+    })
 
-  api.payment.cronInvoice.useQuery(qpayResponse?.invoice_id || "", {
+  api.payment.cronInvoice.useQuery(qpayResponse?.invoice_id || '', {
     enabled: !!qpayResponse,
     refetchInterval: 1000,
     onSuccess: (data) => {
       if (data === true) {
-        router.push(`/competitions/${slug}/registrations?isVerified=true`);
+        router.push(`/competitions/${slug}/registrations?isVerified=true`)
         toast({
-          title: "Амжилттай төлөгдлөө.",
-        });
+          title: 'Амжилттай төлөгдлөө.',
+        })
       }
     },
-  });
+  })
 
   const form = useForm<z.infer<typeof competitionRegisterSchema>>({
     resolver: zodResolver(competitionRegisterSchema),
     defaultValues,
-  });
+  })
 
   const onSubmit = (values: z.infer<typeof competitionRegisterSchema>) => {
     current
       ? updateRegister({ id: current.id, ...values })
       : register({
-          ...values,
-          competitionId: competition?.id ?? 0,
-        });
-  };
+        ...values,
+        competitionId: competition?.id ?? 0,
+      })
+  }
 
   const mappedCubeTypes = useMemo(() => {
     return (
@@ -156,8 +154,8 @@ export default function CompetitionRegisterPage() {
           label: i.name,
           value: i.id.toString(),
         })) || []
-    );
-  }, [competition]);
+    )
+  }, [competition])
 
   const freeTypes = useMemo(() => {
     const filtered = competition?.competitionsToCubeTypes
@@ -166,12 +164,12 @@ export default function CompetitionRegisterPage() {
         (cubeType) =>
           !competition.fees?.map((fee) => fee.cubeTypeId).includes(cubeType.id),
       )
-      .sort((a, b) => a.order - b.order);
-    return filtered || [];
-  }, [competition]);
+      .sort((a, b) => a.order - b.order)
+    return filtered || []
+  }, [competition])
 
   if (isLoading || currentLoading) {
-    return <LoadingScreen />;
+    return <LoadingScreen />
   }
 
   return (
@@ -181,14 +179,14 @@ export default function CompetitionRegisterPage() {
         Бүртгэлийн суурь хураамж {competition?.baseFee}₮ ба үүнд:
       </p>
       <p>
-        - {freeTypes.map((i) => i.name).join(", ")}(шооны {freeTypes.length}{" "}
+        - {freeTypes.map((i) => i.name).join(', ')}(шооны {freeTypes.length}{' '}
         төрөл багтана.)
       </p>
       <p className="mt-2 text-lg">Бусад төрлүүд нэмэлт хураамжтай ба үүнд:</p>
       {competition?.fees
         .sort((a, b) => a.cubeType.order - b.cubeType.order)
         .map((fee) => (
-          <p key={"fee" + fee.id}>
+          <p key={'fee' + fee.id}>
             - {fee.cubeType.name} = {fee.amount}₮
           </p>
         ))}
@@ -262,7 +260,7 @@ export default function CompetitionRegisterPage() {
           <div className="flex justify-center md:justify-start">
             {session.data?.user.id ? (
               <Button disabled={registerLoading || updateRegisterLoading}>
-                {current ? "Шинэчлэх" : "Бүртгүүлэх"}
+                {current ? 'Шинэчлэх' : 'Бүртгүүлэх'}
               </Button>
             ) : (
               <Alert variant="destructive">
@@ -271,34 +269,30 @@ export default function CompetitionRegisterPage() {
                 </AlertTitle>
               </Alert>
             )}
-            {session?.data?.user.id &&
-              current &&
-              current.invoices
-                .filter((i) => i.isPaid === true)
-                .reduce((a, b) => a + +b.amount, 0) < (totalAmount ?? 0) && (
-                <>
-                  <Button
-                    className="ml-2"
-                    type="button"
-                    disabled={invoiceLoading || !!qpayResponse}
-                    onClick={() =>
-                      createInvoice({
-                        userId: session.data.user.id,
-                        competitorId: current.id,
-                      })
-                    }
-                  >
-                    Төлбөр төлөх
-                  </Button>
-                </>
-              )}
+            {session?.data?.user.id && (totalAmount || 0) > 0 && current && (
+              <>
+                <Button
+                  className="ml-2"
+                  type="button"
+                  disabled={invoiceLoading || !!qpayResponse}
+                  onClick={() =>
+                    createInvoice({
+                      userId: session.data.user.id,
+                      competitorId: current.id,
+                    })
+                  }
+                >
+                  Төлбөр төлөх
+                </Button>
+              </>
+            )}
           </div>
         </form>
       </Form>
       {qpayResponse && (
         <div>
           <Image
-            src={"data:image/png;base64, " + qpayResponse.qr_image}
+            src={'data:image/png;base64, ' + qpayResponse.qr_image}
             height={300}
             width={300}
             alt="qpay"
@@ -322,5 +316,5 @@ export default function CompetitionRegisterPage() {
         </div>
       )}
     </CompetitionLayout>
-  );
+  )
 }
