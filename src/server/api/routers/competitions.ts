@@ -235,15 +235,15 @@ export const competitionRouter = createTRPCRouter({
           (i) => !currentCubeTypes.map((j) => j.cubeTypeId).includes(i),
         )
 
-        const currFees = await t.query.fees.findMany({
-          where: (t, { eq, and, inArray }) =>
-            and(
-              eq(t.competitionId, res?.competitionId),
-              inArray(t.cubeTypeId, toDelete),
-            ),
-        })
-
         if (toDelete.length > 0) {
+          const currFees = await t.query.fees.findMany({
+            where: (t, { eq, and, inArray }) =>
+              and(
+                eq(t.competitionId, res?.competitionId),
+                inArray(t.cubeTypeId, toDelete),
+              ),
+          })
+
           await t.delete(competitorsToCubeTypes).where(
             and(
               inArray(
