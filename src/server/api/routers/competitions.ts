@@ -235,6 +235,24 @@ export const competitionRouter = createTRPCRouter({
           cubeTypes?.filter(
             (i) => !currentCubeTypes.map((j) => j.cubeTypeId).includes(i),
           ) ?? []
+        const toPaid = currentCubeTypes
+          .filter((i) => i.status === 'Cancelled')
+          .filter((i) => cubeTypes?.includes(i.cubeTypeId))
+          .map((i) => i.cubeTypeId)
+
+        if (toPaid.length > 0) {
+          await t
+            .update(competitorsToCubeTypes)
+            .set({
+              status: 'Paid',
+            })
+            .where(
+              and(
+                inArray(competitorsToCubeTypes.cubeTypeId, toPaid),
+                eq(competitorsToCubeTypes.competitorId, input.id),
+              ),
+            )
+        }
 
         if (toDelete.length > 0) {
           const currFees = await t.query.fees.findMany({

@@ -1,26 +1,30 @@
 export const CREATE_LINKS: { path: string; label: string }[] = [
   {
-    path: "age-groups",
-    label: "Насны ангилал",
+    path: '',
+    label: 'Тэмцээн',
   },
   {
-    path: "fees",
-    label: "Төлбөрийн хураамж",
+    path: 'age-groups',
+    label: 'Насны ангилал',
   },
   {
-    path: "round",
-    label: "Раунд",
+    path: 'fees',
+    label: 'Төлбөрийн хураамж',
   },
   {
-    path: "schedules",
-    label: "Цагийн хуваарь",
+    path: 'round',
+    label: 'Раунд',
   },
   {
-    path: "groups",
-    label: "Групп",
+    path: 'schedules',
+    label: 'Цагийн хуваарь',
   },
   {
-    path: "refunds",
-    label: "Буцаалт",
+    path: 'groups',
+    label: 'Групп',
   },
-];
+  {
+    path: 'refunds',
+    label: 'Буцаалт',
+  },
+]

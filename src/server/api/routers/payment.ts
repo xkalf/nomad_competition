@@ -1,40 +1,24 @@
-import { eq } from "drizzle-orm";
-import { z } from "zod";
-import { invoices, payments } from "~/server/db/schema";
-import { mapPayment, mapQpayInvoice, mapQpayToken, qpay } from "~/utils/qpay";
-import { createInvoiceSchema } from "~/utils/zod";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { getTotalAmount } from "~/server/utils/getTotalAmount";
+import { eq } from 'drizzle-orm'
+import { z } from 'zod'
+import { invoices, payments } from '~/server/db/schema'
+import { mapPayment, mapQpayInvoice, mapQpayToken, qpay } from '~/utils/qpay'
+import { createInvoiceSchema } from '~/utils/zod'
+import { createTRPCRouter, protectedProcedure } from '../trpc'
+import { getTotalAmount } from '~/server/utils/getTotalAmount'
 
 export const paymentsRouter = createTRPCRouter({
   createInvoice: protectedProcedure
     .input(createInvoiceSchema)
     .mutation(async ({ input, ctx }) => {
       const payment = await ctx.db.query.payments.findFirst({
-        where: eq(payments.type, "qpay"),
-      });
+        where: eq(payments.type, 'qpay'),
+      })
 
-      const token = mapQpayToken(payment);
+      const token = mapQpayToken(payment)
 
-      const totalAmount = await getTotalAmount(input.competitorId, ctx.db);
+      const totalAmount = await getTotalAmount(input.competitorId, ctx.db)
 
       const invoice = await ctx.db.transaction(async (db) => {
-        const invoice = (
-          await db
-            .insert(invoices)
-            .values({
-              ...input,
-              amount: totalAmount.toString(),
-            })
-            .returning()
-        )[0];
-
-        if (!invoice) {
-          throw new Error(
-            "Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.",
-          );
-        }
-
         const desc = await db.query.competitors.findFirst({
           where: (t, { eq }) => eq(t.id, input.competitorId),
           columns: {},
@@ -49,28 +33,49 @@ export const paymentsRouter = createTRPCRouter({
                 phone: true,
               },
             },
+            competitorsToCubeTypes: {
+              columns: {
+                cubeTypeId: true,
+                status: true,
+              },
+            },
           },
-        });
+        })
 
         if (!desc) {
-          throw new Error(
-            "Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.",
-          );
+          throw new Error('Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.')
+        }
+
+        const invoice = (
+          await db
+            .insert(invoices)
+            .values({
+              ...input,
+              amount: totalAmount.toString(),
+              cubeTypeIds: desc.competitorsToCubeTypes
+                .filter((i) => i.status === 'Created')
+                .map((i) => i.cubeTypeId),
+            })
+            .returning()
+        )[0]
+
+        if (!invoice) {
+          throw new Error('Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.')
         }
 
         return {
           ...invoice,
           ...desc,
-        };
-      });
+        }
+      })
 
-      const res = await qpay.createInvoice(mapQpayInvoice(invoice), token);
+      const res = await qpay.createInvoice(mapQpayInvoice(invoice), token)
 
       if (res.token !== token) {
         await ctx.db
           .update(payments)
           .set(mapPayment(res.token))
-          .where(eq(payments.type, "qpay"));
+          .where(eq(payments.type, 'qpay'))
       }
 
       await ctx.db
@@ -78,9 +83,9 @@ export const paymentsRouter = createTRPCRouter({
         .set({
           invoiceCode: res.data.invoice_id,
         })
-        .where(eq(invoices.id, invoice.id));
+        .where(eq(invoices.id, invoice.id))
 
-      return res.data;
+      return res.data
     }),
   cronInvoice: protectedProcedure
     .input(z.string().uuid())
@@ -88,7 +93,7 @@ export const paymentsRouter = createTRPCRouter({
       const [res] = await ctx.db
         .select({ isPaid: invoices.isPaid })
         .from(invoices)
-        .where(eq(invoices.invoiceCode, input));
-      return res?.isPaid;
+        .where(eq(invoices.invoiceCode, input))
+      return res?.isPaid
     }),
-});
+})
