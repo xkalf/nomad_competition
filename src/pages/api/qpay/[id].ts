@@ -26,7 +26,7 @@ export default async function handler(
     where: (t, { eq }) => eq(t.id, +id),
   })
 
-  if (!invoice) {
+  if (!invoice || !invoice.invoiceCode) {
     return res.status(404).json({
       error: {
         message: 'Нэхэмжлэл олдсонгүй.',
@@ -41,7 +41,7 @@ export default async function handler(
   const token = mapQpayToken(payment)
 
   try {
-    const result = await qpay.checkInvoice(invoice.invoiceCode ?? '', token)
+    const result = await qpay.checkInvoice(invoice.invoiceCode, token)
 
     await db.transaction(async (db) => {
       if (token !== result.token) {

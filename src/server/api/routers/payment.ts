@@ -5,7 +5,12 @@ import { mapPayment, mapQpayInvoice, mapQpayToken, qpay } from '~/utils/qpay'
 import { createInvoiceSchema } from '~/utils/zod'
 import { createTRPCRouter, protectedProcedure } from '../trpc'
 import { getTotalAmount } from '~/server/utils/getTotalAmount'
-import { addMinutes, differenceInMinutes, isAfter } from 'date-fns'
+import {
+  addMinutes,
+  differenceInMinutes,
+  differenceInSeconds,
+  isAfter,
+} from 'date-fns'
 
 export const paymentsRouter = createTRPCRouter({
   createInvoice: protectedProcedure
@@ -25,8 +30,16 @@ export const paymentsRouter = createTRPCRouter({
         lastInvoice.isPaid !== true &&
         isAfter(addMinutes(lastInvoice.createdAt, 5), new Date())
       ) {
+        const difference = differenceInMinutes(
+          addMinutes(lastInvoice.createdAt, 5),
+          new Date(),
+        )
+        const diffSeconds = differenceInSeconds(
+          addMinutes(lastInvoice.createdAt, 5),
+          new Date(),
+        )
         throw new Error(
-          `Нэхэмжлэл үүссэн байна ${differenceInMinutes(addMinutes(lastInvoice.createdAt, 5), new Date())} минутийн дараа дахин оролдоно уу.`,
+          `Нэхэмжлэл үүссэн байна ${difference > 0 ? difference + ' минутийн' : diffSeconds + ' секундийн'} дараа дахин оролдоно уу.`,
         )
       }
 
@@ -100,13 +113,16 @@ export const paymentsRouter = createTRPCRouter({
         const res = await qpay.createInvoice(mapQpayInvoice(data), token)
 
         if (res.token !== token) {
-          await ctx.db
+          await db
             .update(payments)
             .set(mapPayment(res.token))
             .where(eq(payments.type, 'qpay'))
         }
 
-        await ctx.db
+        console.log(res.data)
+        console.log(res.data.invoice_id)
+
+        await db
           .update(invoices)
           .set({
             invoiceCode: res.data.invoice_id,
