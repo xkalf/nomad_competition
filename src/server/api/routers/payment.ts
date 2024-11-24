@@ -26,7 +26,7 @@ export const paymentsRouter = createTRPCRouter({
         isAfter(addMinutes(lastInvoice.createdAt, 5), new Date())
       ) {
         throw new Error(
-          `Нэхэмжлэл үүссэн байна ${differenceInMinutes(addMinutes(lastInvoice.createdAt, 5), new Date())} минутийн дараа дахин оролдотийн дараа дахин оролдоно уу.`,
+          `Нэхэмжлэл үүссэн байна ${differenceInMinutes(addMinutes(lastInvoice.createdAt, 5), new Date())} минутийн дараа дахин оролдоно уу.`,
         )
       }
 
@@ -38,7 +38,7 @@ export const paymentsRouter = createTRPCRouter({
 
       const totalAmount = await getTotalAmount(input.competitorId, ctx.db)
 
-      const invoice = await ctx.db.transaction(async (db) => {
+      return await ctx.db.transaction(async (db) => {
         const desc = await db.query.competitors.findFirst({
           where: (t, { eq }) => eq(t.id, input.competitorId),
           columns: {
@@ -92,29 +92,29 @@ export const paymentsRouter = createTRPCRouter({
           throw new Error('Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.')
         }
 
-        return {
+        const data = {
           ...invoice,
           ...desc,
         }
-      })
 
-      const res = await qpay.createInvoice(mapQpayInvoice(invoice), token)
+        const res = await qpay.createInvoice(mapQpayInvoice(data), token)
 
-      if (res.token !== token) {
+        if (res.token !== token) {
+          await ctx.db
+            .update(payments)
+            .set(mapPayment(res.token))
+            .where(eq(payments.type, 'qpay'))
+        }
+
         await ctx.db
-          .update(payments)
-          .set(mapPayment(res.token))
-          .where(eq(payments.type, 'qpay'))
-      }
+          .update(invoices)
+          .set({
+            invoiceCode: res.data.invoice_id,
+          })
+          .where(eq(invoices.id, invoice.id))
 
-      await ctx.db
-        .update(invoices)
-        .set({
-          invoiceCode: res.data.invoice_id,
-        })
-        .where(eq(invoices.id, invoice.id))
-
-      return res.data
+        return res.data
+      })
     }),
   cronInvoice: protectedProcedure
     .input(z.string().uuid())

@@ -17,14 +17,9 @@ export default async function handler(
 
   const query = req.query
   const id = query.id?.toString()
-  const paymentId = query.qpay_payment_id?.toString()
 
   if (!id) {
     return res.status(400).json({ error: 'id is required' })
-  }
-
-  if (!paymentId) {
-    return res.status(400).json({ error: 'qpay_payment_id is required' })
   }
 
   const invoice = await db.query.invoices.findFirst({
@@ -32,7 +27,7 @@ export default async function handler(
   })
 
   if (!invoice) {
-    return res.status(500).json({
+    return res.status(404).json({
       error: {
         message: 'Нэхэмжлэл олдсонгүй.',
       },

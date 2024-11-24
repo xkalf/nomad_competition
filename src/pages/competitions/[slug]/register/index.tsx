@@ -18,12 +18,17 @@ import {
   FormMessage,
 } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
-import { MultiSelect } from '~/components/ui/multi-select'
 import { toast } from '~/components/ui/use-toast'
 import { RouterOutputs, api } from '~/utils/api'
 import { competitionRegisterSchema } from '~/utils/zod'
 import CompetitionLayout from '../layout'
 import { useGetCompetitionSlug } from '~/utils/hooks'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '~/components/ui/dropdown-menu'
 
 const defaultValues: z.infer<typeof competitionRegisterSchema> = {
   competitionId: 0,
@@ -143,17 +148,6 @@ export default function CompetitionRegisterPage() {
         })
   }
 
-  const mappedCubeTypes = useMemo(() => {
-    return (
-      competition?.competitionsToCubeTypes
-        .map((i) => i.cubeType)
-        ?.map((i) => ({
-          label: i.name,
-          value: i.id.toString(),
-        })) || []
-    )
-  }, [competition])
-
   const freeTypes = useMemo(() => {
     const filtered = competition?.competitionsToCubeTypes
       .map((i) => i.cubeType)
@@ -209,19 +203,51 @@ export default function CompetitionRegisterPage() {
             name="cubeTypes"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Төрөл</FormLabel>
+                <FormLabel>
+                  Төрөл (Сонгогдсон төрлүүд :{' '}
+                  {competition?.competitionsToCubeTypes
+                    ?.map((i) => i.cubeType)
+                    .filter((cubeType) => field.value.includes(cubeType.id))
+                    .map((i) => i.name)
+                    .join(', ')}
+                  )
+                </FormLabel>
                 <FormControl>
-                  <MultiSelect
-                    options={mappedCubeTypes || []}
-                    selected={
-                      mappedCubeTypes?.filter((i) =>
-                        field.value?.includes(+i.value),
-                      ) || []
-                    }
-                    onChange={(value) =>
-                      field.onChange(value.map((i) => +i.value))
-                    }
-                  />
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button className="block">Төрөл сонгох</Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      {competition?.competitionsToCubeTypes
+                        ?.map((i) => i.cubeType)
+                        .map((cubeType) => (
+                          <DropdownMenuCheckboxItem
+                            key={cubeType.id}
+                            checked={field.value?.includes(cubeType.id)}
+                            onCheckedChange={(value) => {
+                              if (!field.value) {
+                                field.value = []
+                              }
+
+                              if (value && !field.value.includes(cubeType.id)) {
+                                field.onChange([...field.value, cubeType.id])
+                              } else if (
+                                !value &&
+                                field.value.includes(cubeType.id)
+                              ) {
+                                field.onChange(
+                                  field.value.filter(
+                                    (id) => id !== cubeType.id,
+                                  ),
+                                )
+                              }
+                            }}
+                          >
+                            {cubeType.name}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </FormControl>
                 <FormMessage />
               </FormItem>
