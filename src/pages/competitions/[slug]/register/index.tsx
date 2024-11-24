@@ -53,9 +53,10 @@ export default function CompetitionRegisterPage() {
     },
   )
 
-  const { data: current, isLoading: currentLoading } =
-    api.competition.getRegisterByCompetitionId.useQuery(competition?.id ?? 0, {
-      enabled: !!competition?.id,
+  const { data: current } = api.competition.getRegisterByCompetitionId.useQuery(
+    competition?.id ?? 0,
+    {
+      enabled: !!competition?.id && !!session.data?.user,
       onSuccess: (data) => {
         if (!data) return
         form.reset({
@@ -64,7 +65,8 @@ export default function CompetitionRegisterPage() {
           guestCount: data?.guestCount,
         })
       },
-    })
+    },
+  )
 
   const { data: totalAmount } = api.competitor.getTotalAmount.useQuery(
     current?.id ?? 0,
@@ -95,6 +97,7 @@ export default function CompetitionRegisterPage() {
       onSuccess: () => {
         utils.competition.getRegisterByCompetitionId.invalidate()
         utils.competitor.getTotalAmount.invalidate()
+        setQpayResponse(null)
         toast({
           title: 'Амжилттай шинэчлэгдлээ.',
         })
@@ -159,7 +162,7 @@ export default function CompetitionRegisterPage() {
     return filtered || []
   }, [competition])
 
-  if (isLoading || currentLoading) {
+  if (isLoading) {
     return <LoadingScreen />
   }
 
@@ -204,7 +207,9 @@ export default function CompetitionRegisterPage() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Төрөл (Сонгогдсон төрлүүд :{' '}
+                  Төрөл
+                  <p>Баталгаажсан төрлүүд</p>
+                  (Сонгогдсон төрлүүд :{' '}
                   {competition?.competitionsToCubeTypes
                     ?.map((i) => i.cubeType)
                     .filter((cubeType) => field.value.includes(cubeType.id))

@@ -25,23 +25,23 @@ export const paymentsRouter = createTRPCRouter({
         },
       })
 
-      if (
-        lastInvoice &&
-        lastInvoice.isPaid !== true &&
-        isAfter(addMinutes(lastInvoice.createdAt, 5), new Date())
-      ) {
-        const difference = differenceInMinutes(
-          addMinutes(lastInvoice.createdAt, 5),
-          new Date(),
-        )
-        const diffSeconds = differenceInSeconds(
-          addMinutes(lastInvoice.createdAt, 5),
-          new Date(),
-        )
-        throw new Error(
-          `Нэхэмжлэл үүссэн байна ${difference > 0 ? difference + ' минутийн' : diffSeconds + ' секундийн'} дараа дахин оролдоно уу.`,
-        )
-      }
+      // if (
+      //   lastInvoice &&
+      //   lastInvoice.isPaid !== true &&
+      //   isAfter(addMinutes(lastInvoice.createdAt, 5), new Date())
+      // ) {
+      //   const difference = differenceInMinutes(
+      //     addMinutes(lastInvoice.createdAt, 5),
+      //     new Date(),
+      //   )
+      //   const diffSeconds = differenceInSeconds(
+      //     addMinutes(lastInvoice.createdAt, 5),
+      //     new Date(),
+      //   )
+      //   throw new Error(
+      //     `Нэхэмжлэл үүссэн байна ${difference > 0 ? difference + ' минутийн' : diffSeconds + ' секундийн'} дараа дахин оролдоно уу.`,
+      //   )
+      // }
 
       const payment = await ctx.db.query.payments.findFirst({
         where: eq(payments.type, 'qpay'),
@@ -51,86 +51,95 @@ export const paymentsRouter = createTRPCRouter({
 
       const totalAmount = await getTotalAmount(input.competitorId, ctx.db)
 
-      return await ctx.db.transaction(async (db) => {
-        const desc = await db.query.competitors.findFirst({
-          where: (t, { eq }) => eq(t.id, input.competitorId),
-          columns: {
-            status: true,
-          },
-          with: {
-            competition: {
-              columns: {
-                name: true,
-              },
-            },
-            user: {
-              columns: {
-                phone: true,
-              },
-            },
-            competitorsToCubeTypes: {
-              columns: {
-                cubeTypeId: true,
-                status: true,
-              },
+      const desc = await ctx.db.query.competitors.findFirst({
+        where: (t, { eq }) => eq(t.id, input.competitorId),
+        columns: {
+          status: true,
+        },
+        with: {
+          competition: {
+            columns: {
+              name: true,
             },
           },
+          user: {
+            columns: {
+              phone: true,
+            },
+          },
+          competitorsToCubeTypes: {
+            columns: {
+              cubeTypeId: true,
+              status: true,
+            },
+          },
+        },
+      })
+
+      if (!desc) {
+        throw new Error('Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.')
+      }
+
+      if (desc.status === 'Cancelled') {
+        throw new Error(
+          'Бүртгэл цуцлагдсан байна. Зохион байгуулагчидтай холбогдоно уу.',
+        )
+      }
+
+      const query = ctx.db
+        .insert(invoices)
+        .values({
+          ...input,
+          amount: totalAmount.toString(),
+          cubeTypeIds: desc.competitorsToCubeTypes
+            .filter((i) => i.status === 'Created')
+            .map((i) => i.cubeTypeId),
+          hasCompetitionFee: desc.status === 'Created',
+        })
+        .returning()
+
+      const invoice = (await query)[0]
+
+      if (!invoice) {
+        throw new Error('Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.')
+      }
+
+      console.log(invoice)
+
+      const data = {
+        ...invoice,
+        ...desc,
+      }
+
+      try {
+        const res = await ctx.db.transaction(async (db) => {
+          const qpayResponse = await qpay.createInvoice(
+            mapQpayInvoice(data),
+            token,
+          )
+
+          if (qpayResponse.token !== token) {
+            await db
+              .update(payments)
+              .set(mapPayment(qpayResponse.token))
+              .where(eq(payments.type, 'qpay'))
+          }
+
+          await db
+            .update(invoices)
+            .set({
+              invoiceCode: qpayResponse.data.invoice_id,
+            })
+            .where(eq(invoices.id, invoice.id))
+
+          return qpayResponse.data
         })
 
-        if (!desc) {
-          throw new Error('Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.')
-        }
-
-        if (desc.status === 'Cancelled') {
-          throw new Error(
-            'Бүртгэл цуцлагдсан байна. Зохион байгуулагчидтай холбогдоно уу.',
-          )
-        }
-
-        const invoice = (
-          await db
-            .insert(invoices)
-            .values({
-              ...input,
-              amount: totalAmount.toString(),
-              cubeTypeIds: desc.competitorsToCubeTypes
-                .filter((i) => i.status === 'Created')
-                .map((i) => i.cubeTypeId),
-              hasCompetitionFee: desc.status === 'Created',
-            })
-            .returning()
-        )[0]
-
-        if (!invoice) {
-          throw new Error('Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.')
-        }
-
-        const data = {
-          ...invoice,
-          ...desc,
-        }
-
-        const res = await qpay.createInvoice(mapQpayInvoice(data), token)
-
-        if (res.token !== token) {
-          await db
-            .update(payments)
-            .set(mapPayment(res.token))
-            .where(eq(payments.type, 'qpay'))
-        }
-
-        console.log(res.data)
-        console.log(res.data.invoice_id)
-
-        await db
-          .update(invoices)
-          .set({
-            invoiceCode: res.data.invoice_id,
-          })
-          .where(eq(invoices.id, invoice.id))
-
-        return res.data
-      })
+        return res
+      } catch (err) {
+        console.log('Transaction Err:', err)
+        throw err
+      }
     }),
   cronInvoice: protectedProcedure
     .input(z.string().uuid())

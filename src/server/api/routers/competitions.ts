@@ -263,14 +263,19 @@ export const competitionRouter = createTRPCRouter({
               ),
           })
 
-          await t
-            .delete(competitorsToCubeTypes)
-            .where(
-              and(
-                inArray(competitorsToCubeTypes.cubeTypeId, toDelete),
-                eq(competitorsToCubeTypes.competitorId, input.id),
-              ),
-            )
+          const toDelete2 = toDelete.filter(
+            (i) => !currFees.map((j) => j.cubeTypeId).includes(i),
+          )
+
+          if (toDelete2.length > 0)
+            await t
+              .delete(competitorsToCubeTypes)
+              .where(
+                and(
+                  inArray(competitorsToCubeTypes.cubeTypeId, toDelete2),
+                  eq(competitorsToCubeTypes.competitorId, input.id),
+                ),
+              )
 
           const toUpdate = currFees
             .filter((i) => +i.amount > 0)

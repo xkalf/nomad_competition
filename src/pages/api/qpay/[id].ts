@@ -58,37 +58,39 @@ export default async function handler(
         })
         .where(eq(invoices.id, +id))
 
-      if (result.data.paid_amount === +invoice.amount) {
+      if (result.data.paid_amount !== +invoice.amount) {
+        throw new Error('Үнийн дүн зөрүүтэй байна.')
+      }
+
+      await db
+        .update(invoices)
+        .set({
+          isPaid: true,
+        })
+        .where(eq(invoices.id, +id))
+
+      if (invoice.cubeTypeIds && invoice.cubeTypeIds.length > 0) {
         await db
-          .update(invoices)
+          .update(competitorsToCubeTypes)
           .set({
-            isPaid: true,
+            status: 'Paid',
           })
-          .where(eq(invoices.id, +id))
+          .where(
+            and(
+              eq(competitorsToCubeTypes.competitorId, invoice.competitorId),
+              inArray(competitorsToCubeTypes.cubeTypeId, invoice.cubeTypeIds),
+            ),
+          )
+      }
 
-        if (invoice.cubeTypeIds && invoice.cubeTypeIds.length > 0) {
-          await db
-            .update(competitorsToCubeTypes)
-            .set({
-              status: 'Paid',
-            })
-            .where(
-              and(
-                eq(competitorsToCubeTypes.competitorId, invoice.competitorId),
-                inArray(competitorsToCubeTypes.cubeTypeId, invoice.cubeTypeIds),
-              ),
-            )
-        }
-
-        if (invoice.hasCompetitionFee) {
-          await db
-            .update(competitors)
-            .set({
-              verifiedAt: sql`now()`,
-              status: 'Verified',
-            })
-            .where(eq(competitors.id, invoice.competitorId))
-        }
+      if (invoice.hasCompetitionFee) {
+        await db
+          .update(competitors)
+          .set({
+            verifiedAt: sql`now()`,
+            status: 'Verified',
+          })
+          .where(eq(competitors.id, invoice.competitorId))
       }
     })
 
