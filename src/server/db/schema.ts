@@ -4,6 +4,7 @@ import {
   date,
   index,
   integer,
+  json,
   numeric,
   pgEnum,
   pgTable,
@@ -17,6 +18,7 @@ import {
   unique,
   varchar,
 } from 'drizzle-orm/pg-core'
+import { InvoiceCheckResponse } from 'mn-payment'
 import { type AdapterAccount } from 'next-auth/adapters'
 
 /**
@@ -357,6 +359,9 @@ export const invoices = createTable('invoices', {
   guestCount: integer('guest_count').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   hasCompetitionFee: boolean('has_competition_fee').notNull().default(false),
+  paymentResult: json('payment_result')
+    .$type<InvoiceCheckResponse | null>()
+    .default(null),
 })
 
 export const invoicesRelations = relations(invoices, ({ one }) => ({

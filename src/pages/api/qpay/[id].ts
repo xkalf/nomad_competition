@@ -43,45 +43,54 @@ export default async function handler(
   try {
     const result = await qpay.checkInvoice(invoice.invoiceCode ?? '', token)
 
-    if (token !== result.token) {
-      await db
-        .update(payments)
-        .set(mapPayment(result.token))
-        .where(eq(payments.type, 'qpay'))
-    }
+    await db.transaction(async (db) => {
+      if (token !== result.token) {
+        await db
+          .update(payments)
+          .set(mapPayment(result.token))
+          .where(eq(payments.type, 'qpay'))
+      }
 
-    if (result.data.paid_amount === +invoice.amount) {
       await db
         .update(invoices)
         .set({
-          isPaid: true,
+          paymentResult: result.data,
         })
         .where(eq(invoices.id, +id))
 
-      if (invoice.cubeTypeIds) {
+      if (result.data.paid_amount === +invoice.amount) {
         await db
-          .update(competitorsToCubeTypes)
+          .update(invoices)
           .set({
-            status: 'Paid',
+            isPaid: true,
           })
-          .where(
-            and(
-              eq(competitorsToCubeTypes.competitorId, invoice.competitorId),
-              inArray(competitorsToCubeTypes.cubeTypeId, invoice.cubeTypeIds),
-            ),
-          )
-      }
+          .where(eq(invoices.id, +id))
 
-      if (invoice.hasCompetitionFee) {
-        await db
-          .update(competitors)
-          .set({
-            verifiedAt: sql`now()`,
-            status: 'Verified',
-          })
-          .where(eq(competitors.id, invoice.competitorId))
+        if (invoice.cubeTypeIds && invoice.cubeTypeIds.length > 0) {
+          await db
+            .update(competitorsToCubeTypes)
+            .set({
+              status: 'Paid',
+            })
+            .where(
+              and(
+                eq(competitorsToCubeTypes.competitorId, invoice.competitorId),
+                inArray(competitorsToCubeTypes.cubeTypeId, invoice.cubeTypeIds),
+              ),
+            )
+        }
+
+        if (invoice.hasCompetitionFee) {
+          await db
+            .update(competitors)
+            .set({
+              verifiedAt: sql`now()`,
+              status: 'Verified',
+            })
+            .where(eq(competitors.id, invoice.competitorId))
+        }
       }
-    }
+    })
 
     return res.status(200).json('SUCCESS')
   } catch (err) {

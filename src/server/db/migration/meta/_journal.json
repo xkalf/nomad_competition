@@ -197,6 +197,13 @@
       "when": 1732441590595,
       "tag": "0027_red_bill_hollister",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1732457125652,
+      "tag": "0028_classy_blackheart",
+      "breakpoints": true
     }
   ]
 }
