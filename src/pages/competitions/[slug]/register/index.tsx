@@ -138,9 +138,9 @@ export default function CompetitionRegisterPage() {
     current
       ? updateRegister({ id: current.id, ...values })
       : register({
-        ...values,
-        competitionId: competition?.id ?? 0,
-      })
+          ...values,
+          competitionId: competition?.id ?? 0,
+        })
   }
 
   const mappedCubeTypes = useMemo(() => {

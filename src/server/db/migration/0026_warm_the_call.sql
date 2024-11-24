@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_invoices" ADD COLUMN "created_at" timestamp DEFAULT now() NOT NULL;

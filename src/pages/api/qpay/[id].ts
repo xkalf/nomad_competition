@@ -1,7 +1,12 @@
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, eq, inArray, sql } from 'drizzle-orm'
 import { NextApiRequest, NextApiResponse } from 'next'
 import { db } from '~/server/db'
-import { competitorsToCubeTypes, invoices, payments } from '~/server/db/schema'
+import {
+  competitors,
+  competitorsToCubeTypes,
+  invoices,
+  payments,
+} from '~/server/db/schema'
 import { mapPayment, mapQpayToken, qpay } from '~/utils/qpay'
 
 export default async function handler(
@@ -70,6 +75,16 @@ export default async function handler(
               inArray(competitorsToCubeTypes.cubeTypeId, invoice.cubeTypeIds),
             ),
           )
+      }
+
+      if (invoice.hasCompetitionFee) {
+        await db
+          .update(competitors)
+          .set({
+            verifiedAt: sql`now()`,
+            status: 'Verified',
+          })
+          .where(eq(competitors.id, invoice.competitorId))
       }
     }
 

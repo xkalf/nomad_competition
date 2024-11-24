@@ -36,24 +36,44 @@ export default function RegistrationsPage() {
       enabled: !!competition?.id,
     },
   )
-  const { mutate: verify } = api.competitor.verify.useMutation({
-    onSuccess: () => {
-      utils.competitor.getByCompetitionId.invalidate({
-        competitionId: competition?.id ?? 0,
-        isVerified,
-      })
-      toast({
-        title: 'Амжилттай баталгаажууллаа.',
-      })
-    },
-    onError: (error) => {
-      toast({
-        title: 'Алдаа гарлаа',
-        description: error.message,
-        variant: 'destructive',
-      })
-    },
-  })
+  const { mutate: verify, isLoading: isVerifying } =
+    api.competitor.verify.useMutation({
+      onSuccess: () => {
+        utils.competitor.getByCompetitionId.invalidate({
+          competitionId: competition?.id ?? 0,
+          isVerified,
+        })
+        toast({
+          title: 'Амжилттай баталгаажууллаа.',
+        })
+      },
+      onError: (error) => {
+        toast({
+          title: 'Алдаа гарлаа',
+          description: error.message,
+          variant: 'destructive',
+        })
+      },
+    })
+  const { mutate: cancel, isLoading: isCancelling } =
+    api.competitor.cancel.useMutation({
+      onSuccess: () => {
+        utils.competitor.getByCompetitionId.invalidate({
+          competitionId: competition?.id ?? 0,
+          isVerified,
+        })
+        toast({
+          title: 'Амжилттай баталгаажууллаа.',
+        })
+      },
+      onError: (error) => {
+        toast({
+          title: 'Алдаа гарлаа',
+          description: error.message,
+          variant: 'destructive',
+        })
+      },
+    })
 
   const cubeTypes = useMemo(() => {
     const res = competition?.competitionsToCubeTypes
@@ -166,32 +186,43 @@ export default function RegistrationsPage() {
       ),
     ...(session?.user.isAdmin && !isVerified
       ? [
-        {
-          accessorKey: 'action',
-          header: 'Үйлдэл',
-          cell: ({
-            row,
-          }: {
-            row: {
-              original: {
-                id: number
+          {
+            accessorKey: 'action',
+            header: 'Үйлдэл',
+            cell: ({
+              row,
+            }: {
+              row: {
+                original: {
+                  id: number
+                }
               }
-            }
-          }) => {
-            if (!session?.user.isAdmin || isVerified) return <></>
+            }) => {
+              if (!session?.user.isAdmin || isVerified) return <></>
 
-            return (
-              <Button
-                onClick={() => {
-                  verify(row.original.id)
-                }}
-              >
-                Баталгаажуулах
-              </Button>
-            )
+              return (
+                <>
+                  <Button
+                    onClick={() => {
+                      verify(row.original.id)
+                    }}
+                    disabled={isVerifying}
+                  >
+                    Баталгаажуулах
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      cancel(row.original.id)
+                    }}
+                    disabled={isCancelling}
+                  >
+                    Устгах
+                  </Button>
+                </>
+              )
+            },
           },
-        },
-      ]
+        ]
       : []),
   ]
 
