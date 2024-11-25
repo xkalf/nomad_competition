@@ -1,7 +1,13 @@
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import { invoices, payments } from '~/server/db/schema'
-import { mapPayment, mapQpayInvoice, mapQpayToken, qpay } from '~/utils/qpay'
+import {
+  checkInvoice,
+  mapPayment,
+  mapQpayInvoice,
+  mapQpayToken,
+  qpay,
+} from '~/utils/qpay'
 import { createInvoiceSchema } from '~/utils/zod'
 import { createTRPCRouter, protectedProcedure } from '../trpc'
 import { getTotalAmount } from '~/server/utils/getTotalAmount'
@@ -25,23 +31,23 @@ export const paymentsRouter = createTRPCRouter({
         },
       })
 
-      // if (
-      //   lastInvoice &&
-      //   lastInvoice.isPaid !== true &&
-      //   isAfter(addMinutes(lastInvoice.createdAt, 5), new Date())
-      // ) {
-      //   const difference = differenceInMinutes(
-      //     addMinutes(lastInvoice.createdAt, 5),
-      //     new Date(),
-      //   )
-      //   const diffSeconds = differenceInSeconds(
-      //     addMinutes(lastInvoice.createdAt, 5),
-      //     new Date(),
-      //   )
-      //   throw new Error(
-      //     `Нэхэмжлэл үүссэн байна ${difference > 0 ? difference + ' минутийн' : diffSeconds + ' секундийн'} дараа дахин оролдоно уу.`,
-      //   )
-      // }
+      if (
+        lastInvoice &&
+        lastInvoice.isPaid !== true &&
+        isAfter(addMinutes(lastInvoice.createdAt, 5), new Date())
+      ) {
+        const difference = differenceInMinutes(
+          addMinutes(lastInvoice.createdAt, 5),
+          new Date(),
+        )
+        const diffSeconds = differenceInSeconds(
+          addMinutes(lastInvoice.createdAt, 5),
+          new Date(),
+        )
+        throw new Error(
+          `Нэхэмжлэл үүссэн байна ${difference > 0 ? difference + ' минутийн' : diffSeconds + ' секундийн'} дараа дахин оролдоно уу.`,
+        )
+      }
 
       const payment = await ctx.db.query.payments.findFirst({
         where: eq(payments.type, 'qpay'),
@@ -141,6 +147,31 @@ export const paymentsRouter = createTRPCRouter({
         throw err
       }
     }),
+  checkLastInvoice: protectedProcedure.mutation(async ({ ctx }) => {
+    const lastInvoice = await ctx.db.query.invoices.findFirst({
+      orderBy: (t, { desc }) => [desc(t.createdAt)],
+      columns: {
+        id: true,
+        isPaid: true,
+      },
+    })
+
+    if (!lastInvoice) {
+      throw new Error('Нэхэмжлэл олдсонгүй.')
+    }
+
+    if (lastInvoice.isPaid) {
+      return {
+        success: true,
+      }
+    }
+
+    await checkInvoice(lastInvoice.id, ctx.db)
+
+    return {
+      success: true,
+    }
+  }),
   cronInvoice: protectedProcedure
     .input(z.string().uuid())
     .query(async ({ input, ctx }) => {

@@ -61,7 +61,9 @@ export default function CompetitionRegisterPage() {
         if (!data) return
         form.reset({
           competitionId: data?.competitionId,
-          cubeTypes: data?.competitorsToCubeTypes.map((i) => i.cubeTypeId),
+          cubeTypes: data?.competitorsToCubeTypes
+            .filter((i) => i.status !== 'Cancelled')
+            .map((i) => i.cubeTypeId),
           guestCount: data?.guestCount,
         })
       },
@@ -123,10 +125,21 @@ export default function CompetitionRegisterPage() {
         })
       },
     })
+  const { mutate: checkLastInvoice, isLoading: checkLastInvoiceLoading } =
+    api.payment.checkLastInvoice.useMutation({
+      onSuccess: (data) => {
+        if (data.success === true) {
+          router.push(`/competitions/${slug}/registrations?isVerified=true`)
+          toast({
+            title: 'Амжилттай төлөгдлөө.',
+          })
+        }
+      },
+    })
 
   api.payment.cronInvoice.useQuery(qpayResponse?.invoice_id || '', {
     enabled: !!qpayResponse,
-    refetchInterval: 1000,
+    refetchInterval: 5000,
     onSuccess: (data) => {
       if (data === true) {
         router.push(`/competitions/${slug}/registrations?isVerified=true`)
@@ -146,9 +159,9 @@ export default function CompetitionRegisterPage() {
     current
       ? updateRegister({ id: current.id, ...values })
       : register({
-          ...values,
-          competitionId: competition?.id ?? 0,
-        })
+        ...values,
+        competitionId: competition?.id ?? 0,
+      })
   }
 
   const freeTypes = useMemo(() => {
@@ -161,6 +174,38 @@ export default function CompetitionRegisterPage() {
       .sort((a, b) => a.order - b.order)
     return filtered || []
   }, [competition])
+
+  const paidTypes = useMemo(() => {
+    return (
+      current?.competitorsToCubeTypes
+        .filter((i) => i.status === 'Paid')
+        .map((i) => i.cubeType)
+        .sort((a, b) => a.order - b.order) ?? []
+    )
+  }, [current])
+
+  const cancelledTypes = useMemo(() => {
+    return (
+      current?.competitorsToCubeTypes
+        .filter((i) => i.status === 'Cancelled')
+        .map((i) => i.cubeType)
+        .sort((a, b) => a.order - b.order) ?? []
+    )
+  }, [current])
+
+  const createdTypes = useMemo(() => {
+    const selected = form.watch('cubeTypes')
+
+    return (
+      competition?.competitionsToCubeTypes
+        .map((i) => i.cubeType)
+        .filter(
+          (i) =>
+            selected.includes(i.id) &&
+            !paidTypes.map((j) => j.id).includes(i.id),
+        ) ?? []
+    )
+  }, [competition, form.watch('cubeTypes'), paidTypes])
 
   if (isLoading) {
     return <LoadingScreen />
@@ -208,14 +253,24 @@ export default function CompetitionRegisterPage() {
               <FormItem>
                 <FormLabel>
                   Төрөл
-                  <p>Баталгаажсан төрлүүд</p>
-                  (Сонгогдсон төрлүүд :{' '}
-                  {competition?.competitionsToCubeTypes
-                    ?.map((i) => i.cubeType)
-                    .filter((cubeType) => field.value.includes(cubeType.id))
-                    .map((i) => i.name)
-                    .join(', ')}
-                  )
+                  {paidTypes.length > 0 && (
+                    <p>
+                      Баталгаажсан төрлүүд : (
+                      {paidTypes.map((i) => i.name).join(', ')})
+                    </p>
+                  )}
+                  {cancelledTypes.length > 0 && (
+                    <p>
+                      Цуцалсан төрлүүд : (
+                      {cancelledTypes.map((i) => i.name).join(', ')})
+                    </p>
+                  )}
+                  {createdTypes.length > 0 && (
+                    <p>
+                      (Сонгогдсон төрлүүд : (
+                      {createdTypes.map((i) => i.name).join(', ')})
+                    </p>
+                  )}
                 </FormLabel>
                 <FormControl>
                   <DropdownMenu>
@@ -313,6 +368,16 @@ export default function CompetitionRegisterPage() {
                   Төлбөр төлөх
                 </Button>
               </>
+            )}
+            {session.data?.user.id && (
+              <Button
+                className="ml-2"
+                type="button"
+                disabled={checkLastInvoiceLoading}
+                onClick={() => checkLastInvoice()}
+              >
+                Төлбөр шалгах
+              </Button>
             )}
           </div>
         </form>

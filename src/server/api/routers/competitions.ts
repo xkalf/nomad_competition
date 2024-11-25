@@ -313,7 +313,11 @@ export const competitionRouter = createTRPCRouter({
         where: (t, { eq, and }) =>
           and(eq(t.competitionId, input), eq(t.userId, ctx.session.user.id)),
         with: {
-          competitorsToCubeTypes: true,
+          competitorsToCubeTypes: {
+            with: {
+              cubeType: true,
+            },
+          },
           invoices: true,
         },
       })
