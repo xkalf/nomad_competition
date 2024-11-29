@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import CreateButtons, {
   redirectNextCreatePage,
 } from "~/components/create-buttons";
+import CreateLinks from "~/components/create-links";
 import Layout from "~/components/layout";
 import { Button } from "~/components/ui/button";
 import {
@@ -93,10 +94,9 @@ export default function CompetitionCreatePage() {
       : form.reset();
   }, [current]);
 
-  form.watch("registerStartDate");
-
   return (
     <Layout>
+      <CreateLinks />
       <h1 className="text-3xl font-bold">Тэмцээн бүртгэх</h1>
       <Form {...form}>
         <form
