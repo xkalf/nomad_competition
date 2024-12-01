@@ -3,7 +3,7 @@ import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import LoadingScreen from '~/components/loading-screen'
@@ -29,6 +29,8 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '~/components/ui/dropdown-menu'
+import { supabase } from '~/utils/supabase'
+import { Tables } from '~/utils/database.types'
 
 const defaultValues: z.infer<typeof competitionRegisterSchema> = {
   competitionId: 0,
@@ -137,19 +139,6 @@ export default function CompetitionRegisterPage() {
       },
     })
 
-  api.payment.cronInvoice.useQuery(qpayResponse?.invoice_id || '', {
-    enabled: !!qpayResponse,
-    refetchInterval: 5000,
-    onSuccess: (data) => {
-      if (data === true) {
-        router.push(`/competitions/${slug}/registrations?isVerified=true`)
-        toast({
-          title: 'Амжилттай төлөгдлөө.',
-        })
-      }
-    },
-  })
-
   const form = useForm<z.infer<typeof competitionRegisterSchema>>({
     resolver: zodResolver(competitionRegisterSchema),
     defaultValues,
@@ -159,9 +148,9 @@ export default function CompetitionRegisterPage() {
     current
       ? updateRegister({ id: current.id, ...values })
       : register({
-        ...values,
-        competitionId: competition?.id ?? 0,
-      })
+          ...values,
+          competitionId: competition?.id ?? 0,
+        })
   }
 
   const freeTypes = useMemo(() => {
@@ -206,6 +195,37 @@ export default function CompetitionRegisterPage() {
         ) ?? []
     )
   }, [competition, form.watch('cubeTypes'), paidTypes])
+
+  useEffect(() => {
+    const channel = supabase
+      .channel(`invoice-check`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'nomad_competition_invoices',
+          filter: `invoice_code=eq.${qpayResponse?.invoice_id}`,
+        },
+        async (payload) => {
+          const data = payload.new as Tables<'nomad_competition_invoices'>
+
+          if (data.is_paid === true) {
+            toast({
+              title: 'Амжилттай төлөгдлөө.',
+            })
+            await router.push(
+              `/competitions/${slug}/registrations?isVerified=true`,
+            )
+          }
+        },
+      )
+      .subscribe()
+
+    return () => {
+      channel.unsubscribe()
+    }
+  }, [qpayResponse])
 
   if (isLoading) {
     return <LoadingScreen />

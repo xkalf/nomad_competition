@@ -1,5 +1,4 @@
 import { eq } from 'drizzle-orm'
-import { z } from 'zod'
 import { invoices, payments } from '~/server/db/schema'
 import {
   checkInvoice,
@@ -110,42 +109,35 @@ export const paymentsRouter = createTRPCRouter({
         throw new Error('Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.')
       }
 
-      console.log(invoice)
-
       const data = {
         ...invoice,
         ...desc,
       }
 
-      try {
-        const res = await ctx.db.transaction(async (db) => {
-          const qpayResponse = await qpay.createInvoice(
-            mapQpayInvoice(data),
-            token,
-          )
+      const qpayResponse = await qpay.createInvoice(mapQpayInvoice(data), token)
 
-          if (qpayResponse.token !== token) {
-            await db
-              .update(payments)
-              .set(mapPayment(qpayResponse.token))
-              .where(eq(payments.type, 'qpay'))
-          }
+      if (qpayResponse.token !== token) {
+        await ctx.db
+          .update(payments)
+          .set(mapPayment(qpayResponse.token))
+          .where(eq(payments.type, 'qpay'))
+      }
 
-          await db
-            .update(invoices)
-            .set({
-              invoiceCode: qpayResponse.data.invoice_id,
-            })
-            .where(eq(invoices.id, invoice.id))
-
-          return qpayResponse.data
+      const updatedInvoice = await ctx.db
+        .update(invoices)
+        .set({
+          invoiceCode: qpayResponse.data.invoice_id,
+        })
+        .where(eq(invoices.id, invoice.id))
+        .returning({
+          id: invoices.id,
         })
 
-        return res
-      } catch (err) {
-        console.log('Transaction Err:', err)
-        throw err
+      if (updatedInvoice.length === 0) {
+        throw new Error('Нэхэмжлэл үүсгэхэд алдаа гарлаа. Дахин оролдоно уу.')
       }
+
+      return qpayResponse.data
     }),
   checkLastInvoice: protectedProcedure.mutation(async ({ ctx }) => {
     const lastInvoice = await ctx.db.query.invoices.findFirst({
@@ -172,13 +164,4 @@ export const paymentsRouter = createTRPCRouter({
       success: true,
     }
   }),
-  cronInvoice: protectedProcedure
-    .input(z.string().uuid())
-    .query(async ({ input, ctx }) => {
-      const [res] = await ctx.db
-        .select({ isPaid: invoices.isPaid })
-        .from(invoices)
-        .where(eq(invoices.invoiceCode, input))
-      return res?.isPaid
-    }),
 })

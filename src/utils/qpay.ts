@@ -20,11 +20,11 @@ export const mapQpayToken = (
 ): Token | undefined =>
   input
     ? {
-      access_token: input.accessToken,
-      refresh_token: input.refreshToken,
-      refresh_expires_in: input.refreshExpiresAt.getMilliseconds(),
-      expires_in: input.accessExpiresAt.getMilliseconds(),
-    }
+        access_token: input.accessToken,
+        refresh_token: input.refreshToken,
+        refresh_expires_in: input.refreshExpiresAt.getMilliseconds(),
+        expires_in: input.accessExpiresAt.getMilliseconds(),
+      }
     : undefined
 
 export const mapPayment = (
@@ -86,12 +86,9 @@ export async function checkInvoice(id: number, db: DB) {
       .update(invoices)
       .set({
         paymentResult: result.data,
+        isPaid: result.data.paid_amount === +invoice.amount,
       })
       .where(eq(invoices.id, +id))
-
-    if (result.data.paid_amount !== +invoice.amount) {
-      throw new Error('Үнийн дүн зөрүүтэй байна.')
-    }
 
     await db
       .update(invoices)
