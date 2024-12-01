@@ -1,12 +1,12 @@
-import { and, count, eq, exists, inArray, sql, sum } from "drizzle-orm";
-import slugify from "slugify";
-import { z } from "zod";
+import { and, count, eq, exists, inArray, sql, sum } from 'drizzle-orm'
+import slugify from 'slugify'
+import { z } from 'zod'
 import {
   adminProcedure,
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
-} from "~/server/api/trpc";
+} from '~/server/api/trpc'
 import {
   competitions,
   competitionsToCubeType,
@@ -14,13 +14,13 @@ import {
   competitorsToCubeTypes,
   fees,
   users,
-} from "~/server/db/schema";
-import { jsonBuildObject } from "~/server/utils/drizzle.helper";
+} from '~/server/db/schema'
+import { jsonBuildObject } from '~/server/utils/drizzle.helper'
 import {
   competitionRegisterSchema,
   createCompetitionSchema,
   getUpdateSchema,
-} from "~/utils/zod";
+} from '~/utils/zod'
 
 export const competitionRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -36,7 +36,7 @@ export const competitionRouter = createTRPCRouter({
         with: {
           competitionsToCubeTypes: true,
         },
-      });
+      })
     }),
   getBySlug: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const res = await ctx.db.query.competitions.findFirst({
@@ -48,7 +48,7 @@ export const competitionRouter = createTRPCRouter({
               count: count(),
             })
             .from(competitions)
-            .where(eq(competitions.slug, input))})`.as("is_register_able"),
+            .where(eq(competitions.slug, input))})`.as('is_register_able'),
       },
       with: {
         competitionsToCubeTypes: {
@@ -62,13 +62,13 @@ export const competitionRouter = createTRPCRouter({
           },
         },
       },
-    });
+    })
 
     if (!res) {
-      throw new Error("Тэмцээн олдсонгүй.");
+      throw new Error('Тэмцээн олдсонгүй.')
     }
 
-    return res;
+    return res
   }),
   getById: publicProcedure
     .input(z.number().int().positive())
@@ -82,7 +82,7 @@ export const competitionRouter = createTRPCRouter({
                 count: count(),
               })
               .from(competitions)
-              .where(eq(competitions.id, input))})`.as("is_register_able"),
+              .where(eq(competitions.id, input))})`.as('is_register_able'),
         },
         with: {
           competitionsToCubeTypes: {
@@ -96,13 +96,13 @@ export const competitionRouter = createTRPCRouter({
             },
           },
         },
-      });
+      })
 
       if (!res) {
-        throw new Error("Тэмцээн олдсонгүй.");
+        throw new Error('Тэмцээн олдсонгүй.')
       }
 
-      return res;
+      return res
     }),
   create: adminProcedure
     .input(createCompetitionSchema)
@@ -114,10 +114,10 @@ export const competitionRouter = createTRPCRouter({
             ...input,
             slug: slugify(input.name, { lower: true }),
           })
-          .returning();
+          .returning()
 
         if (!res) {
-          throw new Error("Тэмцээн үүсгэхэд алдаа гарлаа.");
+          throw new Error('Тэмцээн үүсгэхэд алдаа гарлаа.')
         }
 
         await t.insert(competitionsToCubeType).values(
@@ -125,10 +125,10 @@ export const competitionRouter = createTRPCRouter({
             competitionId: res.id,
             cubeTypeId: cubeType,
           })),
-        );
+        )
 
-        return res;
-      });
+        return res
+      })
     }),
   update: adminProcedure
     .input(getUpdateSchema(createCompetitionSchema))
@@ -143,40 +143,40 @@ export const competitionRouter = createTRPCRouter({
               : {}),
           })
           .where(eq(competitions.id, input.id))
-          .returning();
+          .returning()
 
         if (!res) {
-          throw new Error("Тэмцээн олдсонгүй.");
+          throw new Error('Тэмцээн олдсонгүй.')
         }
 
         const currentCubeTypes = await t.query.competitionsToCubeType.findMany({
           where: (table, { eq }) => eq(table.competitionId, input.id),
-        });
+        })
 
         const toDelete = currentCubeTypes
           .filter((i) => !cubeTypes?.includes(i.cubeTypeId))
-          .map((i) => i.cubeTypeId);
+          .map((i) => i.cubeTypeId)
         const toInsert = cubeTypes?.filter(
           (i) => !currentCubeTypes.map((j) => j.cubeTypeId).includes(i),
-        );
+        )
 
         if (toDelete.length > 0)
           await t
             .delete(competitionsToCubeType)
-            .where(inArray(competitionsToCubeType, toDelete));
+            .where(inArray(competitionsToCubeType.cubeTypeId, toDelete))
         if (toInsert && toInsert?.length > 0) {
           await t.insert(competitionsToCubeType).values(
             toInsert.map((cubeType) => ({
               competitionId: input.id,
               cubeTypeId: cubeType,
             })),
-          );
+          )
         }
 
-        return res;
-      });
+        return res
+      })
 
-      return res;
+      return res
     }),
   delete: adminProcedure
     .input(z.number().int().positive())
@@ -184,7 +184,7 @@ export const competitionRouter = createTRPCRouter({
       await ctx.db
         .delete(competitions)
         .where(eq(competitions.id, input))
-        .returning();
+        .returning()
     }),
   register: protectedProcedure
     .input(competitionRegisterSchema)
@@ -196,10 +196,10 @@ export const competitionRouter = createTRPCRouter({
             ...input,
             userId: ctx.session.user.id,
           })
-          .returning();
+          .returning()
 
         if (!res) {
-          throw new Error("Тэмцээнд бүртгэл үүсгэхэд алдаа гарлаа.");
+          throw new Error('Тэмцээнд бүртгэл үүсгэхэд алдаа гарлаа.')
         }
 
         await t.insert(competitorsToCubeTypes).values(
@@ -207,7 +207,7 @@ export const competitionRouter = createTRPCRouter({
             competitorId: res.id,
             cubeTypeId: i,
           })),
-        );
+        )
       }),
     ),
   updateRegister: protectedProcedure
@@ -218,40 +218,40 @@ export const competitionRouter = createTRPCRouter({
           .update(competitors)
           .set(input)
           .where(eq(competitors.id, input.id))
-          .returning();
+          .returning()
 
         if (!res) {
-          throw new Error("Тэмцээнд бүртгэл үүсгэхэд алдаа гарлаа.");
+          throw new Error('Тэмцээнд бүртгэл үүсгэхэд алдаа гарлаа.')
         }
 
         const currentCubeTypes = await t.query.competitorsToCubeTypes.findMany({
           where: (table, { eq }) => eq(table.competitorId, input.id),
-        });
+        })
 
         const toDelete = currentCubeTypes
           .filter((i) => !cubeTypes?.includes(i.cubeTypeId))
-          .map((i) => i.cubeTypeId);
+          .map((i) => i.cubeTypeId)
         const toInsert =
           cubeTypes?.filter(
             (i) => !currentCubeTypes.map((j) => j.cubeTypeId).includes(i),
-          ) ?? [];
+          ) ?? []
         const toPaid = currentCubeTypes
-          .filter((i) => i.status === "Cancelled")
+          .filter((i) => i.status === 'Cancelled')
           .filter((i) => cubeTypes?.includes(i.cubeTypeId))
-          .map((i) => i.cubeTypeId);
+          .map((i) => i.cubeTypeId)
 
         if (toPaid.length > 0) {
           await t
             .update(competitorsToCubeTypes)
             .set({
-              status: "Paid",
+              status: 'Paid',
             })
             .where(
               and(
                 inArray(competitorsToCubeTypes.cubeTypeId, toPaid),
                 eq(competitorsToCubeTypes.competitorId, input.id),
               ),
-            );
+            )
         }
 
         if (toDelete.length > 0) {
@@ -261,11 +261,11 @@ export const competitionRouter = createTRPCRouter({
                 eq(t.competitionId, res?.competitionId),
                 inArray(t.cubeTypeId, toDelete),
               ),
-          });
+          })
 
           const toDelete2 = toDelete.filter(
             (i) => !currFees.map((j) => j.cubeTypeId).includes(i),
-          );
+          )
 
           if (toDelete2.length > 0)
             await t
@@ -275,24 +275,24 @@ export const competitionRouter = createTRPCRouter({
                   inArray(competitorsToCubeTypes.cubeTypeId, toDelete2),
                   eq(competitorsToCubeTypes.competitorId, input.id),
                 ),
-              );
+              )
 
           const toUpdate = currFees
             .filter((i) => +i.amount > 0)
-            .map((i) => i.cubeTypeId);
+            .map((i) => i.cubeTypeId)
 
           if (toUpdate.length > 0) {
             await t
               .update(competitorsToCubeTypes)
               .set({
-                status: "Cancelled",
+                status: 'Cancelled',
               })
               .where(
                 and(
                   inArray(competitorsToCubeTypes.cubeTypeId, toUpdate),
                   eq(competitorsToCubeTypes.competitorId, res.id),
                 ),
-              );
+              )
           }
         }
 
@@ -302,9 +302,9 @@ export const competitionRouter = createTRPCRouter({
               cubeTypeId: cubeType,
               competitorId: input.id,
             })),
-          );
+          )
         }
-      });
+      })
     }),
   getRegisterByCompetitionId: protectedProcedure
     .input(z.number().int().positive())
@@ -320,9 +320,9 @@ export const competitionRouter = createTRPCRouter({
           },
           invoices: true,
         },
-      });
+      })
 
-      return res || null;
+      return res || null
     }),
   getRefunds: adminProcedure
     .input(z.number().int().positive())
@@ -362,6 +362,6 @@ export const competitionRouter = createTRPCRouter({
             eq(fees.cubeTypeId, competitorsToCubeTypes.cubeTypeId),
           ),
         )
-        .groupBy(users.firstname, users.lastname, users.phone);
+        .groupBy(users.firstname, users.lastname, users.phone)
     }),
-});
+})
