@@ -38,12 +38,14 @@ export const feeRouter = createTRPCRouter({
           .delete(fees)
           .where(eq(fees.competitionId, input.competitionId));
 
-        await db.insert(fees).values(
-          input.data.map((i) => ({
-            ...i,
-            competitionId: input.competitionId,
-          })),
-        );
+        if (input.data.length > 0) {
+          await db.insert(fees).values(
+            input.data.map((i) => ({
+              ...i,
+              competitionId: input.competitionId,
+            })),
+          );
+        }
       });
     }),
   create: adminProcedure
