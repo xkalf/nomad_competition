@@ -12,9 +12,10 @@ type Props = {
 }
 
 export const redirectNextCreatePage = (router: NextRouter) => {
-  const curr = CREATE_LINKS.findIndex(
-    (o) => o.path === router.pathname.split('/')[3],
-  )
+  const curr =
+    router.pathname.split('/')[3]?.length === 3
+      ? 0
+      : CREATE_LINKS.findIndex((o) => o.path === router.pathname.split('/')[3])
 
   if (curr < CREATE_LINKS.length - 1) {
     router.push({
@@ -29,7 +30,11 @@ export default function CreateButtons({ isLoading, onSubmit }: Props) {
 
   const curr = useMemo(
     () =>
-      CREATE_LINKS.findIndex((o) => o.path === router.pathname.split('/')[3]),
+      router.pathname.split('/').length === 3
+        ? 0
+        : CREATE_LINKS.findIndex(
+            (o) => o.path === router.pathname.split('/')[3],
+          ),
     [router.pathname],
   )
 

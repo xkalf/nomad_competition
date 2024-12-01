@@ -7,6 +7,7 @@ import { useForm } from 'react-hook-form'
 import CreateButtons, {
   redirectNextCreatePage,
 } from '~/components/create-buttons'
+import CreateLinks from '~/components/create-links'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
 import {
@@ -76,25 +77,26 @@ export default function CompetitionCreatePage() {
   const onSubmit = (values: CreateCompetitionInput) => {
     current
       ? update({
-          id: current.id,
-          ...values,
-        })
+        id: current.id,
+        ...values,
+      })
       : create({
-          ...values,
-        })
+        ...values,
+      })
   }
 
   useEffect(() => {
     current
       ? form.reset({
-          ...current,
-          cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
-        })
+        ...current,
+        cubeTypes: current.competitionsToCubeTypes.map((i) => i.cubeTypeId),
+      })
       : form.reset()
   }, [current])
 
   return (
     <Layout>
+      <CreateLinks />
       <h1 className="text-3xl font-bold">Тэмцээн бүртгэх</h1>
       <Form {...form}>
         <form
