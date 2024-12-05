@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_verificationToken" ALTER COLUMN "expires" SET DATA TYPE timestamp with time zone;

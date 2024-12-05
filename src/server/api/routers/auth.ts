@@ -6,6 +6,7 @@ import { randomUUID } from 'crypto'
 import { eq, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { generateVerifictionToken } from '~/server/auth'
+import { isAfter } from 'date-fns'
 
 export const authRouter = createTRPCRouter({
   register: publicProcedure
@@ -32,7 +33,11 @@ export const authRouter = createTRPCRouter({
       where: eq(verificationTokens.token, input),
     })
 
-    if (!token || token.expires < new Date()) {
+    if (!token) {
+      throw new Error('Токен олдсонгүй. Дахин оролдoно уу.')
+    }
+
+    if (isAfter(new Date(), token.expires)) {
       throw new Error('Хугацаа нь дууссан токен байна. дахин оролдоно уу.')
     }
 
@@ -73,8 +78,12 @@ export const authRouter = createTRPCRouter({
         .from(verificationTokens)
         .where(eq(verificationTokens.token, input.token))
 
-      if (!token || token.expires < new Date()) {
-        throw new Error('Баталгаажуулалт амжилтгүй боллоо. Дахин оролдоно уу.')
+      if (!token) {
+        throw new Error('Токен олдсонгүй. Дахин оролдoно уу.')
+      }
+
+      if (isAfter(new Date(), token.expires)) {
+        throw new Error('Хугацаа нь дууссан токен байна. дахин оролдоно уу.')
       }
 
       await ctx.db
