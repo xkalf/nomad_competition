@@ -215,8 +215,22 @@
     {
       "idx": 30,
       "version": "7",
-      "when": 1733401344540,
-      "tag": "0030_unique_squadron_sinister",
+      "when": 1733304783152,
+      "tag": "0030_mixed_edwin_jarvis",
+      "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1733305955377,
+      "tag": "0031_bouncy_nightcrawler",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1733401988515,
+      "tag": "0032_faithful_brother_voodoo",
       "breakpoints": true
     }
   ]

@@ -214,6 +214,7 @@ export const competitors = createTable(
     requestedAt: timestamp('requested_at').notNull().defaultNow(),
     verifiedAt: timestamp('verified_at'),
     status: competitorsStatusEnum('status').notNull().default('Created'),
+    schoolId: integer().references(() => schools.id),
   },
   (t) => ({
     competitionIdUserIdUniq: unique().on(t.competitionId, t.userId),
@@ -468,3 +469,10 @@ export const results = createTable('results', {
     .notNull()
     .references(() => users.id),
 })
+
+export const schools = pgTable('provinces', (t) => ({
+  id: t.serial().primaryKey(),
+  school: t.varchar().notNull(),
+  province: t.varchar().notNull(),
+  district: t.varchar().notNull(),
+}))

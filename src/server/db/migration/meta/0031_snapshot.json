@@ -1,6 +1,6 @@
 {
-  "id": "b9ba1e1a-843e-41f8-a324-3c7af193aa45",
-  "prevId": "e7eb193e-7490-46c2-ba82-d8e421fcb502",
+  "id": "3544aa2d-888a-40a3-9e9a-c426302fab73",
+  "prevId": "b9ba1e1a-843e-41f8-a324-3c7af193aa45",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
@@ -449,6 +449,12 @@
           "primaryKey": false,
           "notNull": true,
           "default": "'Created'"
+        },
+        "schoolId": {
+          "name": "schoolId",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false
         }
       },
       "indexes": {},
@@ -472,6 +478,19 @@
           "tableTo": "nomad_competition_competitions",
           "columnsFrom": [
             "competition_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "nomad_competition_competitors_schoolId_provinces_id_fk": {
+          "name": "nomad_competition_competitors_schoolId_provinces_id_fk",
+          "tableFrom": "nomad_competition_competitors",
+          "tableTo": "provinces",
+          "columnsFrom": [
+            "schoolId"
           ],
           "columnsTo": [
             "id"
