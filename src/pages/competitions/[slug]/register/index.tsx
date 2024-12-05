@@ -274,13 +274,6 @@ export default function CompetitionRegisterPage() {
       <p className="mt-2 text-lg">
         Зочны мандатны хураамж = {competition?.guestFee}₮
       </p>
-      <p className="mt-2 text-lg">
-        Хаанбанк данс: 5085536671 Данс эзэмшигч: Н.Сэргэлэнбат
-      </p>
-      <p>
-        Гүйлгээний утга: Тамирчны овог нэр, холбоо барих дугаарыг заавал бична
-        үү,
-      </p>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="mt-8 space-y-8">
           <FormField
