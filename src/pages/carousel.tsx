@@ -6,7 +6,6 @@ import {
 import Carousel1 from '~/assets/carousel-1.jpg'
 import Carousel2 from '~/assets/carousel-2.jpg'
 import Carousel3 from '~/assets/carousel-3.jpg'
-import Carousel4 from '~/assets/carousel-4.png'
 import Image, { StaticImageData } from 'next/image'
 import AutoPlay from 'embla-carousel-autoplay'
 
@@ -23,11 +22,6 @@ const data: {
       image: Carousel2,
       description:
         'Клубийн харьяа "Нүүдэлчин" багийг бэлтгэн "Азийн аварга шалгаруулах тэмцээн 2018" оос эхлэн тив дэлхийн тэмцээнүүдэд оролцож эхэлсэн',
-    },
-    {
-      image: Carousel4,
-      description:
-        'Манай клубийн тамирчин Э.Амарсанаа "Азийн аварга шалгаруулах тэмцээн 2022" -ий Гурвалжин шооны төрөлд дэд байр эзэлж анхны Медалийг эх орондоо авч ирсэн.',
     },
     {
       image: Carousel3,
