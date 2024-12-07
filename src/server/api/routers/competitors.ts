@@ -10,7 +10,7 @@ import {
   competitorsToCubeTypes,
   schools,
 } from "~/server/db/schema";
-import { eq, sql } from "drizzle-orm";
+import { eq, max, sql } from "drizzle-orm";
 import { getTotalAmount } from "~/server/utils/getTotalAmount";
 
 export const competitorRouter = createTRPCRouter({
@@ -61,13 +61,25 @@ export const competitorRouter = createTRPCRouter({
     .input(z.number().int().positive())
     .mutation(async ({ ctx, input }) => {
       await ctx.db.transaction(async (db) => {
-        await db
+        const [res] = await db
           .update(competitors)
           .set({
             verifiedAt: sql`now()`,
             status: "Verified",
           })
-          .where(eq(competitors.id, input));
+          .where(eq(competitors.id, input))
+          .returning();
+
+        if (!res) {
+          throw new Error("");
+        }
+
+        const [id] = await db
+          .select({
+            id: sql`${max(competitors.verifiedId)}`,
+          })
+          .from(competitors)
+          .where(eq(competitors.competitionId, res.competitionId));
 
         await db
           .update(competitorsToCubeTypes)
