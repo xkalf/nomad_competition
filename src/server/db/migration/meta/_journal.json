@@ -232,6 +232,13 @@
       "when": 1733401988515,
       "tag": "0032_faithful_brother_voodoo",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1734007815446,
+      "tag": "0033_cool_randall_flagg",
+      "breakpoints": true
     }
   ]
 }

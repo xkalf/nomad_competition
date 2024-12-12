@@ -1,17 +1,17 @@
-import { z } from "zod";
+import { z } from 'zod'
 import {
   adminProcedure,
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
-} from "../trpc";
+} from '../trpc'
 import {
   competitors,
   competitorsToCubeTypes,
   schools,
-} from "~/server/db/schema";
-import { eq, max, sql } from "drizzle-orm";
-import { getTotalAmount } from "~/server/utils/getTotalAmount";
+} from '~/server/db/schema'
+import { eq, max, sql } from 'drizzle-orm'
+import { getTotalAmount } from '~/server/utils/getTotalAmount'
 
 export const competitorRouter = createTRPCRouter({
   getByCompetitionId: publicProcedure
@@ -26,7 +26,7 @@ export const competitorRouter = createTRPCRouter({
         where: (t, { and, eq }) =>
           and(
             eq(t.competitionId, input.competitionId),
-            eq(t.status, input.isVerified ? "Verified" : "Created"),
+            eq(t.status, input.isVerified ? 'Verified' : 'Created'),
           ),
         with: {
           user: {
@@ -53,41 +53,49 @@ export const competitorRouter = createTRPCRouter({
             },
           },
         },
-      });
+      })
 
-      return res;
+      return res
     }),
   verify: adminProcedure
     .input(z.number().int().positive())
     .mutation(async ({ ctx, input }) => {
       await ctx.db.transaction(async (db) => {
+        const competition = await db.query.competitors.findFirst({
+          where: eq(competitors.id, input),
+          columns: {
+            competitionId: true,
+          },
+          extras: {
+            id: sql<number>`${max(competitors.verifiedId)}`.as('v_id'),
+          },
+        })
+
+        if (!competition) {
+          throw new Error('Бүртгэл олдсонгүй.')
+        }
+
         const [res] = await db
           .update(competitors)
           .set({
             verifiedAt: sql`now()`,
-            status: "Verified",
+            status: 'Verified',
+            verifiedId: competition.id ? competition.id + 1 : 1,
           })
           .where(eq(competitors.id, input))
-          .returning();
+          .returning()
 
         if (!res) {
-          throw new Error("");
+          throw new Error('Бүртгэл олдсонгүй.')
         }
-
-        const [id] = await db
-          .select({
-            id: sql`${max(competitors.verifiedId)}`,
-          })
-          .from(competitors)
-          .where(eq(competitors.competitionId, res.competitionId));
 
         await db
           .update(competitorsToCubeTypes)
           .set({
-            status: "Paid",
+            status: 'Paid',
           })
-          .where(eq(competitorsToCubeTypes.competitorId, input));
-      });
+          .where(eq(competitorsToCubeTypes.competitorId, input))
+      })
     }),
   cancel: adminProcedure
     .input(z.number().int().positive())
@@ -96,23 +104,23 @@ export const competitorRouter = createTRPCRouter({
         await db
           .update(competitors)
           .set({
-            status: "Cancelled",
+            status: 'Cancelled',
             verifiedAt: null,
           })
-          .where(eq(competitors.id, input));
-      });
+          .where(eq(competitors.id, input))
+      })
 
       await ctx.db
         .update(competitorsToCubeTypes)
         .set({
-          status: "Cancelled",
+          status: 'Cancelled',
         })
-        .where(eq(competitorsToCubeTypes.competitorId, input));
+        .where(eq(competitorsToCubeTypes.competitorId, input))
     }),
   getTotalAmount: protectedProcedure
     .input(z.number().int().positive())
     .query(async ({ ctx, input }) => {
-      return await getTotalAmount(input, ctx.db);
+      return await getTotalAmount(input, ctx.db)
     }),
   getSchools: protectedProcedure.query(async ({ ctx }) => {
     const res = await ctx.db
@@ -123,8 +131,8 @@ export const competitorRouter = createTRPCRouter({
         schools.province,
         schools.district,
         schools.school,
-      );
+      )
 
-    return res;
+    return res
   }),
-});
+})

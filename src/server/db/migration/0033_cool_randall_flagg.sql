@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_competitors" ADD COLUMN "verified_id" integer;
