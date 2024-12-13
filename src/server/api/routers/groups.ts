@@ -47,6 +47,7 @@ export const groupRouter = createTRPCRouter({
         .select({
           id: cubeTypes.id,
           name: cubeTypes.name,
+          scrambleMapper: cubeTypes.scrambleMapper,
         })
         .from(cubeTypes)
         .where(
@@ -78,7 +79,9 @@ export const groupRouter = createTRPCRouter({
 
         for (const round of roundCount) {
           for (let i = 1; i <= round.perGroupCount; i++) {
-            const scrambles = scrambow.setType(type.name).get(7);
+            const scrambles = scrambow
+              .setType(type.scrambleMapper ?? "333")
+              .get(7);
 
             insertValues.push(
               ...scrambles.map((scramble) => {

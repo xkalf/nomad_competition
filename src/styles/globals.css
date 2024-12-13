@@ -58,3 +58,9 @@
     @apply bg-background text-foreground;
   }
 }
+
+@media print {
+  @page {
+    size: 21cm 29.7cm;
+  }
+}

@@ -1,5 +1,4 @@
 import { ColumnDef } from "@tanstack/react-table";
-import Image from "next/image";
 import { useRouter } from "next/router";
 import { useRef, useState } from "react";
 import CreateButtons, {
@@ -89,6 +88,12 @@ export default function GroupsPage() {
       enabled: competitionId > 0 && !!filters.cubeTypeId,
     },
   );
+  const { data: competition } = api.competition.getById.useQuery(
+    competitionId,
+    {
+      enabled: !!competitionId,
+    },
+  );
   const { mutate, isLoading } = api.group.generate.useMutation({
     onSuccess: () => {
       ctx.group.getAll.invalidate();
@@ -126,11 +131,22 @@ export default function GroupsPage() {
         >
           Үүсгэх
         </Button>
-        {data?.length && (
+        {data?.length && competition && (
           <>
             <Button onClick={() => print()}>Хэвлэх</Button>
             <div className="hidden">
-              <RoundPdf groups={data} ref={printRef} />
+              <RoundPdf
+                groups={data}
+                ref={printRef}
+                competitionName={competition.name}
+                cubeType={
+                  cubeTypes?.find((c) => c.id === filters.cubeTypeId)?.name ??
+                  ""
+                }
+                roundName={
+                  rounds?.find((r) => r.id === filters.roundId)?.name ?? ""
+                }
+              />
             </div>
           </>
         )}
