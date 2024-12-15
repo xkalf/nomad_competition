@@ -4,6 +4,7 @@ import { getAverage, getBest } from '~/server/utils/calculate'
 import {
   ageGroups,
   competitors,
+  competitorsToCubeTypes,
   cubeTypes,
   results,
   rounds,
@@ -11,7 +12,17 @@ import {
   users,
 } from '~/server/db/schema'
 import { z } from 'zod'
-import { and, eq, getTableColumns, gte, lt, ne, sql } from 'drizzle-orm'
+import {
+  and,
+  eq,
+  exists,
+  getTableColumns,
+  gte,
+  isNotNull,
+  lt,
+  ne,
+  sql,
+} from 'drizzle-orm'
 import { createSelectSchema } from 'drizzle-zod'
 import { jsonBuildObject } from '~/server/utils/drizzle.helper'
 
@@ -27,35 +38,21 @@ export const resultsRouter = createTRPCRouter({
         .merge(createSelectSchema(schools).omit({ id: true }).partial()),
     )
     .query(async ({ ctx, input }) => {
-      const ageGroupsSql = ctx.db.$with('age-groups').as(
-        ctx.db
-          .select({
-            start: ageGroups.start,
-            end: ageGroups.end,
-            competitionId: ageGroups.competitionId,
-          })
-          .from(ageGroups)
-          .where(
-            eq(ageGroups.id, input.ageGroupId ?? 0).if(!!input.ageGroupId),
-          ),
-      )
-      return await ctx.db
-        .with(ageGroupsSql)
+      let query = ctx.db
         .select({
           ...getTableColumns(results),
-          competitor: jsonBuildObject({
+          competitor: {
             verifiedId: competitors.verifiedId,
-            user: users,
-          }),
+            user: jsonBuildObject({
+              firstname: users.firstname,
+              lastname: users.lastname,
+            }),
+          },
         })
         .from(results)
-        .leftJoin(competitors, eq(results.competitorId, competitors.verifiedId))
+        .leftJoin(competitors, eq(results.competitorId, competitors.id))
         .leftJoin(users, eq(users.id, competitors.userId))
         .leftJoin(schools, eq(schools.id, competitors.schoolId))
-        .leftJoin(
-          ageGroupsSql,
-          eq(ageGroupsSql.competitionId, results.competitionId),
-        )
         .where(
           and(
             eq(results.roundId, input.roundId),
@@ -79,19 +76,33 @@ export const resultsRouter = createTRPCRouter({
             ),
             gte(
               sql`(extract(year from ${users.birthDate}))`,
-              ageGroupsSql.start,
+              ageGroups.start,
             ).if(!!input.ageGroupId),
-            lt(
-              sql`(extract(year from ${users.birthDate}))`,
-              ageGroupsSql.end,
-            ).if(!!input.ageGroupId),
+            lt(sql`(extract(year from ${users.birthDate}))`, ageGroups.end).if(
+              !!input.ageGroupId,
+            ),
           ),
         )
         .orderBy(
-          sql`case when ${results.average} < 0 then 1 else 0 end`,
+          sql`case when ${results.average} is null then 2 when ${results.average} < 0 then 1 else 0 end`,
           results.average,
+          sql`case when ${results.best} is null then 2 when ${results.best} < 0 then 1 else 0 end`,
           results.best,
+          competitors.verifiedId,
         )
+        .$dynamic()
+
+      if (input.ageGroupId) {
+        query = query.leftJoin(
+          ageGroups,
+          and(
+            eq(ageGroups.competitionId, results.competitionId),
+            eq(ageGroups.cubeTypeId, results.cubeTypeId),
+          ),
+        )
+      }
+
+      return await query
     }),
   create: adminProcedure
     .input(createResultSchema)
@@ -176,32 +187,62 @@ export const resultsRouter = createTRPCRouter({
         throw new Error('Раунд олдсонгүй.')
       }
 
-      const comps = await ctx.db.query.competitors.findMany({
-        where: (t, { isNotNull, and, eq }) =>
+      const comps = await ctx.db
+        .select({
+          id: competitors.id,
+        })
+        .from(competitors)
+        .where(
           and(
-            eq(t.competitionId, round.competitionId),
-            isNotNull(t.verifiedAt),
+            isNotNull(competitors.verifiedId),
+            eq(competitors.competitionId, round.competitionId),
+            exists(
+              ctx.db
+                .select({
+                  1: sql`1`,
+                })
+                .from(competitorsToCubeTypes)
+                .where(
+                  and(
+                    eq(competitorsToCubeTypes.competitorId, competitors.id),
+                    eq(competitorsToCubeTypes.cubeTypeId, round.cubeTypeId),
+                    eq(competitorsToCubeTypes.status, 'Paid'),
+                  ),
+                ),
+            ),
           ),
-        columns: {
-          id: true,
-        },
-      })
+        )
 
       if (comps.length === 0) {
         throw new Error('Тамирчин хоосон байна.')
       }
 
-      await ctx.db.insert(results).values(
-        comps.map((comp, index): typeof results.$inferInsert => ({
-          roundId: input,
-          cubeTypeId: round.cubeTypeId,
-          competitionId: round.competitionId,
-          competitorId: comp.id,
-          type: round.type ?? 'ao5',
-          createdUserId: ctx.session.user.id,
-          updatedUserId: ctx.session.user.id,
-          group: `${Math.floor(index / round.perGroupCount) + 1}`,
-        })),
-      )
+      await ctx.db
+        .delete(results)
+        .where(
+          and(
+            eq(results.roundId, input),
+            eq(results.competitionId, round.competitionId),
+            eq(results.cubeTypeId, round.cubeTypeId),
+          ),
+        )
+
+      const test = await ctx.db
+        .insert(results)
+        .values(
+          comps.map((comp, index): typeof results.$inferInsert => ({
+            roundId: input,
+            cubeTypeId: round.cubeTypeId,
+            competitionId: round.competitionId,
+            competitorId: comp.id,
+            type: round.type ?? 'ao5',
+            createdUserId: ctx.session.user.id,
+            updatedUserId: ctx.session.user.id,
+            group: `${Math.floor(index / round.perGroupCount) + 1}`,
+          })),
+        )
+        .returning()
+
+      console.log(test.length, comps.length)
     }),
 })

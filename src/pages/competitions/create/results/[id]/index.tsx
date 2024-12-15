@@ -36,10 +36,10 @@ const columns: ColumnDef<Result>[] = [
     header: 'ID',
   },
   {
-    accessorKey: 'competitor.firstname',
+    accessorKey: 'name',
     header: 'Нэр',
     cell: ({ row }) =>
-      `${row.original.competitor.user.lastname[0]}.${row.original.competitor.user.firstname}`,
+      `${row.original.competitor?.user.lastname?.[0]}.${row.original.competitor?.user.firstname}`,
   },
   {
     accessorKey: 'average',
@@ -169,8 +169,6 @@ export default function ResultsPage({
       roundId: filter.roundId,
     })
   }
-
-  console.log(form.watch('solve1'))
 
   return (
     <Layout>
