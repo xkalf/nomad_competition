@@ -1,5 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -43,32 +44,32 @@ const columns: ColumnDef<Result>[] = [
   {
     accessorKey: 'average',
     header: 'Дундаж',
-    cell: ({ row }) => displayTime(row.original.average ?? 0),
+    cell: ({ row }) => displayTime(row.original.average),
   },
   {
     accessorKey: 'best',
     header: 'Синглэ',
-    cell: ({ row }) => displayTime(row.original.best ?? 0),
+    cell: ({ row }) => displayTime(row.original.best),
   },
   {
     accessorKey: 'solve1',
     header: 'Эвлүүлэлт 1',
-    cell: ({ row }) => displayTime(row.original.solve1 ?? 0),
+    cell: ({ row }) => displayTime(row.original.solve1),
   },
   {
     accessorKey: 'solve2',
     header: 'Эвлүүлэлт 2',
-    cell: ({ row }) => displayTime(row.original.solve2 ?? 0),
+    cell: ({ row }) => displayTime(row.original.solve2),
   },
   {
     accessorKey: 'solve3',
     header: 'Эвлүүлэлт 3',
-    cell: ({ row }) => displayTime(row.original.solve3 ?? 0),
+    cell: ({ row }) => displayTime(row.original.solve3),
   },
   {
     accessorKey: 'solve4',
     header: 'Эвлүүлэлт 4',
-    cell: ({ row }) => displayTime(row.original.solve4 ?? 0),
+    cell: ({ row }) => displayTime(row.original.solve4),
   },
   {
     accessorKey: 'solve5',
@@ -77,13 +78,23 @@ const columns: ColumnDef<Result>[] = [
   },
 ]
 
-export default function ResultsPage() {
+export function getServerSideProps(context: GetServerSidePropsContext) {
+  return {
+    props: {
+      id: Number(context.query.id),
+    },
+  }
+}
+
+export default function ResultsPage({
+  id,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter()
   const competitionId = useGetCompetitionId()
 
   const utils = api.useUtils()
   const [filter, setFilter] = useState<Filter>({
-    roundId: 0,
+    roundId: id,
   })
 
   useEffect(() => {
