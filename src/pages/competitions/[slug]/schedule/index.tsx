@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo } from 'react'
 import {
   Table,
   TableBody,
@@ -6,44 +6,46 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { api } from "~/utils/api";
-import { useGetCompetitionSlug } from "~/utils/hooks";
-import CompetitionLayout from "../layout";
+} from '~/components/ui/table'
+import { api } from '~/utils/api'
+import { useGetCompetitionSlug } from '~/utils/hooks'
+import CompetitionLayout from '../layout'
 
 export default function SchedulePage() {
-  const slug = useGetCompetitionSlug();
+  const slug = useGetCompetitionSlug()
 
   const { data: competition } = api.competition.getBySlug.useQuery(slug, {
     enabled: !!slug,
-  });
+  })
   const { data } = api.schedule.getByCompetitionId.useQuery(
-    competition?.id ?? 0,
+    {
+      competitionId: competition?.id ?? 0,
+    },
     {
       enabled: !!competition?.id,
     },
-  );
+  )
 
   const groupSchedule = (input: typeof data = []) => {
     const grouped = input.reduce(
       (acc: { [key: string]: typeof input }, item) => {
-        const key = item.date;
+        const key = item.date
 
         if (!acc[key]) {
-          acc[key] = [];
+          acc[key] = []
         }
 
-        acc[key]?.push(item);
+        acc[key]?.push(item)
 
-        return acc;
+        return acc
       },
       {},
-    );
+    )
 
-    return grouped;
-  };
+    return grouped
+  }
 
-  const groupedData = useMemo(() => groupSchedule(data), [data]);
+  const groupedData = useMemo(() => groupSchedule(data), [data])
 
   return (
     <CompetitionLayout>
@@ -80,5 +82,5 @@ export default function SchedulePage() {
         </div>
       ))}
     </CompetitionLayout>
-  );
+  )
 }

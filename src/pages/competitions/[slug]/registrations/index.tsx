@@ -89,6 +89,10 @@ export default function RegistrationsPage() {
       cell: ({ row }) => row.index + 1,
     },
     {
+      accessorKey: 'verifiedId',
+      header: 'ID',
+    },
+    {
       accessorKey: 'user.firstname',
       header: ({ column }) => (
         <Button

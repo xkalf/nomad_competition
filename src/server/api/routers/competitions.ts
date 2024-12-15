@@ -1,4 +1,4 @@
-import { and, count, eq, exists, inArray, sql, sum } from 'drizzle-orm'
+import { and, count, eq, exists, inArray, sql } from 'drizzle-orm'
 import slugify from 'slugify'
 import { z } from 'zod'
 import {
@@ -327,41 +327,43 @@ export const competitionRouter = createTRPCRouter({
   getRefunds: adminProcedure
     .input(z.number().int().positive())
     .query(async ({ ctx, input }) => {
-      return await ctx.db
-        .select({
-          amount: sum(fees.amount),
-          user: jsonBuildObject({
-            firstname: users.firstname,
-            lastname: users.lastname,
-            phone: users.phone,
-          }),
-        })
-        .from(competitorsToCubeTypes)
-        .where(
-          exists(
-            ctx.db
-              .select({ id: competitors.id })
-              .from(competitors)
-              .where(
-                and(
-                  eq(competitors.competitionId, input),
-                  eq(competitors.id, competitorsToCubeTypes.competitorId),
+      return (
+        await ctx.db
+          .select({
+            amount: sql`COALESCE(sum(${fees.amount}), 0)`.mapWith(Number),
+            user: jsonBuildObject({
+              firstname: users.firstname,
+              lastname: users.lastname,
+              phone: users.phone,
+            }),
+          })
+          .from(competitorsToCubeTypes)
+          .where(
+            exists(
+              ctx.db
+                .select({ id: competitors.id })
+                .from(competitors)
+                .where(
+                  and(
+                    eq(competitors.competitionId, input),
+                    eq(competitors.id, competitorsToCubeTypes.competitorId),
+                  ),
                 ),
-              ),
-          ),
-        )
-        .leftJoin(
-          competitors,
-          eq(competitors.id, competitorsToCubeTypes.competitorId),
-        )
-        .leftJoin(users, eq(users.id, competitors.userId))
-        .leftJoin(
-          fees,
-          and(
-            eq(fees.competitionId, input),
-            eq(fees.cubeTypeId, competitorsToCubeTypes.cubeTypeId),
-          ),
-        )
-        .groupBy(users.firstname, users.lastname, users.phone)
+            ),
+          )
+          .leftJoin(
+            competitors,
+            eq(competitors.id, competitorsToCubeTypes.competitorId),
+          )
+          .leftJoin(users, eq(users.id, competitors.userId))
+          .leftJoin(
+            fees,
+            and(
+              eq(fees.competitionId, input),
+              eq(fees.cubeTypeId, competitorsToCubeTypes.cubeTypeId),
+            ),
+          )
+          .groupBy(users.firstname, users.lastname, users.phone)
+      ).filter((i) => i.amount > 0)
     }),
 })

@@ -31,9 +31,14 @@ export default function CompetitionShowPage({
     enabled: !!slug,
     initialData: competition ? JSON.parse(competition) : undefined,
   })
-  const { data: ageGroups } = api.ageGroup.getAll.useQuery(data?.id ?? 0, {
-    enabled: !!data?.id,
-  })
+  const { data: ageGroups } = api.ageGroup.getAll.useQuery(
+    {
+      competitionId: data?.id ?? 0,
+    },
+    {
+      enabled: !!data?.id,
+    },
+  )
 
   const groupAgeGroups = (input: typeof ageGroups = []) => {
     const grouped = input

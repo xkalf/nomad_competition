@@ -1,14 +1,15 @@
-import { createTRPCRouter } from "~/server/api/trpc";
-import { competitionRouter } from "./routers/competitions";
-import { authRouter } from "./routers/auth";
-import { cubeTypesRouter } from "./routers/cubeTypes";
-import { competitorRouter } from "./routers/competitors";
-import { schedulesRouter } from "./routers/schedules";
-import { ageGroupRouter } from "./routers/ageGroups";
-import { paymentsRouter } from "./routers/payment";
-import { feeRouter } from "./routers/fees";
-import { roundsRouter } from "./routers/rounds";
-import { groupRouter } from "./routers/groups";
+import { createTRPCRouter } from '~/server/api/trpc'
+import { competitionRouter } from './routers/competitions'
+import { authRouter } from './routers/auth'
+import { cubeTypesRouter } from './routers/cubeTypes'
+import { competitorRouter } from './routers/competitors'
+import { schedulesRouter } from './routers/schedules'
+import { ageGroupRouter } from './routers/ageGroups'
+import { paymentsRouter } from './routers/payment'
+import { feeRouter } from './routers/fees'
+import { roundsRouter } from './routers/rounds'
+import { groupRouter } from './routers/groups'
+import { resultsRouter } from './routers/results'
 
 /**
  * This is the primary router for your server.
@@ -26,7 +27,8 @@ export const appRouter = createTRPCRouter({
   fee: feeRouter,
   round: roundsRouter,
   group: groupRouter,
-});
+  result: resultsRouter,
+})
 
 // export type definition of API
-export type AppRouter = typeof appRouter;
+export type AppRouter = typeof appRouter

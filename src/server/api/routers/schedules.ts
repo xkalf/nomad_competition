@@ -10,11 +10,34 @@ import { eq } from 'drizzle-orm'
 
 export const schedulesRouter = createTRPCRouter({
   getByCompetitionId: publicProcedure
-    .input(z.number().int().positive())
+    .input(
+      z.object({
+        competitionId: z.number().int().positive(),
+        withRound: z.boolean().default(false),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const res = await ctx.db.query.schedules.findMany({
-        where: (t, { eq }) => eq(t.competitionId, input),
+        where: (t, { eq, and, isNotNull }) =>
+          and(
+            eq(t.competitionId, input.competitionId),
+            ...(input.withRound ? [isNotNull(t.roundId)] : []),
+          ),
         orderBy: (t) => [t.date, t.startTime],
+        with: {
+          round: {
+            columns: {
+              name: true,
+            },
+            with: {
+              cubeType: {
+                columns: {
+                  name: true,
+                },
+              },
+            },
+          },
+        },
       })
 
       return res

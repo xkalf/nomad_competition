@@ -148,13 +148,22 @@ export const createRoundManySchema = z.object({
 })
 export type CreateRoundManyInput = z.infer<typeof createRoundManySchema>
 
-export const createResultSchema = createInsertSchema(results).omit({
-  id: true,
-  best: true,
-  average: true,
-  createdUserId: true,
-  updatedUserId: true,
-})
+export const createResultSchema = createInsertSchema(results)
+  .omit({
+    id: true,
+    best: true,
+    average: true,
+    createdUserId: true,
+    updatedUserId: true,
+    competitorId: true,
+    cubeTypeId: true,
+    competitionId: true,
+    type: true,
+    group: true,
+  })
+  .extend({
+    verifiedId: z.number().int().positive(),
+  })
 
 export const createScheduleManySchema = z.object({
   data: createInsertSchema(schedules)

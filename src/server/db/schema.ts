@@ -293,6 +293,10 @@ export const schedulesRelations = relations(schedules, ({ one }) => ({
     fields: [schedules.competitionId],
     references: [competitions.id],
   }),
+  round: one(rounds, {
+    fields: [schedules.roundId],
+    references: [rounds.id],
+  }),
 }))
 
 export const ageGroups = createTable(
@@ -470,6 +474,25 @@ export const results = createTable('results', {
     .notNull()
     .references(() => users.id),
 })
+
+export const resultsRelation = relations(results, ({ one }) => ({
+  round: one(rounds, {
+    fields: [results.roundId],
+    references: [rounds.id],
+  }),
+  cubeType: one(cubeTypes, {
+    fields: [results.cubeTypeId],
+    references: [cubeTypes.id],
+  }),
+  competition: one(competitions, {
+    fields: [results.competitionId],
+    references: [competitions.id],
+  }),
+  competitor: one(competitors, {
+    fields: [results.competitorId],
+    references: [competitors.id],
+  }),
+}))
 
 export const schools = pgTable('provinces', (t) => ({
   id: t.serial().primaryKey(),

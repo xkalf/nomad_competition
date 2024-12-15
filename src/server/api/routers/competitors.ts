@@ -61,15 +61,14 @@ export const competitorRouter = createTRPCRouter({
     .input(z.number().int().positive())
     .mutation(async ({ ctx, input }) => {
       await ctx.db.transaction(async (db) => {
-        const competition = await db.query.competitors.findFirst({
-          where: eq(competitors.id, input),
-          columns: {
-            competitionId: true,
-          },
-          extras: {
+        const [competition] = await db
+          .select({
             id: sql<number>`${max(competitors.verifiedId)}`.as('v_id'),
-          },
-        })
+            competitionId: competitors.competitionId,
+          })
+          .from(competitors)
+          .where(eq(competitors.id, input))
+          .groupBy(competitors.competitionId)
 
         if (!competition) {
           throw new Error('Бүртгэл олдсонгүй.')

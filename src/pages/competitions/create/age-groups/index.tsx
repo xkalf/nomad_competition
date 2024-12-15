@@ -40,9 +40,14 @@ export default function AgeGroupsForm() {
     },
   )
 
-  const { data: current } = api.ageGroup.getAll.useQuery(competitionId, {
-    enabled: competitionId > 0,
-  })
+  const { data: current } = api.ageGroup.getAll.useQuery(
+    {
+      competitionId,
+    },
+    {
+      enabled: competitionId > 0,
+    },
+  )
 
   const { mutate, isLoading } = api.ageGroup.createMany.useMutation({
     onSuccess: () => {
