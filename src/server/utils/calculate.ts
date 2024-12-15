@@ -32,7 +32,7 @@ const getAverage3 = (solves: number[]) => {
     return -1
   }
 
-  return filtered.reduce((a, b) => a + b, 0) / 3
+  return Math.floor(filtered.reduce((a, b) => a + b, 0) / 3)
 }
 
 const getAverage5 = (solves: number[]) => {
