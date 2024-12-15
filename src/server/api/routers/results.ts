@@ -19,7 +19,7 @@ import {
   getTableColumns,
   gte,
   isNotNull,
-  lt,
+  lte,
   ne,
   sql,
 } from 'drizzle-orm'
@@ -34,6 +34,7 @@ export const resultsRouter = createTRPCRouter({
           roundId: z.number().int().positive(),
           isOther: z.boolean().default(false),
           ageGroupId: z.number().int().positive().optional(),
+          verifiedId: z.number().int().positive().optional(),
         })
         .merge(createSelectSchema(schools).omit({ id: true }).partial()),
     )
@@ -57,29 +58,32 @@ export const resultsRouter = createTRPCRouter({
           and(
             eq(results.roundId, input.roundId),
             eq(schools.province, input.province ?? '').if(
-              !!input.province && !input.isOther,
+              !!input.province && input.isOther === false,
             ),
             eq(schools.district, input.district ?? '').if(
-              !!input.district && !input.isOther,
+              !!input.district && input.isOther === false,
             ),
             eq(schools.school, input.school ?? '').if(
-              !!input.school && !input.isOther,
+              !!input.school && input.isOther === false,
             ),
             ne(schools.province, input.province ?? '').if(
-              !!input.province && input.isOther,
+              !!input.province && input.isOther === true,
             ),
             ne(schools.district, input.district ?? '').if(
-              !!input.district && input.isOther,
+              !!input.district && input.isOther === true,
             ),
             ne(schools.school, input.school ?? '').if(
-              !!input.school && input.isOther,
+              !!input.school && input.isOther === true,
             ),
             gte(
               sql`(extract(year from ${users.birthDate}))`,
               ageGroups.start,
             ).if(!!input.ageGroupId),
-            lt(sql`(extract(year from ${users.birthDate}))`, ageGroups.end).if(
+            lte(sql`(extract(year from ${users.birthDate}))`, ageGroups.end).if(
               !!input.ageGroupId,
+            ),
+            eq(competitors.verifiedId, input.verifiedId ?? 0).if(
+              !!input.verifiedId,
             ),
           ),
         )
@@ -98,9 +102,12 @@ export const resultsRouter = createTRPCRouter({
           and(
             eq(ageGroups.competitionId, results.competitionId),
             eq(ageGroups.cubeTypeId, results.cubeTypeId),
+            eq(ageGroups.id, input.ageGroupId),
           ),
         )
       }
+
+      console.log(query.toSQL())
 
       return await query
     }),

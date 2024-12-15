@@ -32,6 +32,11 @@ type Filter = RouterInputs['result']['findByRound']
 
 const columns: ColumnDef<Result>[] = [
   {
+    accessorKey: 'order',
+    header: '№',
+    cell: ({ row }) => row.index + 1,
+  },
+  {
     accessorKey: 'competitor.verifiedId',
     header: 'ID',
   },
@@ -92,6 +97,10 @@ export default function ResultsPage({
   const router = useRouter()
   const competitionId = useGetCompetitionId()
 
+  const form = useForm<z.infer<typeof createResultSchema>>({
+    resolver: zodResolver(createResultSchema.omit({ roundId: true })),
+  })
+
   const utils = api.useUtils()
   const [filter, setFilter] = useState<Filter>({
     roundId: id,
@@ -103,9 +112,14 @@ export default function ResultsPage({
     }
   }, [router.query.id])
 
-  const form = useForm<z.infer<typeof createResultSchema>>({
-    resolver: zodResolver(createResultSchema.omit({ roundId: true })),
-  })
+  useEffect(() => {
+    setFilter((curr) => ({
+      ...curr,
+      verifiedId: isNaN(form.watch('verifiedId'))
+        ? undefined
+        : form.watch('verifiedId'),
+    }))
+  }, [form.watch('verifiedId')])
 
   const { mutate, isLoading } = api.result.create.useMutation({
     onSuccess: () => {
