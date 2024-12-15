@@ -107,8 +107,6 @@ export const resultsRouter = createTRPCRouter({
         )
       }
 
-      console.log(query.toSQL())
-
       return await query
     }),
   create: adminProcedure
@@ -222,6 +220,22 @@ export const resultsRouter = createTRPCRouter({
 
       if (comps.length === 0) {
         throw new Error('Тамирчин хоосон байна.')
+      }
+
+      const curr = await ctx.db
+        .select()
+        .from(results)
+        .where(
+          and(
+            eq(results.roundId, input),
+            eq(results.competitionId, round.competitionId),
+            eq(results.cubeTypeId, round.cubeTypeId),
+            isNotNull(results.best),
+          ),
+        )
+
+      if (curr.length > 0) {
+        throw new Error('Үзүүлэлт шивсэн байна устгах боломжгүй .')
       }
 
       await ctx.db
