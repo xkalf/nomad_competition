@@ -1,4 +1,4 @@
-import { relations } from 'drizzle-orm'
+import { relations, SQL, sql } from 'drizzle-orm'
 import {
   boolean,
   date,
@@ -451,6 +451,9 @@ export const results = createTable('results', {
   solve3: integer('solve3'),
   solve4: integer('solve4'),
   solve5: integer('solve5'),
+  // display1: text('display1').generatedAlwaysAs(
+  //   (): SQL => sql`display_item(${results.solve1})`,
+  // ),
   best: integer('best'),
   average: integer('average'),
   type: resultType('type').notNull(),

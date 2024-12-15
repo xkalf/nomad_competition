@@ -46,11 +46,12 @@ const getAverage5 = (solves: number[]) => {
     return -1
   }
 
-  let bestIndex = solves.indexOf(getBest(solves))
-  let worstIndex = solves.indexOf(getWorst(solves))
+  const bestIndex = solves.indexOf(getBest(solves))
+  const worstIndex = solves.indexOf(getWorst(solves))
 
-  solves.splice(worstIndex, 1)
-  solves.splice(bestIndex, 1)
+  const filteredSolves = solves.filter(
+    (_, index) => index !== bestIndex && index !== worstIndex,
+  )
 
-  return getAverage3(solves)
+  return getAverage3(filteredSolves)
 }
