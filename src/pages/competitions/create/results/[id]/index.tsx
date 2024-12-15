@@ -9,8 +9,10 @@ import CreateLinks from '~/components/create-links'
 import DataTable from '~/components/data-table/data-table'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
+import { Checkbox } from '~/components/ui/checkbox'
 import { Form, FormFieldCustom } from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import {
   Select,
   SelectContent,
@@ -20,6 +22,7 @@ import {
 } from '~/components/ui/select'
 import { toast } from '~/components/ui/use-toast'
 import { api, RouterInputs, RouterOutputs } from '~/utils/api'
+import { useGetCompetitionId } from '~/utils/hooks'
 import { displayTime, formatCustomTime } from '~/utils/timeUtils'
 import { createResultSchema } from '~/utils/zod'
 
@@ -76,6 +79,7 @@ const columns: ColumnDef<Result>[] = [
 
 export default function ResultsPage() {
   const router = useRouter()
+  const competitionId = useGetCompetitionId()
 
   const utils = api.useUtils()
   const [filter, setFilter] = useState<Filter>({
@@ -128,16 +132,25 @@ export default function ResultsPage() {
     queryKey: ['result.findByRound', filter],
     enabled: !!filter.roundId,
   })
-
-  const { data: ageGroups } = api.ageGroup.getAll.useQuery(
+  const { data: rounds } = api.round.getAll.useQuery(
     {
-      competitionId: data?.[0]?.competitionId ?? 0,
-      cubeTypeId: data?.[0]?.cubeTypeId ?? 0,
+      competitionId,
+      id: filter.roundId,
     },
     {
-      enabled: !!data?.[0]?.competitionId && !!data?.[0]?.cubeTypeId,
+      enabled: !!competitionId && !!filter.roundId,
     },
   )
+  const { data: ageGroups } = api.ageGroup.getAll.useQuery(
+    {
+      competitionId: competitionId,
+      cubeTypeId: rounds?.[0]?.cubeTypeId,
+    },
+    {
+      enabled: !!competitionId && !!rounds?.[0]?.cubeTypeId,
+    },
+  )
+  const { data: schools } = api.competitor.getSchools.useQuery()
 
   const onSubmit = (input: z.infer<typeof createResultSchema>) => {
     mutate({
@@ -277,8 +290,79 @@ export default function ResultsPage() {
                 ))}
               </SelectContent>
             </Select>
+            <Select
+              value={filter.province}
+              onValueChange={(value) => {
+                setFilter((curr) => ({ ...curr, province: value }))
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Хот/Аймаг сонгох" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from(new Set(schools?.map((i) => i.province))).map(
+                  (i) => (
+                    <SelectItem key={i} value={i}>
+                      {i}
+                    </SelectItem>
+                  ),
+                )}
+              </SelectContent>
+            </Select>
+            <Select
+              value={filter.district}
+              onValueChange={(value) =>
+                setFilter((curr) => ({ ...curr, district: value }))
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Дүүрэг/Сум сонгох" />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from(
+                  new Set(
+                    schools
+                      ?.filter((i) => i.province === filter.province)
+                      .map((i) => i.district),
+                  ),
+                ).map((i) => (
+                  <SelectItem key={i} value={i}>
+                    {i}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={filter.school}
+              onValueChange={(value) =>
+                setFilter((curr) => ({ ...curr, school: value }))
+              }
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Сургууль сонгох" />
+              </SelectTrigger>
+              <SelectContent>
+                {schools
+                  ?.filter((i) => i.district === filter.district)
+                  .map((i) => (
+                    <SelectItem key={i.school} value={i.school}>
+                      {i.school}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
+            <div className="flex items-center gap-1">
+              <Label htmlFor="isOther">Бусад эсэх</Label>
+              <Checkbox
+                checked={filter.isOther}
+                onCheckedChange={(value) =>
+                  setFilter((curr) => ({ ...curr, isOther: !!value }))
+                }
+                id="isOther"
+              />
+            </div>
           </div>
-          <DataTable columns={columns} data={data ?? []} />
+          <DataTable className="mt-4" columns={columns} data={data ?? []} />
         </div>
       </div>
     </Layout>

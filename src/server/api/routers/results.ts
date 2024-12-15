@@ -21,7 +21,7 @@ export const resultsRouter = createTRPCRouter({
       z
         .object({
           roundId: z.number().int().positive(),
-          exact: z.boolean().default(true),
+          isOther: z.boolean().default(false),
           ageGroupId: z.number().int().positive().optional(),
         })
         .merge(createSelectSchema(schools).omit({ id: true }).partial()),
@@ -60,22 +60,22 @@ export const resultsRouter = createTRPCRouter({
           and(
             eq(results.roundId, input.roundId),
             eq(schools.province, input.province ?? '').if(
-              !!input.province && input.exact,
+              !!input.province && !input.isOther,
             ),
             eq(schools.district, input.district ?? '').if(
-              !!input.district && input.exact,
+              !!input.district && !input.isOther,
             ),
             eq(schools.school, input.school ?? '').if(
-              !!input.school && input.exact,
+              !!input.school && !input.isOther,
             ),
             ne(schools.province, input.province ?? '').if(
-              !!input.province && !input.exact,
+              !!input.province && input.isOther,
             ),
             ne(schools.district, input.district ?? '').if(
-              !!input.district && !input.exact,
+              !!input.district && input.isOther,
             ),
             ne(schools.school, input.school ?? '').if(
-              !!input.school && !input.exact,
+              !!input.school && input.isOther,
             ),
             gte(
               sql`(extract(year from ${users.birthDate}))`,
