@@ -1,5 +1,5 @@
 export function displayTime(time?: number | null): string {
-  if (!time) {
+  if (time === null || time === undefined) {
     return 'DNS'
   }
 
@@ -32,9 +32,9 @@ export function pad(num: number): string {
 }
 
 export function formatCustomTime(timeString: string) {
-  const isNumber = /^\d+$/.test(timeString)
+  const isNumber = parseInt(timeString)
 
-  if (isNumber) {
+  if (!isNaN(isNumber)) {
     return formatTimeInput(parseInt(timeString))
   } else {
     return formatStringToMilliSeconds(timeString)

@@ -102,7 +102,7 @@ export const resultsRouter = createTRPCRouter({
         input.solve3,
         input.solve4,
         input.solve5,
-      ].filter((i): i is number => typeof i === 'number')
+      ].map((i) => (typeof i === 'number' ? i : -1))
 
       const [competitor] = await ctx.db
         .select({

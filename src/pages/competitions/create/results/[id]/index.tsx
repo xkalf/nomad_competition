@@ -170,6 +170,8 @@ export default function ResultsPage({
     })
   }
 
+  console.log(form.watch('solve1'))
+
   return (
     <Layout>
       <CreateLinks />
@@ -180,7 +182,7 @@ export default function ResultsPage({
           disabled={generateLoading}
           onClick={() => generate(filter.roundId)}
         >
-          Групп-ийн хуваарьлалт
+          Групп-ийн хуваарилалт
         </Button>
       </div>
       <div className="grid grid-cols-12 gap-x-4">
@@ -209,7 +211,7 @@ export default function ResultsPage({
                       field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
-                  <span>{displayTime(field.value ?? 0)}</span>
+                  <span>{displayTime(field.value)}</span>
                 </div>
               )}
             />
@@ -224,7 +226,7 @@ export default function ResultsPage({
                       field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
-                  <span>{displayTime(field.value ?? 0)}</span>
+                  <span>{displayTime(field.value)}</span>
                 </div>
               )}
             />
@@ -239,7 +241,7 @@ export default function ResultsPage({
                       field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
-                  <span>{displayTime(field.value ?? 0)}</span>
+                  <span>{displayTime(field.value)}</span>
                 </div>
               )}
             />
@@ -254,7 +256,7 @@ export default function ResultsPage({
                       field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
-                  <span>{displayTime(field.value ?? 0)}</span>
+                  <span>{displayTime(field.value)}</span>
                 </div>
               )}
             />
@@ -269,7 +271,7 @@ export default function ResultsPage({
                       field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
-                  <span>{displayTime(field.value ?? 0)}</span>
+                  <span>{displayTime(field.value)}</span>
                 </div>
               )}
             />
