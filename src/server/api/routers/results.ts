@@ -248,22 +248,17 @@ export const resultsRouter = createTRPCRouter({
           ),
         )
 
-      const test = await ctx.db
-        .insert(results)
-        .values(
-          comps.map((comp, index): typeof results.$inferInsert => ({
-            roundId: input,
-            cubeTypeId: round.cubeTypeId,
-            competitionId: round.competitionId,
-            competitorId: comp.id,
-            type: round.type ?? 'ao5',
-            createdUserId: ctx.session.user.id,
-            updatedUserId: ctx.session.user.id,
-            group: `${Math.floor(index / round.perGroupCount) + 1}`,
-          })),
-        )
-        .returning()
-
-      console.log(test.length, comps.length)
+      await ctx.db.insert(results).values(
+        comps.map((comp, index): typeof results.$inferInsert => ({
+          roundId: input,
+          cubeTypeId: round.cubeTypeId,
+          competitionId: round.competitionId,
+          competitorId: comp.id,
+          type: round.type ?? 'ao5',
+          createdUserId: ctx.session.user.id,
+          updatedUserId: ctx.session.user.id,
+          group: `${Math.floor(index / round.perGroupCount) + 1}`,
+        })),
+      )
     }),
 })

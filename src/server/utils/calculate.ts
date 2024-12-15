@@ -49,10 +49,6 @@ const getAverage5 = (solves: number[]) => {
   let bestIndex = solves.indexOf(getBest(solves))
   let worstIndex = solves.indexOf(getWorst(solves))
 
-  if (bestIndex > worstIndex) {
-    ;[bestIndex, worstIndex] = [worstIndex, bestIndex]
-  }
-
   solves.splice(worstIndex, 1)
   solves.splice(bestIndex, 1)
 
