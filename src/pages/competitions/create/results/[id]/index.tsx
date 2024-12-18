@@ -99,6 +99,15 @@ export default function ResultsPage({
 
   const form = useForm<z.infer<typeof createResultSchema>>({
     resolver: zodResolver(createResultSchema.omit({ roundId: true })),
+    defaultValues: {
+      roundId: id,
+      verifiedId: undefined,
+      solve1: undefined,
+      solve2: undefined,
+      solve3: undefined,
+      solve4: undefined,
+      solve5: undefined,
+    },
   })
 
   const utils = api.useUtils()

@@ -35,7 +35,10 @@ export function formatCustomTime(timeString: string) {
   const isNumber = parseInt(timeString)
 
   if (!isNaN(isNumber)) {
-    return formatTimeInput(parseInt(timeString))
+    if (isNumber < 0) {
+      return -1
+    }
+    return formatTimeInput(isNumber)
   } else {
     return formatStringToMilliSeconds(timeString)
   }

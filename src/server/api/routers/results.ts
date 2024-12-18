@@ -107,8 +107,6 @@ export const resultsRouter = createTRPCRouter({
         )
       }
 
-      console.log(query.toSQL())
-
       return await query
     }),
   create: adminProcedure
@@ -122,20 +120,10 @@ export const resultsRouter = createTRPCRouter({
         input.solve5,
       ].map((i) => (typeof i === 'number' ? i : -1))
 
-      const [competitor] = await ctx.db
-        .select({
-          id: competitors.id,
-        })
-        .from(competitors)
-        .where(eq(competitors.verifiedId, input.verifiedId))
-
-      if (!competitor) {
-        throw new Error('Тамирчин олдсонгүй.')
-      }
-
       const [round] = await ctx.db
         .select({
           competitionId: rounds.competitionId,
+          cubeTypeId: rounds.cubeTypeId,
           type: cubeTypes.type,
         })
         .from(rounds)
@@ -146,10 +134,26 @@ export const resultsRouter = createTRPCRouter({
         throw new Error('Раунд олдсонгүй.')
       }
 
+      const [competitor] = await ctx.db
+        .select({
+          id: competitors.id,
+        })
+        .from(competitors)
+        .where(
+          and(
+            eq(competitors.verifiedId, input.verifiedId),
+            eq(competitors.competitionId, round.competitionId),
+          ),
+        )
+
+      if (!competitor) {
+        throw new Error('Тамирчин олдсонгүй.')
+      }
+
       const best = getBest(solves)
       const average = getAverage(solves, round.type ?? 'ao5')
 
-      await ctx.db
+      const [updated] = await ctx.db
         .update(results)
         .set({
           solve1: input.solve1,
@@ -165,8 +169,14 @@ export const resultsRouter = createTRPCRouter({
             eq(results.competitorId, competitor.id),
             eq(results.roundId, input.roundId),
             eq(results.competitionId, round.competitionId),
+            eq(results.cubeTypeId, round.cubeTypeId),
           ),
         )
+        .returning()
+
+      if (!updated) {
+        throw new Error('Тамирчин олдсонгүй.')
+      }
     }),
   generate: adminProcedure
     .input(
@@ -224,6 +234,22 @@ export const resultsRouter = createTRPCRouter({
         throw new Error('Тамирчин хоосон байна.')
       }
 
+      const curr = await ctx.db
+        .select()
+        .from(results)
+        .where(
+          and(
+            eq(results.roundId, input),
+            eq(results.competitionId, round.competitionId),
+            eq(results.cubeTypeId, round.cubeTypeId),
+            isNotNull(results.best),
+          ),
+        )
+
+      if (curr.length > 0) {
+        throw new Error('Үзүүлэлт шивсэн байна устгах боломжгүй .')
+      }
+
       await ctx.db
         .delete(results)
         .where(
@@ -234,22 +260,17 @@ export const resultsRouter = createTRPCRouter({
           ),
         )
 
-      const test = await ctx.db
-        .insert(results)
-        .values(
-          comps.map((comp, index): typeof results.$inferInsert => ({
-            roundId: input,
-            cubeTypeId: round.cubeTypeId,
-            competitionId: round.competitionId,
-            competitorId: comp.id,
-            type: round.type ?? 'ao5',
-            createdUserId: ctx.session.user.id,
-            updatedUserId: ctx.session.user.id,
-            group: `${Math.floor(index / round.perGroupCount) + 1}`,
-          })),
-        )
-        .returning()
-
-      console.log(test.length, comps.length)
+      await ctx.db.insert(results).values(
+        comps.map((comp, index): typeof results.$inferInsert => ({
+          roundId: input,
+          cubeTypeId: round.cubeTypeId,
+          competitionId: round.competitionId,
+          competitorId: comp.id,
+          type: round.type ?? 'ao5',
+          createdUserId: ctx.session.user.id,
+          updatedUserId: ctx.session.user.id,
+          group: `${Math.floor(index / round.perGroupCount) + 1}`,
+        })),
+      )
     }),
 })
