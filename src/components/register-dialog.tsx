@@ -60,7 +60,7 @@ export default function RegisterDialog() {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline">Бүртгүүлэх</Button>
+        <Button>Бүртгүүлэх</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>

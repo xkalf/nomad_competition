@@ -10,21 +10,27 @@ import { getImageUrl } from '~/utils/supabase'
 import { ColumnDef } from '@tanstack/react-table'
 import { ArrowUpDownIcon } from 'lucide-react'
 import DataTable from '~/components/data-table/data-table'
-import { useGetCompetitionSlug } from '~/utils/hooks'
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
+import { createServerSideHelpers } from '@trpc/react-query/server'
+import { appRouter } from '~/server/api/root'
+import { getServerAuthSession } from '~/server/auth'
+import { db } from '~/server/db'
+import superjson from 'superjson'
 
 type Competitor = RouterOutputs['competitor']['getByCompetitionId'][number]
 
-export default function RegistrationsPage() {
+export default function RegistrationsPage({
+  slug,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const router = useRouter()
   const utils = api.useUtils()
   const { data: session } = useSession()
-  const slug = useGetCompetitionSlug()
 
   const [isVerified, setIsVerified] = useState(
     router.query.isVerified === 'true' ? true : false,
   )
 
-  const { data: competition } = api.competition.getBySlug.useQuery(slug, {
+  const { data: competition } = api.competition.getBySlug.useQuery(slug ?? '', {
     enabled: !!slug,
   })
   const { data } = api.competitor.getByCompetitionId.useQuery(
@@ -246,4 +252,26 @@ export default function RegistrationsPage() {
       <DataTable columns={columns} data={data || []} />
     </CompetitionLayout>
   )
+}
+
+export async function getServerSideProps(
+  context: GetServerSidePropsContext<{ slug: string }>,
+) {
+  const helpers = createServerSideHelpers({
+    router: appRouter,
+    ctx: {
+      session: await getServerAuthSession(context),
+      db: db,
+    },
+    transformer: superjson,
+  })
+
+  await helpers.competition.getBySlug.prefetch(context.params?.slug as string)
+
+  return {
+    props: {
+      trpcState: helpers.dehydrate(),
+      slug: context.params?.slug,
+    },
+  }
 }

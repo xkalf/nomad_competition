@@ -1,83 +1,108 @@
-import { isAfter, isBefore } from "date-fns";
-import Head from "next/head";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import Layout from "~/components/layout";
-import { Button } from "~/components/ui/button";
-import { api } from "~/utils/api";
-import { useGetCompetitionSlug } from "~/utils/hooks";
+import { isAfter, isBefore } from 'date-fns'
+import { useSession } from 'next-auth/react'
+import Head from 'next/head'
+import Link from 'next/link'
+import { useMemo } from 'react'
+import Layout from '~/components/layout'
+import LoginDialog from '~/components/login-dialog'
+import RegisterDialog from '~/components/register-dialog'
+import { NavUser } from '~/components/sidebar/nav-user'
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+} from '~/components/ui/sidebar'
+import { api } from '~/utils/api'
+import { useGetCompetitionSlug } from '~/utils/hooks'
 
 interface Props {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export default function CompetitionLayout({ children }: Props) {
-  const router = useRouter();
-  const slug = useGetCompetitionSlug();
+  const session = useSession()
+  const slug = useGetCompetitionSlug()
   const { data: competition } = api.competition.getBySlug.useQuery(slug, {
     enabled: !!slug,
-  });
+  })
 
-  const isPage = (href: string) => router.pathname === href;
   const isRegisterAllow = () => {
     if (competition?.registerStartDate && competition.registerEndDate) {
       return (
         isBefore(competition.registerStartDate, new Date()) &&
         isAfter(competition.registerEndDate, new Date())
-      );
+      )
     }
 
-    return false;
-  };
+    return false
+  }
+
+  const items = useMemo(
+    () =>
+      [
+        {
+          title: 'Мэдээлэл',
+          url: `/competitions/${slug}`,
+        },
+        {
+          title: 'Бүртгүүлэх хүсэлт',
+          url: `/competitions/${slug}/register`,
+          hide: !isRegisterAllow(),
+        },
+        {
+          title: 'Бүртгүүлсэн тамирчид',
+          url: `/competitions/${slug}/registrations`,
+        },
+        {
+          title: 'Үзүүлэлт',
+          url: `/competitions/${slug}/results`,
+        },
+      ] satisfies { title: string; url: string; hide?: boolean }[],
+    [slug],
+  )
 
   return (
     <Layout>
       <Head>
         <title>{competition?.name}</title>
       </Head>
-      <div className="grid grid-cols-1 lg:grid-cols-5">
-        <div className="mb-8 flex flex-col space-y-2 lg:mb-0">
-          <Button
-            asChild
-            variant={isPage("/competitions/[slug]") ? "default" : "outline"}
-          >
-            <Link href={`/competitions/${slug}`}>Мэдээлэл</Link>
-          </Button>
-          {isRegisterAllow() && (
-            <Button
-              asChild
-              variant={
-                isPage("/competitions/[slug]/register") ? "default" : "outline"
-              }
-            >
-              <Link href={`/competitions/${slug}/register`}>
-                Бүртгүүлэх хүсэлт
-              </Link>
-            </Button>
-          )}
-          <Button
-            asChild
-            variant={
-              isPage("/competitions/[slug]/registrations")
-                ? "default"
-                : "outline"
-            }
-          >
-            <Link href={`/competitions/${slug}/registrations`}>
-              Бүртгүүлсэн тамирчид
-            </Link>
-          </Button>
-          <Button
-            asChild
-            variant={
-              isPage("/competitions/[slug]/schedule") ? "default" : "outline"
-            }
-          >
-            <Link href={`/competitions/${slug}/schedule`}>Цагийн хуваарь</Link>
-          </Button>
+      <SidebarProvider>
+        <div className="grid grid-cols-1 lg:grid-cols-5">
+          <Sidebar>
+            <SidebarContent>
+              {items
+                .filter((item) => item.hide === undefined || !item.hide)
+                .map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild>
+                      <Link href={item.url}>{item.title}</Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+            </SidebarContent>
+            <SidebarFooter>
+              {session.status === 'authenticated' && session.data?.user ? (
+                <NavUser user={session.data?.user}></NavUser>
+              ) : (
+                <div className="flex flex-col space-y-2">
+                  <LoginDialog />
+                  <RegisterDialog />
+                </div>
+              )}
+            </SidebarFooter>
+          </Sidebar>
+          <div className="col-span-4 md:px-4">
+            <SidebarTrigger />
+            {children}
+          </div>
         </div>
-        <div className="col-span-4 md:px-4">{children}</div>
-      </div>
+      </SidebarProvider>
     </Layout>
-  );
+  )
 }

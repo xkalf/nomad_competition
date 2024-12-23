@@ -13,24 +13,27 @@ import {
 import { getImageUrl } from '~/utils/supabase'
 import Image from 'next/image'
 import { Badge } from '~/components/ui/badge'
-import { useGetCompetitionSlug } from '~/utils/hooks'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { competitionRouter } from '~/server/api/routers/competitions'
 import { db } from '~/server/db'
 import { createCallerFactory } from '@trpc/server'
 import Head from 'next/head'
+import { createServerSideHelpers } from '@trpc/react-query/server'
+import { appRouter } from '~/server/api/root'
+import superjson from 'superjson'
+import { getServerAuthSession } from '~/server/auth'
 
 type Competition = RouterOutputs['competition']['getBySlug']
 
 export default function CompetitionShowPage({
-  competition,
+  slug,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const slug = useGetCompetitionSlug()
-
-  const { data, error, isLoading } = api.competition.getBySlug.useQuery(slug, {
-    enabled: !!slug,
-    initialData: competition ? JSON.parse(competition) : undefined,
-  })
+  const { data, error, isLoading } = api.competition.getBySlug.useQuery(
+    slug ?? '',
+    {
+      enabled: !!slug,
+    },
+  )
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(
     {
       competitionId: data?.id ?? 0,
@@ -179,7 +182,17 @@ export default function CompetitionShowPage({
 
 export async function getServerSideProps({
   params,
+  req,
+  res,
 }: GetServerSidePropsContext<{ slug: string }>) {
+  const helpers = createServerSideHelpers({
+    router: appRouter,
+    ctx: {
+      session: await getServerAuthSession({ req, res }),
+      db: db,
+    },
+    transformer: superjson,
+  })
   const factory = createCallerFactory()
 
   const caller = factory(competitionRouter)({
@@ -193,9 +206,12 @@ export async function getServerSideProps({
     competition = await caller.getBySlug(params?.slug ?? '')
   }
 
+  await helpers.competition.getBySlug.prefetch(params?.slug as string)
+
   return {
     props: {
-      competition: competition ? JSON.stringify(competition) : null,
+      slug: params?.slug,
+      trpcState: helpers.dehydrate(),
     },
   }
 }
