@@ -58,7 +58,7 @@
     "drizzle-zod": "^0.5.1",
     "embla-carousel-autoplay": "^8.3.0",
     "embla-carousel-react": "^8.3.0",
-    "lucide-react": "^0.316.0",
+    "lucide-react": "^0.469.0",
     "mn-payment": "^0.0.4",
     "next": "^15.0.3",
     "next-auth": "^4.24.8",
