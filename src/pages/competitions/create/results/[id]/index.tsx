@@ -185,6 +185,15 @@ export default function ResultsPage({
     },
   )
   const { data: schools } = api.competitor.getSchools.useQuery()
+  const { data: round } = api.round.getAll.useQuery(
+    {
+      competitionId: competitionId,
+      id: filter.roundId,
+    },
+    {
+      enabled: !!competitionId && !!filter.roundId,
+    },
+  )
 
   const onSubmit = (input: z.infer<typeof createResultSchema>) => {
     mutate({
@@ -197,7 +206,9 @@ export default function ResultsPage({
     <Layout>
       <CreateLinks />
       <div className="flex gap-4">
-        <h1 className="text-3xl text-bold">Үзүүлэлт шивэх</h1>
+        <h1 className="text-3xl text-bold">
+          Үзүүлэлт шивэх ({round?.[0]?.cubeType.name} : {round?.[0]?.name})
+        </h1>
         <Button
           type="button"
           disabled={generateLoading}
