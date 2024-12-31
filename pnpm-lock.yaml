@@ -92,12 +92,6 @@ importers:
       '@types/bcrypt':
         specifier: ^5.0.2
         version: 5.0.2
-      '@xstate/react':
-        specifier: ^5.0.1
-        version: 5.0.1(@types/react@18.3.10)(react@18.2.0)(xstate@5.19.1)
-      '@xstate/store':
-        specifier: ^2.6.2
-        version: 2.6.2(react@18.2.0)
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
@@ -185,9 +179,6 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.13(ts-node@10.9.2(@types/node@18.19.54)(typescript@5.6.2)))
-      xstate:
-        specifier: ^5.19.1
-        version: 5.19.1
       zod:
         specifier: ^3.23.8
         version: 3.23.8
@@ -2027,26 +2018,6 @@ packages:
   '@ungap/structured-clone@1.2.0':
     resolution: {integrity: sha512-zuVdFrMJiuCDQUMCzQaD6KL28MjnqqN8XnAqiEq9PNm/hCPTSGfrXCOfwj1ow4LFb/tNymJPwsNbVePc1xFqrQ==}
 
-  '@xstate/react@5.0.1':
-    resolution: {integrity: sha512-6JK6tcQdAIydu28wnfhY5JJNS8LGRoVZko0CiYaC3405352Mfc5pDPdBAKVFx1OnIJvyj5Hw3/MyQQ2fBTGCcQ==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0-0
-      xstate: ^5.19.1
-    peerDependenciesMeta:
-      xstate:
-        optional: true
-
-  '@xstate/store@2.6.2':
-    resolution: {integrity: sha512-zznGTWU+tmhbD0UUxPLy5FmxvceBNyMsN1Tuy7UMJAH9NuaQWj4/B2L+EcO6FxI2b2CNyzk1PL5mZ8cDpBFpMw==}
-    peerDependencies:
-      react: ^18.2.0 || ^19.0.0-0
-      solid-js: ^1.7.6
-    peerDependenciesMeta:
-      react:
-        optional: true
-      solid-js:
-        optional: true
-
   abbrev@1.1.1:
     resolution: {integrity: sha512-nne9/IiQ/hzIhY6pdDnbBtz7DjPTKrY00P/zvPSm5pOFkl6xuGrGnXn/VtTNNfNtAfZ9/1RtehkszU9qcTii0Q==}
 
@@ -3498,15 +3469,6 @@ packages:
       '@types/react':
         optional: true
 
-  use-isomorphic-layout-effect@1.2.0:
-    resolution: {integrity: sha512-q6ayo8DWoPZT0VdG4u3D3uxcgONP3Mevx2i2b0434cwWBoL+aelL1DzkXI6w3PhTZzUeR2kaVlZn70iCiseP6w==}
-    peerDependencies:
-      '@types/react': '*'
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-    peerDependenciesMeta:
-      '@types/react':
-        optional: true
-
   use-sidecar@1.1.2:
     resolution: {integrity: sha512-epTbsLuzZ7lPClpz2TyryBfztm7m+28DlEv2ZCQ3MDr5ssiwyOwGH/e5F9CkfWjJ1t4clvI58yF822/GUkjjhw==}
     engines: {node: '>=10'}
@@ -3572,9 +3534,6 @@ packages:
         optional: true
       utf-8-validate:
         optional: true
-
-  xstate@5.19.1:
-    resolution: {integrity: sha512-vFt3q9EBnO/qTTf9AG/5GosGwdDEftw5VOd3ytfSwUQRvkj6oJkxeBQaCqJUANjHrkK341jMkEZP0zeqrx2tww==}
 
   yallist@4.0.0:
     resolution: {integrity: sha512-3wdGidZyq5PB084XLES5TpOSRA3wjXAlIWMhum2kRcv/41Sn2emQ0dycQW4uZXLejwKvg6EsvbdlVL+FYEct7A==}
@@ -5195,20 +5154,6 @@ snapshots:
 
   '@ungap/structured-clone@1.2.0': {}
 
-  '@xstate/react@5.0.1(@types/react@18.3.10)(react@18.2.0)(xstate@5.19.1)':
-    dependencies:
-      react: 18.2.0
-      use-isomorphic-layout-effect: 1.2.0(@types/react@18.3.10)(react@18.2.0)
-      use-sync-external-store: 1.2.2(react@18.2.0)
-    optionalDependencies:
-      xstate: 5.19.1
-    transitivePeerDependencies:
-      - '@types/react'
-
-  '@xstate/store@2.6.2(react@18.2.0)':
-    optionalDependencies:
-      react: 18.2.0
-
   abbrev@1.1.1: {}
 
   abbrev@2.0.0: {}
@@ -6608,12 +6553,6 @@ snapshots:
     optionalDependencies:
       '@types/react': 18.3.10
 
-  use-isomorphic-layout-effect@1.2.0(@types/react@18.3.10)(react@18.2.0):
-    dependencies:
-      react: 18.2.0
-    optionalDependencies:
-      '@types/react': 18.3.10
-
   use-sidecar@1.1.2(@types/react@18.3.10)(react@18.2.0):
     dependencies:
       detect-node-es: 1.1.0
@@ -6664,8 +6603,6 @@ snapshots:
   wrappy@1.0.2: {}
 
   ws@8.18.0: {}
-
-  xstate@5.19.1: {}
 
   yallist@4.0.0: {}
 

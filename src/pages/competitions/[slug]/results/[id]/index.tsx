@@ -1,19 +1,24 @@
 import { ColumnDef } from "@tanstack/react-table";
+import { createServerSideHelpers } from "@trpc/react-query/server";
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
 import Layout from "~/components/layout";
-import { RouterOutputs } from "~/utils/api";
+import { appRouter } from "~/server/api/root";
+import { getServerAuthSession } from "~/server/auth";
+import { RouterInputs, RouterOutputs, api } from "~/utils/api";
 import { displayTime } from "~/utils/timeUtils";
+import superjson from "superjson";
+import { db } from "~/server/db";
+import { useEffect, useState } from "react";
+import DataTable from "~/components/data-table/data-table";
 
 type Result = RouterOutputs["result"]["findByRound"][number];
+type Filter = RouterInputs["result"]["findByRound"];
 
 const columns: ColumnDef<Result>[] = [
   {
     accessorKey: "order",
     header: "№",
     cell: ({ row }) => row.index + 1,
-  },
-  {
-    accessorKey: "competitor.verifiedId",
-    header: "ID",
   },
   {
     accessorKey: "name",
@@ -58,10 +63,66 @@ const columns: ColumnDef<Result>[] = [
   },
 ];
 
-export default function Page() {
+export default function Page({
+  slug,
+  id,
+}: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const { data: competition } = api.competition.getBySlug.useQuery(slug ?? "", {
+    enabled: !!slug,
+  });
+
+  const { data: round } = api.round.getAll.useQuery(
+    {
+      competitionId: competition?.id ?? 0,
+      id: id,
+    },
+    {
+      enabled: !!competition && !!id,
+    },
+  );
+  const [filter, setFilter] = useState<Filter>({
+    roundId: id,
+    isSolved: true,
+  });
+
+  useEffect(() => {
+    setFilter((prev) => ({ ...prev, roundId: id }));
+  }, [id, setFilter]);
+
+  const { data } = api.result.findByRound.useQuery(filter, {
+    queryKey: ["result.findByRound", filter],
+    enabled: !!filter.roundId,
+  });
+
   return (
     <Layout>
-      <h1></h1>
+      <h1>
+        Үзүүлэлт ({round?.[0]?.cubeType.name} : {round?.[0]?.name})
+      </h1>
+      <DataTable columns={columns} data={data ?? []} />
     </Layout>
   );
+}
+
+export async function getServerSideProps(
+  context: GetServerSidePropsContext<{ slug: string; id: string }>,
+) {
+  const helpers = createServerSideHelpers({
+    router: appRouter,
+    ctx: {
+      session: await getServerAuthSession(context),
+      db: db,
+    },
+    transformer: superjson,
+  });
+
+  await helpers.competition.getBySlug.prefetch(context.params?.slug as string);
+
+  return {
+    props: {
+      trpcState: helpers.dehydrate(),
+      slug: context.params?.slug,
+      id: Number(context.params?.id) ?? 0,
+    },
+  };
 }
