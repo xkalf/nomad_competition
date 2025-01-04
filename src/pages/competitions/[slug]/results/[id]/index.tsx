@@ -10,6 +10,13 @@ import superjson from "superjson";
 import { db } from "~/server/db";
 import { useEffect, useState } from "react";
 import DataTable from "~/components/data-table/data-table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+} from "~/components/ui/select";
+import { SelectTrigger } from "@radix-ui/react-select";
 
 type Result = RouterOutputs["result"]["findByRound"][number];
 type Filter = RouterInputs["result"]["findByRound"];
@@ -94,11 +101,91 @@ export default function Page({
     enabled: !!filter.roundId,
   });
 
+  const { data: ageGroups } = api.ageGroup.getAll.useQuery(
+    {
+      competitionId: competition?.id ?? 0,
+      cubeTypeId: round?.[0]?.cubeTypeId ?? 0,
+    },
+    {
+      enabled: !!competition && !!round,
+    },
+  );
+  const { data: schools } = api.competitor.getSchools.useQuery();
+
   return (
     <Layout>
-      <h1>
-        Үзүүлэлт ({round?.[0]?.cubeType.name} : {round?.[0]?.name})
-      </h1>
+      <div className="flex justify-between">
+        <h1>
+          Үзүүлэлт ({round?.[0]?.cubeType.name} : {round?.[0]?.name})
+        </h1>
+        <div className="flex gap-4">
+          <Select
+            onValueChange={(value) =>
+              setFilter((curr) => ({
+                ...curr,
+                ageGroupId: Number(value),
+              }))
+            }
+            value={filter.ageGroupId?.toString() ?? ""}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Насны ангилал" />
+            </SelectTrigger>
+            <SelectContent>
+              {ageGroups?.map((ageGroup) => (
+                <SelectItem
+                  key={"ageGroup" + ageGroup.id}
+                  value={ageGroup.id.toString()}
+                >
+                  {ageGroup.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={filter.province}
+            onValueChange={(value) => {
+              setFilter((curr) => ({ ...curr, province: value }));
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Хот/Аймаг сонгох" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from(
+                new Set(schools?.map((school) => school.province)),
+              ).map((province) => (
+                <SelectItem key={province} value={province}>
+                  {province}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={filter.district}
+            onValueChange={(value) => {
+              setFilter((curr) => ({ ...curr, district: value }));
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Дүүрэг/Сум сонгох" />
+            </SelectTrigger>
+            <SelectContent>
+              {Array.from(
+                new Set(
+                  schools
+                    ?.filter((school) => school.province === filter.province)
+                    .map((school) => school.district),
+                ),
+              ).map((district) => (
+                <SelectItem key={district} value={district}>
+                  {district}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
       <DataTable columns={columns} data={data ?? []} />
     </Layout>
   );
