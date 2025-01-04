@@ -1,21 +1,21 @@
-import Head from "next/head";
-import { api, RouterOutputs } from "~/utils/api";
-import { useGetCompetitionSlug } from "~/utils/hooks";
-import { useRoundsStore } from "~/utils/store";
+import Head from 'next/head'
+import { api, RouterOutputs } from '~/utils/api'
+import { useGetCompetitionSlug } from '~/utils/hooks'
+import { useRoundsStore } from '~/utils/store'
 
 interface Props {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
-type Rounds = RouterOutputs["round"]["getAll"];
+type Rounds = RouterOutputs['round']['getAll']
 
 export default function CompetitionLayout({ children }: Props) {
-  const slug = useGetCompetitionSlug();
+  const slug = useGetCompetitionSlug()
   const { data: competition } = api.competition.getBySlug.useQuery(slug, {
     enabled: !!slug,
-  });
+  })
 
-  const setRounds = useRoundsStore((state) => state.setRounds);
+  const setRounds = useRoundsStore((state) => state.setRounds)
 
   api.round.getAll.useQuery(
     {
@@ -26,21 +26,23 @@ export default function CompetitionLayout({ children }: Props) {
       onSuccess: (data) => {
         const groupdByCubeTypeName = data.reduce(
           (a, b) => {
-            if (!a[b.cubeType.name]) {
-              a[b.cubeType.name] = [];
+            if (b.cubeType.image && !a[b.cubeType.image]) {
+              a[b.cubeType.image] = []
             }
 
-            a[b.cubeType.name]?.push(b);
+            if (b.cubeType.image) {
+              a[b.cubeType.image]?.push(b)
+            }
 
-            return a;
+            return a
           },
           {} as Record<string, Rounds>,
-        );
+        )
 
-        setRounds(groupdByCubeTypeName);
+        setRounds(groupdByCubeTypeName)
       },
     },
-  );
+  )
 
   return (
     <>
@@ -49,5 +51,5 @@ export default function CompetitionLayout({ children }: Props) {
       </Head>
       {children}
     </>
-  );
+  )
 }

@@ -1,17 +1,17 @@
-import { ChevronRight } from "lucide-react";
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useRouter } from "next/router";
-import React, { PropsWithChildren } from "react";
-import { api } from "~/utils/api";
-import { useRoundsStore } from "~/utils/store";
-import LoginDialog from "../login-dialog";
-import RegisterDialog from "../register-dialog";
+import { ChevronRight } from 'lucide-react'
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
+import { useRouter } from 'next/router'
+import React, { PropsWithChildren } from 'react'
+import { api } from '~/utils/api'
+import { useRoundsStore } from '~/utils/store'
+import LoginDialog from '../login-dialog'
+import RegisterDialog from '../register-dialog'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "../ui/collapsible";
+} from '../ui/collapsible'
 import {
   Sidebar,
   SidebarContent,
@@ -26,20 +26,24 @@ import {
   SidebarMenuSubItem,
   SidebarProvider,
   SidebarTrigger,
-} from "../ui/sidebar";
-import { NavUser } from "./nav-user";
-import { sidebarItems } from "./sidebar-items";
+} from '../ui/sidebar'
+import { NavUser } from './nav-user'
+import { sidebarItems } from './sidebar-items'
+import Image from 'next/image'
+import { getImageUrl } from '~/utils/supabase'
 
 export function DynamicSidebar({ children }: PropsWithChildren) {
-  const router = useRouter();
-  const slug = router.query.slug?.toString();
-  const session = useSession();
+  const router = useRouter()
+  const slug = router.query.slug?.toString()
+  const session = useSession()
 
-  const { data: competition } = api.competition.getBySlug.useQuery(slug ?? "", {
+  const { data: competition } = api.competition.getBySlug.useQuery(slug ?? '', {
     enabled: !!slug,
-  });
+  })
 
-  const rounds = useRoundsStore((state) => state.rounds);
+  const rounds = useRoundsStore((state) => state.rounds)
+
+  console.log(router.pathname)
 
   return (
     <SidebarProvider>
@@ -48,13 +52,15 @@ export function DynamicSidebar({ children }: PropsWithChildren) {
           {Object.entries(sidebarItems)
             .filter(
               ([key]) =>
-                key === "/" ||
-                router.pathname.includes(key.split(" ")[0] ?? ""),
+                key === '/' ||
+                router.pathname.includes(key.split(' ')[0] ?? ''),
             )
             .map(([key, item]) => {
               return (
                 <SidebarGroup key={key}>
-                  <SidebarGroupLabel>{key.split(" ")[1]}</SidebarGroupLabel>
+                  <SidebarGroupLabel>
+                    {key.split(' ')[1]} {key.split(' ')[2]}
+                  </SidebarGroupLabel>
                   <SidebarGroupContent>
                     <SidebarMenu>
                       {item
@@ -68,14 +74,19 @@ export function DynamicSidebar({ children }: PropsWithChildren) {
                             return Object.entries(rounds).map(
                               ([key, round]) => (
                                 <Collapsible
-                                  key={"sidebar-cubeType-" + key}
+                                  key={'sidebar-cubeType-' + key}
                                   asChild
                                   className="group/collapsible"
                                 >
                                   <SidebarMenuItem>
                                     <CollapsibleTrigger asChild>
                                       <SidebarMenuButton tooltip={key}>
-                                        <span>{key}</span>
+                                        <Image
+                                          src={getImageUrl(key)}
+                                          alt={'cubeType'}
+                                          width={20}
+                                          height={20}
+                                        />
                                         <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                                       </SidebarMenuButton>
                                     </CollapsibleTrigger>
@@ -83,11 +94,16 @@ export function DynamicSidebar({ children }: PropsWithChildren) {
                                       <SidebarMenuSub>
                                         {round.map((r) => (
                                           <SidebarMenuSubItem
-                                            key={"sidebar-round-" + r.id}
+                                            key={'sidebar-round-' + r.id}
                                           >
                                             <SidebarMenuButton asChild>
                                               <Link
-                                                href={`/competitions/${slug}/results/${r.id}`}
+                                                href={{
+                                                  pathname: slug
+                                                    ? `/competitions/${slug}/results/${r.id}`
+                                                    : `/competitions/create/results/${r.id}`,
+                                                  query: router.query,
+                                                }}
                                               >
                                                 {r.name}
                                               </Link>
@@ -99,30 +115,32 @@ export function DynamicSidebar({ children }: PropsWithChildren) {
                                   </SidebarMenuItem>
                                 </Collapsible>
                               ),
-                            );
+                            )
                           }
 
                           return (
                             <SidebarMenuItem key={i.title}>
                               <SidebarMenuButton asChild>
                                 <Link
-                                  href={
-                                    typeof i.href === "function"
-                                      ? i.href(slug ?? "")
-                                      : i.href
-                                  }
+                                  href={{
+                                    pathname:
+                                      typeof i.href === 'function'
+                                        ? '/'
+                                        : i.href,
+                                    query: router.query,
+                                  }}
                                 >
                                   {i.icon && <i.icon />}
                                   {i.title}
                                 </Link>
                               </SidebarMenuButton>
                             </SidebarMenuItem>
-                          );
+                          )
                         })}
                     </SidebarMenu>
                   </SidebarGroupContent>
                 </SidebarGroup>
-              );
+              )
             })}
         </SidebarContent>
         <SidebarFooter>
@@ -139,5 +157,5 @@ export function DynamicSidebar({ children }: PropsWithChildren) {
       <SidebarTrigger />
       <div className="space-y-4 p-4 w-full">{children}</div>
     </SidebarProvider>
-  );
+  )
 }
