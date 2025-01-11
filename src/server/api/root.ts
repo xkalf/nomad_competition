@@ -10,6 +10,7 @@ import { feeRouter } from './routers/fees'
 import { roundsRouter } from './routers/rounds'
 import { groupRouter } from './routers/groups'
 import { resultsRouter } from './routers/results'
+import { personsRouter } from './routers/persons'
 
 /**
  * This is the primary router for your server.
@@ -28,6 +29,7 @@ export const appRouter = createTRPCRouter({
   round: roundsRouter,
   group: groupRouter,
   result: resultsRouter,
+  persons: personsRouter,
 })
 
 // export type definition of API

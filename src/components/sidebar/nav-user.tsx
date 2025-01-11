@@ -2,6 +2,7 @@
 
 import { ChevronsUpDown, LogOut } from 'lucide-react'
 import { signOut } from 'next-auth/react'
+import Link from 'next/link'
 
 import { Avatar, AvatarFallback } from '~/components/ui/avatar'
 import {
@@ -73,6 +74,10 @@ export function NavUser({
                 </div>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link href={'/profile'}>Профайл</Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut()}>
               <LogOut />

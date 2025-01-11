@@ -12,9 +12,11 @@ import { api } from '~/utils/api'
 import { getImageUrl } from '~/utils/supabase'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Medal } from 'lucide-react'
+import { displayTime } from '~/utils/timeUtils'
 
 export default function ProfilePage() {
   const { data: user } = api.auth.me.useQuery()
+  const { data: personalRecords } = api.persons.getPersonalRecords.useQuery()
 
   return (
     <div className="min-h-screen bg-background">
@@ -45,40 +47,26 @@ export default function ProfilePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Төрөл</TableHead>
-                  <TableHead>NR</TableHead>
-                  <TableHead>CR</TableHead>
-                  <TableHead>WR</TableHead>
                   <TableHead>Синглэ</TableHead>
                   <TableHead>Дундаж</TableHead>
-                  <TableHead>WR</TableHead>
-                  <TableHead>CR</TableHead>
-                  <TableHead>NR</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                <TableRow>
-                  <TableCell>3x3x3 Cube</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>3.22</TableCell>
-                  <TableCell>3.72</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>1</TableCell>
-                </TableRow>
-                <TableRow>
-                  <TableCell>2x2x2 Cube</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>0.32</TableCell>
-                  <TableCell>0.49</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>1</TableCell>
-                  <TableCell>1</TableCell>
-                </TableRow>
-                {/* Add more rows as needed */}
+                {personalRecords?.map((record) => (
+                  <TableRow key={'pb' + record.cubeTypeId}>
+                    <TableCell className="flex gap-4 items-center">
+                      <Image
+                        src={getImageUrl(record.cubeType?.image)}
+                        alt={record.cubeType?.name ?? ''}
+                        width={30}
+                        height={30}
+                      />
+                      {record.cubeType?.name}
+                    </TableCell>
+                    <TableCell>{displayTime(record.best)}</TableCell>
+                    <TableCell>{displayTime(record.average)}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </CardContent>
