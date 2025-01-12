@@ -13,10 +13,28 @@ import { getImageUrl } from '~/utils/supabase'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '~/components/ui/tabs'
 import { Medal } from 'lucide-react'
 import { displayTime } from '~/utils/timeUtils'
+import React from 'react'
+import groupBy from 'lodash.groupby'
 
 export default function ProfilePage() {
   const { data: user } = api.auth.me.useQuery()
-  const { data: personalRecords } = api.persons.getPersonalRecords.useQuery()
+  const { data: personalRecords } = api.persons.getPersonalRecords.useQuery(
+    {
+      userId: user?.id ?? '',
+    },
+    {
+      enabled: !!user?.id,
+    },
+  )
+  const { data: competitionResults } =
+    api.persons.getCompetitionResults.useQuery(
+      {
+        userId: user?.id ?? '',
+      },
+      {
+        enabled: !!user?.id,
+      },
+    )
 
   return (
     <div className="min-h-screen bg-background">
@@ -145,14 +163,67 @@ export default function ProfilePage() {
                       <TableHead>Байр</TableHead>
                       <TableHead>Синглэ</TableHead>
                       <TableHead>Дундаж</TableHead>
-                      <TableHead>Эвлүүлэлт</TableHead>
+                      <TableHead className="text-center" colSpan={5}>
+                        Эвлүүлэлт
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    <TableRow>
-                      <TableCell>3x3x3 Cube</TableCell>
-                      <TableCell>7.42</TableCell>
-                    </TableRow>
+                    {Object.entries(competitionResults ?? {}).map(
+                      ([key, results]) => (
+                        <React.Fragment key={'competitionResults' + key}>
+                          <TableRow>
+                            <TableCell className="flex gap-4 items-center">
+                              <Image
+                                src={getImageUrl(key.split(':')[1])}
+                                alt={key.split(':')[0] ?? ''}
+                                width={30}
+                                height={30}
+                              />
+                              {key.split(':')[0]}
+                            </TableCell>
+                          </TableRow>
+                          {Object.entries(
+                            groupBy(results, (r) => r.competition?.name),
+                          ).map(([key, results], index) => (
+                            <React.Fragment
+                              key={'competitionResultsRound' + key}
+                            >
+                              {results.map((result) => (
+                                <TableRow
+                                  key={'competitionResultsResult' + result.id}
+                                >
+                                  <TableCell>{index === 0 && key}</TableCell>
+                                  <TableCell>{result.round?.name}</TableCell>
+                                  <TableCell>{result.place}</TableCell>
+                                  <TableCell>
+                                    {displayTime(result.best)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {displayTime(result.average)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {displayTime(result.solve1)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {displayTime(result.solve2)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {displayTime(result.solve3)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {displayTime(result.solve4)}
+                                  </TableCell>
+                                  <TableCell>
+                                    {displayTime(result.solve5)}
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </React.Fragment>
+                          ))}
+                        </React.Fragment>
+                      ),
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -172,12 +243,7 @@ export default function ProfilePage() {
                       <TableHead>Эвлүүлэлт</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>3x3x3 Cube</TableCell>
-                      <TableCell>7.42</TableCell>
-                    </TableRow>
-                  </TableBody>
+                  <TableBody></TableBody>
                 </Table>
               </CardContent>
             </Card>
