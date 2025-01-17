@@ -1,101 +1,101 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ColumnDef } from "@tanstack/react-table";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import CreateButtons from "~/components/create-buttons";
-import CreateLinks from "~/components/create-links";
-import DataTable from "~/components/data-table/data-table";
-import Layout from "~/components/layout";
-import { Button } from "~/components/ui/button";
-import { Checkbox } from "~/components/ui/checkbox";
-import { Form, FormFieldCustom } from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { Label } from "~/components/ui/label";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { ColumnDef } from '@tanstack/react-table'
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
+import { useRouter } from 'next/router'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import CreateButtons from '~/components/create-buttons'
+import CreateLinks from '~/components/create-links'
+import DataTable from '~/components/data-table/data-table'
+import Layout from '~/components/layout'
+import { Button } from '~/components/ui/button'
+import { Checkbox } from '~/components/ui/checkbox'
+import { Form, FormFieldCustom } from '~/components/ui/form'
+import { Input } from '~/components/ui/input'
+import { Label } from '~/components/ui/label'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "~/components/ui/select";
-import { toast } from "~/components/ui/use-toast";
-import { api, RouterInputs, RouterOutputs } from "~/utils/api";
-import { useGetCompetitionId } from "~/utils/hooks";
-import { displayTime, formatCustomTime } from "~/utils/timeUtils";
-import { createResultSchema } from "~/utils/zod";
+} from '~/components/ui/select'
+import { toast } from '~/components/ui/use-toast'
+import { api, RouterInputs, RouterOutputs } from '~/utils/api'
+import { useGetCompetitionId } from '~/utils/hooks'
+import { displayTime, formatCustomTime } from '~/utils/timeUtils'
+import { createResultSchema } from '~/utils/zod'
 
-type Result = RouterOutputs["result"]["findByRound"][number];
-type Filter = RouterInputs["result"]["findByRound"];
+type Result = RouterOutputs['result']['findByRound'][number]
+type Filter = RouterInputs['result']['findByRound']
 
 const columns: ColumnDef<Result>[] = [
   {
-    accessorKey: "order",
-    header: "№",
+    accessorKey: 'order',
+    header: '№',
     cell: ({ row }) => row.index + 1,
   },
   {
-    accessorKey: "competitor.verifiedId",
-    header: "ID",
+    accessorKey: 'competitor.verifiedId',
+    header: 'ID',
   },
   {
-    accessorKey: "name",
-    header: "Нэр",
+    accessorKey: 'name',
+    header: 'Нэр',
     cell: ({ row }) =>
       `${row.original.competitor?.user.lastname?.[0]}.${row.original.competitor?.user.firstname}`,
   },
   {
-    accessorKey: "average",
-    header: "Дундаж",
+    accessorKey: 'average',
+    header: 'Дундаж',
     cell: ({ row }) => displayTime(row.original.average),
   },
   {
-    accessorKey: "best",
-    header: "Синглэ",
+    accessorKey: 'best',
+    header: 'Синглэ',
     cell: ({ row }) => displayTime(row.original.best),
   },
   {
-    accessorKey: "solve1",
-    header: "Эвлүүлэлт 1",
+    accessorKey: 'solve1',
+    header: 'Эвлүүлэлт 1',
     cell: ({ row }) => displayTime(row.original.solve1),
   },
   {
-    accessorKey: "solve2",
-    header: "Эвлүүлэлт 2",
+    accessorKey: 'solve2',
+    header: 'Эвлүүлэлт 2',
     cell: ({ row }) => displayTime(row.original.solve2),
   },
   {
-    accessorKey: "solve3",
-    header: "Эвлүүлэлт 3",
+    accessorKey: 'solve3',
+    header: 'Эвлүүлэлт 3',
     cell: ({ row }) => displayTime(row.original.solve3),
   },
   {
-    accessorKey: "solve4",
-    header: "Эвлүүлэлт 4",
+    accessorKey: 'solve4',
+    header: 'Эвлүүлэлт 4',
     cell: ({ row }) => displayTime(row.original.solve4),
   },
   {
-    accessorKey: "solve5",
-    header: "Эвлүүлэлт 5",
+    accessorKey: 'solve5',
+    header: 'Эвлүүлэлт 5',
     cell: ({ row }) => displayTime(row.original.solve5 ?? 0),
   },
-];
+]
 
 export function getServerSideProps(context: GetServerSidePropsContext) {
   return {
     props: {
       id: Number(context.query.id),
     },
-  };
+  }
 }
 
 export default function ResultsPage({
   id,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const router = useRouter();
-  const competitionId = useGetCompetitionId();
+  const router = useRouter()
+  const competitionId = useGetCompetitionId()
 
   const form = useForm<z.infer<typeof createResultSchema>>({
     resolver: zodResolver(createResultSchema.omit({ roundId: true })),
@@ -108,64 +108,64 @@ export default function ResultsPage({
       solve4: undefined,
       solve5: undefined,
     },
-  });
+  })
 
-  const utils = api.useUtils();
+  const utils = api.useUtils()
   const [filter, setFilter] = useState<Filter>({
     roundId: id,
-  });
+  })
 
   useEffect(() => {
     if (router.query.id) {
-      setFilter((prev) => ({ ...prev, roundId: Number(router.query.id) }));
+      setFilter((prev) => ({ ...prev, roundId: Number(router.query.id) }))
     }
-  }, [router.query.id]);
+  }, [router.query.id])
 
   useEffect(() => {
     setFilter((curr) => ({
       ...curr,
-      verifiedId: isNaN(form.watch("verifiedId"))
+      verifiedId: isNaN(form.watch('verifiedId'))
         ? undefined
-        : form.watch("verifiedId"),
-    }));
-  }, [form.watch("verifiedId")]);
+        : form.watch('verifiedId'),
+    }))
+  }, [form.watch('verifiedId')])
 
   const { mutate, isLoading } = api.result.create.useMutation({
     onSuccess: () => {
-      utils.result.findByRound.invalidate();
+      utils.result.findByRound.invalidate()
       toast({
-        title: "Амжилттай хадгаллаа.",
-      });
+        title: 'Амжилттай хадгаллаа.',
+      })
     },
     onError: (err) => {
       toast({
-        title: "Алдаа гарлаа",
+        title: 'Алдаа гарлаа',
         description: err.message,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     },
-  });
+  })
   const { mutate: generate, isLoading: generateLoading } =
     api.result.generate.useMutation({
       onSuccess: () => {
-        utils.result.findByRound.invalidate();
+        utils.result.findByRound.invalidate()
         toast({
-          title: "Амжилттай хадгаллаа.",
-        });
+          title: 'Амжилттай хадгаллаа.',
+        })
       },
       onError: (err) => {
         toast({
-          title: "Алдаа гарлаа",
+          title: 'Алдаа гарлаа',
           description: err.message,
-          variant: "destructive",
-        });
+          variant: 'destructive',
+        })
       },
-    });
+    })
 
   const { data } = api.result.findByRound.useQuery(filter, {
-    queryKey: ["result.findByRound", filter],
+    queryKey: ['result.findByRound', filter],
     enabled: !!filter.roundId,
-  });
+  })
   const { data: rounds } = api.round.getAll.useQuery(
     {
       competitionId,
@@ -174,7 +174,7 @@ export default function ResultsPage({
     {
       enabled: !!competitionId && !!filter.roundId,
     },
-  );
+  )
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(
     {
       competitionId: competitionId,
@@ -183,8 +183,21 @@ export default function ResultsPage({
     {
       enabled: !!competitionId && !!rounds?.[0]?.cubeTypeId,
     },
-  );
-  const { data: schools } = api.competitor.getSchools.useQuery();
+  )
+
+  const { data: provinces } = api.competitor.getProvinces.useQuery()
+  const { data: districts } = api.competitor.getDistricts.useQuery(
+    filter.provinceId ?? '',
+    {
+      enabled: !!filter.provinceId,
+    },
+  )
+  const { data: schools } = api.competitor.getSchools.useQuery(
+    filter.districtId ?? '',
+    {
+      enabled: !!filter.districtId,
+    },
+  )
   const { data: round } = api.round.getAll.useQuery(
     {
       competitionId: competitionId,
@@ -193,14 +206,14 @@ export default function ResultsPage({
     {
       enabled: !!competitionId && !!filter.roundId,
     },
-  );
+  )
 
   const onSubmit = (input: z.infer<typeof createResultSchema>) => {
     mutate({
       ...input,
       roundId: filter.roundId,
-    });
-  };
+    })
+  }
 
   return (
     <Layout>
@@ -240,7 +253,7 @@ export default function ResultsPage({
                 <div className="flex gap-4 items-center">
                   <Input
                     onChange={(e) => {
-                      field.onChange(formatCustomTime(e.target.value));
+                      field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
                   <span>{displayTime(field.value)}</span>
@@ -255,7 +268,7 @@ export default function ResultsPage({
                 <div className="flex gap-4 items-center">
                   <Input
                     onChange={(e) => {
-                      field.onChange(formatCustomTime(e.target.value));
+                      field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
                   <span>{displayTime(field.value)}</span>
@@ -270,7 +283,7 @@ export default function ResultsPage({
                 <div className="flex gap-4 items-center">
                   <Input
                     onChange={(e) => {
-                      field.onChange(formatCustomTime(e.target.value));
+                      field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
                   <span>{displayTime(field.value)}</span>
@@ -285,7 +298,7 @@ export default function ResultsPage({
                 <div className="flex gap-4 items-center">
                   <Input
                     onChange={(e) => {
-                      field.onChange(formatCustomTime(e.target.value));
+                      field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
                   <span>{displayTime(field.value)}</span>
@@ -300,7 +313,7 @@ export default function ResultsPage({
                 <div className="flex gap-4 items-center">
                   <Input
                     onChange={(e) => {
-                      field.onChange(formatCustomTime(e.target.value));
+                      field.onChange(formatCustomTime(e.target.value))
                     }}
                   />
                   <span>{displayTime(field.value)}</span>
@@ -322,7 +335,7 @@ export default function ResultsPage({
                   ageGroupId: Number(value),
                 }))
               }
-              value={filter.ageGroupId?.toString() ?? ""}
+              value={filter.ageGroupId?.toString() ?? ''}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Насны ангилал" />
@@ -336,26 +349,24 @@ export default function ResultsPage({
               </SelectContent>
             </Select>
             <Select
-              value={filter.province}
+              value={filter.provinceId}
               onValueChange={(value) => {
-                setFilter((curr) => ({ ...curr, province: value }));
+                setFilter((curr) => ({ ...curr, province: value }))
               }}
             >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Хот/Аймаг сонгох" />
               </SelectTrigger>
               <SelectContent>
-                {Array.from(new Set(schools?.map((i) => i.province))).map(
-                  (i) => (
-                    <SelectItem key={i} value={i}>
-                      {i}
-                    </SelectItem>
-                  ),
-                )}
+                {provinces?.map((i) => (
+                  <SelectItem key={i.id} value={i.id}>
+                    {i.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Select
-              value={filter.district}
+              value={filter.districtId}
               onValueChange={(value) =>
                 setFilter((curr) => ({ ...curr, district: value }))
               }
@@ -364,15 +375,9 @@ export default function ResultsPage({
                 <SelectValue placeholder="Дүүрэг/Сум сонгох" />
               </SelectTrigger>
               <SelectContent>
-                {Array.from(
-                  new Set(
-                    schools
-                      ?.filter((i) => i.province === filter.province)
-                      .map((i) => i.district),
-                  ),
-                ).map((i) => (
-                  <SelectItem key={i} value={i}>
-                    {i}
+                {districts?.map((i) => (
+                  <SelectItem key={i.id} value={i.id}>
+                    {i.name}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -387,13 +392,11 @@ export default function ResultsPage({
                 <SelectValue placeholder="Сургууль сонгох" />
               </SelectTrigger>
               <SelectContent>
-                {schools
-                  ?.filter((i) => i.district === filter.district)
-                  .map((i) => (
-                    <SelectItem key={i.school} value={i.school}>
-                      {i.school}
-                    </SelectItem>
-                  ))}
+                {schools?.map((i) => (
+                  <SelectItem key={i.school} value={i.school}>
+                    {i.school}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <div className="flex items-center gap-1">
@@ -411,5 +414,5 @@ export default function ResultsPage({
         </div>
       </div>
     </Layout>
-  );
+  )
 }

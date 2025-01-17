@@ -239,6 +239,48 @@
       "when": 1734007815446,
       "tag": "0033_cool_randall_flagg",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1737090841060,
+      "tag": "0034_marvelous_ulik",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1737091630699,
+      "tag": "0035_remarkable_kat_farrell",
+      "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1737091813997,
+      "tag": "0036_many_fat_cobra",
+      "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1737091982907,
+      "tag": "0037_special_secret_warriors",
+      "breakpoints": true
+    },
+    {
+      "idx": 38,
+      "version": "7",
+      "when": 1737092373268,
+      "tag": "0038_wealthy_kate_bishop",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1737096617341,
+      "tag": "0039_curious_iron_man",
+      "breakpoints": true
     }
   ]
 }

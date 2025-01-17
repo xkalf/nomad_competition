@@ -12,4 +12,5 @@ export default defineConfig({
   tablesFilter: ['nomad_competition_*'],
   verbose: true,
   strict: true,
+  casing: 'snake_case',
 })

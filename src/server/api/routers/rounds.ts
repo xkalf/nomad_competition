@@ -139,4 +139,9 @@ export const roundsRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       await ctx.db.delete(rounds).where(eq(rounds.id, input))
     }),
+  lock: adminProcedure
+    .input(z.number().int().positive())
+    .mutation(async ({ ctx, input }) => {
+      console.log('🔒 Locking round', input)
+    }),
 })

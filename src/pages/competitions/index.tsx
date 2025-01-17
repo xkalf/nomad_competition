@@ -1,8 +1,8 @@
-import { useSession } from "next-auth/react";
-import Link from "next/link";
-import { useState } from "react";
-import Layout from "~/components/layout";
-import { Button } from "~/components/ui/button";
+import { useSession } from 'next-auth/react'
+import Link from 'next/link'
+import { useState } from 'react'
+import Layout from '~/components/layout'
+import { Button } from '~/components/ui/button'
 import {
   Table,
   TableBody,
@@ -10,36 +10,36 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { api } from "~/utils/api";
-import { mnFormat } from "~/utils/date";
-import { toast } from "~/components/ui/use-toast";
-import DeleteButton from "~/components/delete-button";
+} from '~/components/ui/table'
+import { api } from '~/utils/api'
+import { mnFormat } from '~/utils/date'
+import { toast } from '~/components/ui/use-toast'
+import DeleteButton from '~/components/delete-button'
 
 export default function CompetitionsPage() {
-  const utils = api.useUtils();
-  const [isActive, setIsActive] = useState(true);
-  const { data: session } = useSession();
+  const utils = api.useUtils()
+  const [isActive, setIsActive] = useState(true)
+  const { data: session } = useSession()
 
-  const { data } = api.competition.getAll.useQuery(isActive);
+  const { data } = api.competition.getAll.useQuery(isActive)
   const { mutate: remove } = api.competition.delete.useMutation({
     onSuccess: () => {
-      utils.competition.getAll.invalidate();
+      utils.competition.getAll.invalidate()
       toast({
-        title: "Амжилттай устгалаа.",
-      });
+        title: 'Амжилттай устгалаа.',
+      })
     },
     onError: (error) => {
       toast({
-        title: "Алдаа гарлаа",
+        title: 'Алдаа гарлаа',
         description: error.message,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     },
-  });
+  })
 
-  const handleActive = (i: boolean) => () => setIsActive(i);
-  const handleRemove = (i: number) => () => remove(i);
+  const handleActive = (i: boolean) => () => setIsActive(i)
+  const handleRemove = (i: number) => () => remove(i)
 
   return (
     <Layout>
@@ -53,14 +53,14 @@ export default function CompetitionsPage() {
       <div className="grid grid-cols-2 space-x-4">
         <Button
           className="w-full"
-          variant={isActive ? "default" : "secondary"}
+          variant={isActive ? 'default' : 'secondary'}
           onClick={handleActive(true)}
         >
           Идэвхитэй
         </Button>
         <Button
           className="w-full"
-          variant={!isActive ? "default" : "secondary"}
+          variant={!isActive ? 'default' : 'secondary'}
           onClick={handleActive(false)}
         >
           Түүх
@@ -108,5 +108,5 @@ export default function CompetitionsPage() {
         </TableBody>
       </Table>
     </Layout>
-  );
+  )
 }

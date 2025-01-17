@@ -1,4 +1,4 @@
-import { relations, SQL, sql } from 'drizzle-orm'
+import { relations } from 'drizzle-orm'
 import {
   boolean,
   date,
@@ -497,9 +497,29 @@ export const resultsRelation = relations(results, ({ one }) => ({
   }),
 }))
 
-export const schools = pgTable('provinces', (t) => ({
+export const provinces = pgTable('provinces', (t) => ({
+  id: t.uuid().primaryKey().defaultRandom(),
+  name: t.varchar().notNull(),
+}))
+
+export const districts = pgTable('districts', (t) => ({
+  id: t.uuid().primaryKey().defaultRandom(),
+  name: t.varchar().notNull(),
+  provinceId: t
+    .uuid()
+    .references(() => provinces.id)
+    .notNull(),
+}))
+
+export const schools = pgTable('schools', (t) => ({
   id: t.serial().primaryKey(),
   school: t.varchar().notNull(),
-  province: t.varchar().notNull(),
-  district: t.varchar().notNull(),
+  provinceId: t
+    .uuid()
+    .references(() => provinces.id)
+    .notNull(),
+  districtId: t
+    .uuid()
+    .references(() => districts.id)
+    .notNull(),
 }))

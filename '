@@ -123,36 +123,21 @@ export const competitorRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       return await getTotalAmount(input, ctx.db)
     }),
-  getProvinces: protectedProcedure.query(async ({ ctx }) => {
-    return await ctx.db
+  getSchools: protectedProcedure.query(async ({ ctx }) => {
+    const res = await ctx.db
       .select({
-        ...getTableColumns(provinces),
+        ...getTableColumns(schools),
+        province: provinces.name,
+        district: districts.name,
       })
-      .from(provinces)
+      .from(schools)
       .orderBy(
-        sql`case when ${provinces.name} = 'Улаанбаатар' then 0 else 1 end`,
+        sql`case when province = 'Улаанбаатар' then 0 else 1 end`,
         provinces.name,
+        districts.name,
+        schools.school,
       )
-  }),
-  getDistricts: protectedProcedure
-    .input(z.string().uuid())
-    .query(async ({ ctx, input }) => {
-      return await ctx.db
-        .select()
-        .from(districts)
-        .where(eq(districts.provinceId, input))
-    }),
-  getSchools: protectedProcedure
-    .input(z.string().uuid())
-    .query(async ({ ctx, input }) => {
-      const res = await ctx.db
-        .select({
-          ...getTableColumns(schools),
-        })
-        .from(schools)
-        .where(eq(schools.districtId, input))
-        .orderBy(schools.school)
 
-      return res
-    }),
+    return res
+  }),
 })
