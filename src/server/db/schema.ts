@@ -444,39 +444,42 @@ export const groupsRelations = relations(groups, ({ one }) => ({
   }),
 }))
 
-export const results = createTable('results', {
-  id: serial('id').primaryKey(),
-  solve1: integer('solve1'),
-  solve2: integer('solve2'),
-  solve3: integer('solve3'),
-  solve4: integer('solve4'),
-  solve5: integer('solve5'),
-  // display1: text('display1').generatedAlwaysAs(
-  //   (): SQL => sql`display_item(${results.solve1})`,
-  // ),
-  best: integer('best'),
-  average: integer('average'),
-  type: resultType('type').notNull(),
-  group: varchar('group').notNull(),
-  roundId: integer('round_id')
-    .notNull()
-    .references(() => rounds.id),
-  cubeTypeId: integer('cube_type_id')
-    .notNull()
-    .references(() => cubeTypes.id),
-  competitionId: integer('competition_id')
-    .notNull()
-    .references(() => competitions.id),
-  competitorId: integer('competitor_id')
-    .notNull()
-    .references(() => competitors.id),
-  createdUserId: varchar('created_user_id')
-    .notNull()
-    .references(() => users.id),
-  updatedUserId: varchar('updated_user_id')
-    .notNull()
-    .references(() => users.id),
-})
+export const results = createTable(
+  'results',
+  {
+    id: serial('id').primaryKey(),
+    solve1: integer('solve1'),
+    solve2: integer('solve2'),
+    solve3: integer('solve3'),
+    solve4: integer('solve4'),
+    solve5: integer('solve5'),
+    best: integer('best'),
+    average: integer('average'),
+    type: resultType('type').notNull(),
+    group: varchar('group').notNull(),
+    roundId: integer('round_id')
+      .notNull()
+      .references(() => rounds.id),
+    cubeTypeId: integer('cube_type_id')
+      .notNull()
+      .references(() => cubeTypes.id),
+    competitionId: integer('competition_id')
+      .notNull()
+      .references(() => competitions.id),
+    competitorId: integer('competitor_id')
+      .notNull()
+      .references(() => competitors.id),
+    createdUserId: varchar('created_user_id')
+      .notNull()
+      .references(() => users.id),
+    updatedUserId: varchar('updated_user_id')
+      .notNull()
+      .references(() => users.id),
+  },
+  (t) => ({
+    competitorRoundUniq: unique().on(t.competitorId, t.roundId),
+  }),
+)
 
 export const resultsRelation = relations(results, ({ one }) => ({
   round: one(rounds, {

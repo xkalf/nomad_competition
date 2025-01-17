@@ -140,8 +140,18 @@ export const roundsRouter = createTRPCRouter({
       await ctx.db.delete(rounds).where(eq(rounds.id, input))
     }),
   lock: adminProcedure
-    .input(z.number().int().positive())
+    .input(
+      z.object({
+        roundId: z.number().int().positive(),
+        isAgeGroupMedal: z.boolean().default(false),
+        isMainMedal: z.boolean().default(false),
+        nextRoundId: z.number().int().positive(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
-      console.log('🔒 Locking round', input)
+      const _results = await ctx.db.query.results.findMany({
+        where: (t, { eq }) => eq(t.roundId, input.roundId),
+        orderBy: (t) => [t.average],
+      })
     }),
 })
