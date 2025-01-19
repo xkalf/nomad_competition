@@ -1,12 +1,13 @@
 import { z } from 'zod'
 import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
-import { rounds } from '~/server/db/schema'
+import { ageGroupMedals, medals, rounds } from '~/server/db/schema'
 import { and, eq, inArray, notInArray } from 'drizzle-orm'
 import {
   createRoundManySchema,
   createRoundSchema,
   getUpdateSchema,
 } from '~/utils/zod'
+import groupBy from 'lodash.groupby'
 
 export const roundsRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -152,6 +153,64 @@ export const roundsRouter = createTRPCRouter({
       const _results = await ctx.db.query.results.findMany({
         where: (t, { eq }) => eq(t.roundId, input.roundId),
         orderBy: (t) => [t.average],
+        with: {
+          competitor: {
+            columns: {
+              userId: true,
+              ageGroupId: true,
+            },
+          },
+        },
+      })
+
+      await ctx.db.transaction(async (db) => {
+        if (input.isMainMedal) {
+          await db.insert(medals).values(
+            _results.slice(0, 3).map((i, index) => ({
+              userId: i.competitor.userId,
+              competitionId: i.competitionId,
+              cubeTypeId: i.cubeTypeId,
+              roundId: i.roundId,
+              group: i.group,
+              resultId: i.id,
+              medal: index + 1,
+            })),
+          )
+        }
+
+        if (input.isAgeGroupMedal) {
+          const grouped = groupBy(_results, (r) => r.competitor?.ageGroupId)
+
+          for (const ageGroupId in Object.keys(grouped)) {
+            const values =
+              grouped[ageGroupId]
+                ?.filter(
+                  (
+                    i,
+                  ): i is typeof i & {
+                    average: NonNullable<typeof i.average>
+                  } => !!i.average,
+                )
+                .sort((a, b) => a.average - b.average) ?? []
+
+            await db.insert(ageGroupMedals).values(
+              values.slice(0, 3).map((i, index) => ({
+                userId: i.competitor.userId,
+                competitionId: i.competitionId,
+                cubeTypeId: i.cubeTypeId,
+                roundId: i.roundId,
+                group: i.group,
+                ageGroupId: +ageGroupId,
+                medal: index + 1,
+              })),
+            )
+          }
+        }
+
+        await db
+          .update(rounds)
+          .set({ isActive: false })
+          .where(eq(rounds.id, input.roundId))
       })
     }),
 })

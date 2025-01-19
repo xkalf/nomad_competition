@@ -216,6 +216,7 @@ export const competitors = createTable(
     status: competitorsStatusEnum('status').notNull().default('Created'),
     schoolId: integer().references(() => schools.id),
     verifiedId: integer('verified_id'),
+    ageGroupId: integer().references(() => ageGroups.id),
   },
   (t) => ({
     competitionIdUserIdUniq: unique().on(t.competitionId, t.userId),
@@ -409,6 +410,7 @@ export const rounds = createTable('rounds', {
   name: varchar('name').notNull(),
   nextCompetitor: integer('next_competitor').notNull(),
   perGroupCount: integer('per_group_count').notNull(),
+  isActive: boolean().default(false),
 })
 
 export const roundsRelation = relations(rounds, ({ one }) => ({
@@ -525,4 +527,53 @@ export const schools = pgTable('schools', (t) => ({
     .uuid()
     .references(() => districts.id)
     .notNull(),
+}))
+
+export const medals = pgTable('medals', (t) => ({
+  id: t.uuid().primaryKey().defaultRandom(),
+  userId: t
+    .varchar()
+    .notNull()
+    .references(() => users.id),
+  competitionId: t
+    .integer()
+    .notNull()
+    .references(() => competitions.id),
+  cubeTypeId: t
+    .integer()
+    .notNull()
+    .references(() => cubeTypes.id),
+  roundId: t
+    .integer()
+    .notNull()
+    .references(() => rounds.id),
+  group: t.varchar().notNull(),
+  resultId: t.integer().references(() => results.id),
+  medal: t.integer().notNull(),
+}))
+
+export const ageGroupMedals = pgTable('age_group_medals', (t) => ({
+  id: t.uuid().primaryKey().defaultRandom(),
+  userId: t
+    .varchar()
+    .notNull()
+    .references(() => users.id),
+  competitionId: t
+    .integer()
+    .notNull()
+    .references(() => competitions.id),
+  cubeTypeId: t
+    .integer()
+    .notNull()
+    .references(() => cubeTypes.id),
+  roundId: t
+    .integer()
+    .notNull()
+    .references(() => rounds.id),
+  group: t.varchar().notNull(),
+  ageGroupId: t
+    .integer()
+    .notNull()
+    .references(() => ageGroups.id),
+  medal: t.integer().notNull(),
 }))
