@@ -234,6 +234,10 @@ export const competitorsRelations = relations(competitors, ({ one, many }) => ({
   }),
   competitorsToCubeTypes: many(competitorsToCubeTypes),
   invoices: many(invoices),
+  school: one(schools, {
+    fields: [competitors.schoolId],
+    references: [schools.id],
+  }),
 }))
 
 export const competitorCubeTypeStatus = pgEnum('competitor_cube_type_status', [
@@ -577,3 +581,38 @@ export const ageGroupMedals = pgTable('age_group_medals', (t) => ({
     .references(() => ageGroups.id),
   medal: t.integer().notNull(),
 }))
+
+export const recordTypeEnum = pgEnum('record_type', ['best', 'average'])
+
+export const records = pgTable(
+  'records',
+  (t) => ({
+    id: t.uuid().primaryKey().defaultRandom(),
+    type: recordTypeEnum().notNull(),
+    value: t.integer().notNull(),
+    userId: t
+      .varchar()
+      .notNull()
+      .references(() => users.id),
+    cubeTypeId: t
+      .integer()
+      .notNull()
+      .references(() => cubeTypes.id),
+    roundId: t
+      .integer()
+      .notNull()
+      .references(() => rounds.id),
+    resultId: t.integer().references(() => results.id),
+    provinceRank: t.integer().notNull(),
+    districtRank: t.integer().notNull(),
+    provinceId: t
+      .uuid()
+      .notNull()
+      .references(() => provinces.id),
+    districtId: t
+      .uuid()
+      .notNull()
+      .references(() => districts.id),
+  }),
+  (t) => [unique().on(t.userId, t.provinceId, t.districtId)],
+)

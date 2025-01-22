@@ -159,6 +159,9 @@ export const roundsRouter = createTRPCRouter({
               userId: true,
               ageGroupId: true,
             },
+            with: {
+              school: true,
+            },
           },
         },
       })
@@ -206,6 +209,14 @@ export const roundsRouter = createTRPCRouter({
             )
           }
         }
+
+        const currentRecords = await db.query.records.findMany({
+          where: (t, { inArray }) =>
+            inArray(
+              t.userId,
+              _results.map((i) => i.competitor.userId),
+            ),
+        })
 
         await db
           .update(rounds)
