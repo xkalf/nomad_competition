@@ -1,7 +1,13 @@
 import { z } from 'zod'
 import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
-import { ageGroupMedals, medals, rounds } from '~/server/db/schema'
-import { and, eq, inArray, notInArray } from 'drizzle-orm'
+import {
+  ageGroupMedals,
+  medals,
+  rankAverage,
+  rankSingle,
+  rounds,
+} from '~/server/db/schema'
+import { and, eq, inArray, notInArray, sql } from 'drizzle-orm'
 import {
   createRoundManySchema,
   createRoundSchema,
@@ -210,14 +216,177 @@ export const roundsRouter = createTRPCRouter({
           }
         }
 
-        const currentRecords = await db.query.records.findMany({
-          where: (t, { inArray }) =>
-            inArray(
-              t.userId,
-              _results.map((i) => i.competitor.userId),
+        const currAverage = await db.query.rankAverage.findMany({
+          where: (t, { inArray, and, eq }) =>
+            and(
+              inArray(
+                t.userId,
+                _results.map((i) => i.competitor.userId),
+              ),
+              eq(t.cubeTypeId, _results[0]?.cubeTypeId ?? 0),
+            ),
+        })
+        const currSingle = await db.query.rankSingle.findMany({
+          where: (t, { inArray, and, eq }) =>
+            and(
+              inArray(
+                t.userId,
+                _results.map((i) => i.competitor.userId),
+              ),
+              eq(t.cubeTypeId, _results[0]?.cubeTypeId ?? 0),
             ),
         })
 
+        for (const result of _results) {
+          const avg = currAverage.find(
+            (i) => i.userId === result.competitor.userId,
+          )
+          const single = currSingle.find(
+            (i) => i.userId === result.competitor.userId,
+          )
+
+          if (
+            avg &&
+            result.average &&
+            result.average > 0 &&
+            result.average < avg.value
+          ) {
+            await db
+              .update(rankAverage)
+              .set({
+                value: result.average,
+                roundId: result.roundId,
+                resultId: result.id,
+                allRank: -1,
+                districtRank: -1,
+                provinceRank: -1,
+                provinceId: result.competitor.school?.provinceId ?? '',
+                districtId: result.competitor.school?.districtId ?? '',
+              })
+              .where(
+                and(
+                  eq(rankAverage.userId, result.competitor.userId),
+                  eq(rankAverage.cubeTypeId, result.cubeTypeId),
+                ),
+              )
+          } else if (!avg && result.average && result.average > 0) {
+            await db.insert(rankAverage).values({
+              value: result.average,
+              userId: result.competitor.userId,
+              provinceId: result.competitor.school?.provinceId ?? '',
+              districtId: result.competitor.school?.districtId ?? '',
+              cubeTypeId: result.cubeTypeId,
+              roundId: result.roundId,
+              resultId: result.id,
+              allRank: -1,
+              districtRank: -1,
+              provinceRank: -1,
+            })
+          }
+
+          if (
+            single &&
+            result.best &&
+            result.best > 0 &&
+            result.best < single.value
+          ) {
+            await db
+              .update(rankSingle)
+              .set({
+                value: result.best,
+                roundId: result.roundId,
+                resultId: result.id,
+                allRank: -1,
+                districtRank: -1,
+                provinceRank: -1,
+                provinceId: result.competitor.school?.provinceId ?? '',
+                districtId: result.competitor.school?.districtId ?? '',
+              })
+              .where(
+                and(
+                  eq(rankSingle.userId, result.competitor.userId),
+                  eq(rankSingle.cubeTypeId, result.cubeTypeId),
+                ),
+              )
+          } else if (!single && result.best && result.best > 0) {
+            await db.insert(rankSingle).values({
+              value: result.best,
+              userId: result.competitor.userId,
+              cubeTypeId: result.cubeTypeId,
+              roundId: result.roundId,
+              resultId: result.id,
+              allRank: -1,
+              districtRank: -1,
+              provinceRank: -1,
+              provinceId: result.competitor.school?.provinceId ?? '',
+              districtId: result.competitor.school?.districtId ?? '',
+            })
+          }
+        }
+
+        const rankedAverage = db.$with('ranked_average').as(
+          db
+            .select({
+              id: rankAverage.id,
+              value: rankAverage.value,
+              allRank:
+                sql<number>`row_number() over (partition by ${rankAverage.cubeTypeId}, order by ${rankAverage.value})`.as(
+                  'c_all_rank',
+                ),
+              provinceRank:
+                sql<number>`row_number() over (partition by ${rankAverage.cubeTypeId}, ${rankAverage.provinceId}, order by ${rankAverage.value})`.as(
+                  'c_province_rank',
+                ),
+              districtRank:
+                sql<number>`row_number() over (partition by ${rankAverage.cubeTypeId}, ${rankAverage.districtId}, order by ${rankAverage.value})`.as(
+                  'c_district_rank',
+                ),
+            })
+            .from(rankAverage),
+        )
+
+        await db
+          .with(rankedAverage)
+          .update(rankAverage)
+          .set({
+            allRank: sql`${rankedAverage.allRank}`,
+            provinceRank: sql`${rankedAverage.provinceRank}`,
+            districtRank: sql`${rankedAverage.districtRank}`,
+          })
+          .from(rankedAverage)
+          .where(eq(rankedAverage.id, rankAverage.id))
+
+        const rankedSingle = db.$with('ranked_single').as(
+          db
+            .select({
+              id: rankSingle.id,
+              value: rankSingle.value,
+              allRank:
+                sql<number>`row_number() over (partition by ${rankSingle.cubeTypeId}, order by ${rankSingle.value})`.as(
+                  's_all_rank',
+                ),
+              provinceRank:
+                sql<number>`row_number() over (partition by ${rankSingle.cubeTypeId}, ${rankSingle.provinceId}, order by ${rankSingle.value})`.as(
+                  's_province_rank',
+                ),
+              districtRank:
+                sql<number>`row_number() over (partition by ${rankSingle.cubeTypeId}, ${rankSingle.districtId}, order by ${rankSingle.value})`.as(
+                  's_district_rank',
+                ),
+            })
+            .from(rankSingle),
+        )
+
+        await db
+          .with(rankedSingle)
+          .update(rankSingle)
+          .set({
+            allRank: sql`${rankedSingle.allRank}`,
+            provinceRank: sql`${rankedSingle.provinceRank}`,
+            districtRank: sql`${rankedSingle.districtRank}`,
+          })
+          .from(rankedSingle)
+          .where(eq(rankedSingle.id, rankSingle.id))
         await db
           .update(rounds)
           .set({ isActive: false })

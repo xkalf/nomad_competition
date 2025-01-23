@@ -288,6 +288,20 @@
       "when": 1737108271318,
       "tag": "0040_numerous_stark_industries",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1737615378199,
+      "tag": "0041_friendly_mindworm",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1737621117268,
+      "tag": "0042_spotty_richard_fisk",
+      "breakpoints": true
     }
   ]
 }

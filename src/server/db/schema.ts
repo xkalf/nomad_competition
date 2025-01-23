@@ -16,6 +16,7 @@ import {
   time,
   timestamp,
   unique,
+  uuid,
   varchar,
 } from 'drizzle-orm/pg-core'
 import { InvoiceCheckResponse } from 'mn-payment'
@@ -73,12 +74,12 @@ export const accounts = createTable(
     id_token: text('id_token'),
     session_state: varchar('session_state', { length: 255 }),
   },
-  (account) => ({
-    compoundKey: primaryKey({
+  (account) => [
+    primaryKey({
       columns: [account.provider, account.providerAccountId],
     }),
-    userIdIdx: index('account_userId_idx').on(account.userId),
-  }),
+    index('account_userId_idx').on(account.userId),
+  ],
 )
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -96,9 +97,7 @@ export const sessions = createTable(
       .references(() => users.id),
     expires: timestamp('expires', { mode: 'date' }).notNull(),
   },
-  (session) => ({
-    userIdIdx: index('session_userId_idx').on(session.userId),
-  }),
+  (session) => [index('session_userId_idx').on(session.userId)],
 )
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -115,9 +114,7 @@ export const verificationTokens = createTable(
       withTimezone: true,
     }).notNull(),
   },
-  (vt) => ({
-    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] }),
-  }),
+  (vt) => [primaryKey({ columns: [vt.identifier, vt.token] })],
 )
 
 export const cubeTypes = createTable('cube_types', {
@@ -172,11 +169,11 @@ export const competitionsToCubeType = createTable(
       .notNull()
       .references(() => competitions.id),
   },
-  (t) => ({
-    pk: primaryKey({
+  (t) => [
+    primaryKey({
       columns: [t.competitionId, t.cubeTypeId],
     }),
-  }),
+  ],
 )
 
 export const competitionsToCubeTypeRelations = relations(
@@ -215,12 +212,12 @@ export const competitors = createTable(
     verifiedAt: timestamp('verified_at'),
     status: competitorsStatusEnum('status').notNull().default('Created'),
     schoolId: integer().references(() => schools.id),
+    provinceId: uuid().references(() => provinces.id),
+    districtId: uuid().references(() => districts.id),
     verifiedId: integer('verified_id'),
     ageGroupId: integer().references(() => ageGroups.id),
   },
-  (t) => ({
-    competitionIdUserIdUniq: unique().on(t.competitionId, t.userId),
-  }),
+  (t) => [unique().on(t.competitionId, t.userId)],
 )
 
 export const competitorsRelations = relations(competitors, ({ one, many }) => ({
@@ -257,11 +254,11 @@ export const competitorsToCubeTypes = createTable(
       .references(() => cubeTypes.id),
     status: competitorCubeTypeStatus('status').notNull().default('Created'),
   },
-  (t) => ({
-    pk: primaryKey({
+  (t) => [
+    primaryKey({
       columns: [t.competitorId, t.cubeTypeId],
     }),
-  }),
+  ],
 )
 
 export const competitorsToCubeTypesRelations = relations(
@@ -319,13 +316,7 @@ export const ageGroups = createTable(
       .references(() => cubeTypes.id)
       .notNull(),
   },
-  (t) => ({
-    competitionCubeTypeUniq: unique().on(
-      t.competitionId,
-      t.cubeTypeId,
-      t.start,
-    ),
-  }),
+  (t) => [unique().on(t.competitionId, t.cubeTypeId, t.start)],
 )
 
 export const ageGroupsRelations = relations(ageGroups, ({ one }) => ({
@@ -482,9 +473,7 @@ export const results = createTable(
       .notNull()
       .references(() => users.id),
   },
-  (t) => ({
-    competitorRoundUniq: unique().on(t.competitorId, t.roundId),
-  }),
+  (t) => [unique().on(t.competitorId, t.roundId)],
 )
 
 export const resultsRelation = relations(results, ({ one }) => ({
@@ -582,13 +571,40 @@ export const ageGroupMedals = pgTable('age_group_medals', (t) => ({
   medal: t.integer().notNull(),
 }))
 
-export const recordTypeEnum = pgEnum('record_type', ['best', 'average'])
+export const rankAverage = pgTable('rank_average', (t) => ({
+  id: t.uuid().primaryKey().defaultRandom(),
+  value: t.integer().notNull(),
+  userId: t
+    .varchar()
+    .notNull()
+    .references(() => users.id)
+    .unique(),
+  cubeTypeId: t
+    .integer()
+    .notNull()
+    .references(() => cubeTypes.id),
+  roundId: t
+    .integer()
+    .notNull()
+    .references(() => rounds.id),
+  resultId: t.integer().references(() => results.id),
+  allRank: t.integer().notNull(),
+  provinceRank: t.integer().notNull(),
+  provinceId: t
+    .uuid()
+    .notNull()
+    .references(() => provinces.id),
+  districtId: t
+    .uuid()
+    .notNull()
+    .references(() => districts.id),
+  districtRank: t.integer().notNull(),
+}))
 
-export const records = pgTable(
-  'records',
+export const rankSingle = pgTable(
+  'rank_single',
   (t) => ({
     id: t.uuid().primaryKey().defaultRandom(),
-    type: recordTypeEnum().notNull(),
     value: t.integer().notNull(),
     userId: t
       .varchar()
@@ -603,6 +619,7 @@ export const records = pgTable(
       .notNull()
       .references(() => rounds.id),
     resultId: t.integer().references(() => results.id),
+    allRank: t.integer().notNull(),
     provinceRank: t.integer().notNull(),
     districtRank: t.integer().notNull(),
     provinceId: t
@@ -614,5 +631,5 @@ export const records = pgTable(
       .notNull()
       .references(() => districts.id),
   }),
-  (t) => [unique().on(t.userId, t.provinceId, t.districtId)],
+  (t) => [unique().on(t.cubeTypeId, t.userId)],
 )
