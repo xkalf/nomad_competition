@@ -152,7 +152,12 @@ export const roundsRouter = createTRPCRouter({
         roundId: z.number().int().positive(),
         isAgeGroupMedal: z.boolean().default(false),
         isMainMedal: z.boolean().default(false),
-        nextRoundId: z.number().int().positive(),
+        nextRoundId: z
+          .number()
+          .int()
+          .nonnegative()
+          .default(0)
+          .transform((value) => (value === 0 ? undefined : value)),
       }),
     )
     .mutation(async ({ ctx, input }) => {
@@ -164,9 +169,8 @@ export const roundsRouter = createTRPCRouter({
             columns: {
               userId: true,
               ageGroupId: true,
-            },
-            with: {
-              school: true,
+              provinceId: true,
+              districtId: true,
             },
           },
         },
@@ -202,17 +206,21 @@ export const roundsRouter = createTRPCRouter({
                 )
                 .sort((a, b) => a.average - b.average) ?? []
 
-            await db.insert(ageGroupMedals).values(
-              values.slice(0, 3).map((i, index) => ({
-                userId: i.competitor.userId,
-                competitionId: i.competitionId,
-                cubeTypeId: i.cubeTypeId,
-                roundId: i.roundId,
-                group: i.group,
-                ageGroupId: +ageGroupId,
-                medal: index + 1,
-              })),
-            )
+            console.log(values)
+
+            if (values.length > 3) {
+              await db.insert(ageGroupMedals).values(
+                values.slice(0, 3).map((i, index) => ({
+                  userId: i.competitor.userId,
+                  competitionId: i.competitionId,
+                  cubeTypeId: i.cubeTypeId,
+                  roundId: i.roundId,
+                  group: i.group,
+                  ageGroupId: +ageGroupId,
+                  medal: index + 1,
+                })),
+              )
+            }
           }
         }
 
@@ -226,6 +234,7 @@ export const roundsRouter = createTRPCRouter({
               eq(t.cubeTypeId, _results[0]?.cubeTypeId ?? 0),
             ),
         })
+
         const currSingle = await db.query.rankSingle.findMany({
           where: (t, { inArray, and, eq }) =>
             and(
@@ -260,8 +269,8 @@ export const roundsRouter = createTRPCRouter({
                 allRank: -1,
                 districtRank: -1,
                 provinceRank: -1,
-                provinceId: result.competitor.school?.provinceId ?? '',
-                districtId: result.competitor.school?.districtId ?? '',
+                provinceId: result.competitor.provinceId ?? '',
+                districtId: result.competitor.districtId ?? '',
               })
               .where(
                 and(
@@ -273,8 +282,8 @@ export const roundsRouter = createTRPCRouter({
             await db.insert(rankAverage).values({
               value: result.average,
               userId: result.competitor.userId,
-              provinceId: result.competitor.school?.provinceId ?? '',
-              districtId: result.competitor.school?.districtId ?? '',
+              provinceId: result.competitor.provinceId ?? '',
+              districtId: result.competitor.districtId ?? '',
               cubeTypeId: result.cubeTypeId,
               roundId: result.roundId,
               resultId: result.id,
@@ -299,8 +308,8 @@ export const roundsRouter = createTRPCRouter({
                 allRank: -1,
                 districtRank: -1,
                 provinceRank: -1,
-                provinceId: result.competitor.school?.provinceId ?? '',
-                districtId: result.competitor.school?.districtId ?? '',
+                provinceId: result.competitor.provinceId ?? '',
+                districtId: result.competitor.districtId ?? '',
               })
               .where(
                 and(
@@ -318,8 +327,8 @@ export const roundsRouter = createTRPCRouter({
               allRank: -1,
               districtRank: -1,
               provinceRank: -1,
-              provinceId: result.competitor.school?.provinceId ?? '',
-              districtId: result.competitor.school?.districtId ?? '',
+              provinceId: result.competitor.provinceId ?? '',
+              districtId: result.competitor.districtId ?? '',
             })
           }
         }
@@ -330,22 +339,22 @@ export const roundsRouter = createTRPCRouter({
               id: rankAverage.id,
               value: rankAverage.value,
               allRank:
-                sql<number>`row_number() over (partition by ${rankAverage.cubeTypeId}, order by ${rankAverage.value})`.as(
+                sql<number>`row_number() over (partition by ${rankAverage.cubeTypeId} order by ${rankAverage.value})`.as(
                   'c_all_rank',
                 ),
               provinceRank:
-                sql<number>`row_number() over (partition by ${rankAverage.cubeTypeId}, ${rankAverage.provinceId}, order by ${rankAverage.value})`.as(
+                sql<number>`row_number() over (partition by ${rankAverage.cubeTypeId}, ${rankAverage.provinceId} order by ${rankAverage.value})`.as(
                   'c_province_rank',
                 ),
               districtRank:
-                sql<number>`row_number() over (partition by ${rankAverage.cubeTypeId}, ${rankAverage.districtId}, order by ${rankAverage.value})`.as(
+                sql<number>`row_number() over (partition by ${rankAverage.cubeTypeId}, ${rankAverage.districtId} order by ${rankAverage.value})`.as(
                   'c_district_rank',
                 ),
             })
             .from(rankAverage),
         )
 
-        await db
+        const updateRankedAverageQuery = db
           .with(rankedAverage)
           .update(rankAverage)
           .set({
@@ -356,21 +365,23 @@ export const roundsRouter = createTRPCRouter({
           .from(rankedAverage)
           .where(eq(rankedAverage.id, rankAverage.id))
 
+        await updateRankedAverageQuery
+
         const rankedSingle = db.$with('ranked_single').as(
           db
             .select({
               id: rankSingle.id,
               value: rankSingle.value,
               allRank:
-                sql<number>`row_number() over (partition by ${rankSingle.cubeTypeId}, order by ${rankSingle.value})`.as(
+                sql<number>`row_number() over (partition by ${rankSingle.cubeTypeId} order by ${rankSingle.value})`.as(
                   's_all_rank',
                 ),
               provinceRank:
-                sql<number>`row_number() over (partition by ${rankSingle.cubeTypeId}, ${rankSingle.provinceId}, order by ${rankSingle.value})`.as(
+                sql<number>`row_number() over (partition by ${rankSingle.cubeTypeId}, ${rankSingle.provinceId} order by ${rankSingle.value})`.as(
                   's_province_rank',
                 ),
               districtRank:
-                sql<number>`row_number() over (partition by ${rankSingle.cubeTypeId}, ${rankSingle.districtId}, order by ${rankSingle.value})`.as(
+                sql<number>`row_number() over (partition by ${rankSingle.cubeTypeId}, ${rankSingle.districtId} order by ${rankSingle.value})`.as(
                   's_district_rank',
                 ),
             })

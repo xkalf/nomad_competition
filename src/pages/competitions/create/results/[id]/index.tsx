@@ -2,11 +2,10 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import CreateButtons from '~/components/create-buttons'
-import CreateLinks from '~/components/create-links'
 import DataTable from '~/components/data-table/data-table'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
@@ -114,6 +113,9 @@ export default function ResultsPage({
   const [filter, setFilter] = useState<Filter>({
     roundId: id,
   })
+  const [isMainMedal, setIsMainMedal] = useState(false)
+  const [isAgeGroupMedal, setIsAgeGroupMedal] = useState(false)
+  const [nextRoundId, setNextRoundId] = useState(0)
 
   useEffect(() => {
     if (router.query.id) {
@@ -131,6 +133,21 @@ export default function ResultsPage({
   }, [form.watch('verifiedId')])
 
   const { mutate, isLoading } = api.result.create.useMutation({
+    onSuccess: () => {
+      utils.result.findByRound.invalidate()
+      toast({
+        title: 'Амжилттай хадгаллаа.',
+      })
+    },
+    onError: (err) => {
+      toast({
+        title: 'Алдаа гарлаа',
+        description: err.message,
+        variant: 'destructive',
+      })
+    },
+  })
+  const { mutate: lock, isLoading: lockLoading } = api.round.lock.useMutation({
     onSuccess: () => {
       utils.result.findByRound.invalidate()
       toast({
@@ -168,20 +185,23 @@ export default function ResultsPage({
   })
   const { data: rounds } = api.round.getAll.useQuery(
     {
-      competitionId,
-      id: filter.roundId,
+      competitionId: competitionId,
     },
     {
-      enabled: !!competitionId && !!filter.roundId,
+      enabled: !!competitionId,
     },
   )
+
+  const round = useMemo(() => {
+    return rounds?.find((round) => round.id === filter.roundId)
+  }, [rounds, filter.roundId])
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(
     {
       competitionId: competitionId,
-      cubeTypeId: rounds?.[0]?.cubeTypeId,
+      cubeTypeId: round?.cubeTypeId,
     },
     {
-      enabled: !!competitionId && !!rounds?.[0]?.cubeTypeId,
+      enabled: !!competitionId && !!round?.cubeTypeId,
     },
   )
 
@@ -198,15 +218,6 @@ export default function ResultsPage({
       enabled: !!filter.districtId,
     },
   )
-  const { data: round } = api.round.getAll.useQuery(
-    {
-      competitionId: competitionId,
-      id: filter.roundId,
-    },
-    {
-      enabled: !!competitionId && !!filter.roundId,
-    },
-  )
 
   const onSubmit = (input: z.infer<typeof createResultSchema>) => {
     mutate({
@@ -217,10 +228,9 @@ export default function ResultsPage({
 
   return (
     <Layout>
-      <CreateLinks />
       <div className="flex gap-4">
         <h1 className="text-3xl text-bold">
-          Үзүүлэлт шивэх ({round?.[0]?.cubeType.name} : {round?.[0]?.name})
+          Үзүүлэлт шивэх ({round?.cubeType.name} : {round?.name})
         </h1>
         <Button
           type="button"
@@ -324,6 +334,62 @@ export default function ResultsPage({
               isLoading={isLoading}
               onSubmit={form.handleSubmit(onSubmit)}
             />
+            <div className="flex mt-2 gap-2">
+              <Button
+                type="button"
+                disabled={lockLoading}
+                onClick={() => {
+                  lock({
+                    roundId: filter.roundId,
+                    isMainMedal,
+                    isAgeGroupMedal,
+                    nextRoundId,
+                  })
+                }}
+              >
+                Түгжих
+              </Button>
+              <Select
+                value={nextRoundId.toString()}
+                onValueChange={(value) => setNextRoundId(Number(value))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Дараагийн Раунд" />
+                </SelectTrigger>
+                <SelectContent>
+                  {rounds
+                    ?.filter(
+                      (r) =>
+                        r.id !== filter.roundId &&
+                        r.cubeTypeId === round?.cubeTypeId,
+                    )
+                    .map((r) => (
+                      <SelectItem
+                        key={'rounds-' + r.id}
+                        value={r.id.toString()}
+                      >
+                        {r.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+              <div className="flex gap-2 items-center">
+                <Label htmlFor="isMainMedal">Үндсэн төрлийн медал</Label>
+                <Checkbox
+                  id="isMainMedal"
+                  checked={isMainMedal}
+                  onCheckedChange={(value) => setIsMainMedal(!!value)}
+                />
+              </div>
+              <div className="flex gap-2 items-center">
+                <Label htmlFor="isAgeGroupMedal">Насны ангилалын медал</Label>
+                <Checkbox
+                  id="isAgeGroupMedal"
+                  checked={isAgeGroupMedal}
+                  onCheckedChange={(value) => setIsAgeGroupMedal(!!value)}
+                />
+              </div>
+            </div>
           </Form>
         </div>
         <div className="col-span-8">

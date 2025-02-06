@@ -623,11 +623,11 @@ export const rankSingle = pgTable(
     provinceRank: t.integer().notNull(),
     districtRank: t.integer().notNull(),
     provinceId: t
-      .uuid()
+      .varchar()
       .notNull()
       .references(() => provinces.id),
     districtId: t
-      .uuid()
+      .varchar()
       .notNull()
       .references(() => districts.id),
   }),
