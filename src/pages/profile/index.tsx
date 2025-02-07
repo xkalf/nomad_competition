@@ -26,6 +26,19 @@ export default function ProfilePage() {
       enabled: !!user?.id,
     },
   )
+  const { data: medalsCount } = api.persons.getMedalsCount.useQuery(
+    { userId: user?.id ?? '' },
+    {
+      enabled: !!user?.id,
+    },
+  )
+  const { data: ageGroupMedalsCount } =
+    api.persons.getAgeGroupMedalsCount.useQuery(
+      { userId: user?.id ?? '' },
+      {
+        enabled: !!user?.id,
+      },
+    )
   const { data: competitionResults } =
     api.persons.getCompetitionResults.useQuery(
       {
@@ -35,6 +48,17 @@ export default function ProfilePage() {
         enabled: !!user?.id,
       },
     )
+  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery()
+
+  const getImageByCubeType = (cubeTypeId: number) => {
+    const found = cubeTypes?.find((c) => c.id === cubeTypeId)
+
+    return getImageUrl(found?.image)
+  }
+  const getNameByCubeTypeId = (cubeTypeId: number) => {
+    const found = cubeTypes?.find((c) => c.id === cubeTypeId)
+    return found?.name
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -65,26 +89,39 @@ export default function ProfilePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Төрөл</TableHead>
+                  <TableHead>DR</TableHead>
+                  <TableHead>PR</TableHead>
+                  <TableHead>AR</TableHead>
                   <TableHead>Синглэ</TableHead>
                   <TableHead>Дундаж</TableHead>
+                  <TableHead>AR</TableHead>
+                  <TableHead>PR</TableHead>
+                  <TableHead>DR</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {personalRecords?.map((record) => (
-                  <TableRow key={'pb' + record.cubeTypeId}>
-                    <TableCell className="flex gap-4 items-center">
-                      <Image
-                        src={getImageUrl(record.cubeType?.image)}
-                        alt={record.cubeType?.name ?? ''}
-                        width={30}
-                        height={30}
-                      />
-                      {record.cubeType?.name}
-                    </TableCell>
-                    <TableCell>{displayTime(record.best)}</TableCell>
-                    <TableCell>{displayTime(record.average)}</TableCell>
-                  </TableRow>
-                ))}
+                {personalRecords &&
+                  Object.entries(personalRecords)?.map(([cubeTypeId, rank]) => (
+                    <TableRow key={'pb' + cubeTypeId}>
+                      <TableCell className="flex gap-4 items-center">
+                        <Image
+                          src={getImageByCubeType(+cubeTypeId)}
+                          alt={'cubeLogo'}
+                          width={30}
+                          height={30}
+                        />
+                        {getNameByCubeTypeId(+cubeTypeId)}
+                      </TableCell>
+                      <TableCell>{rank.single?.districtRank}</TableCell>
+                      <TableCell>{rank.single?.provinceRank}</TableCell>
+                      <TableCell>{rank.single?.allRank}</TableCell>
+                      <TableCell>{displayTime(rank.single?.value)}</TableCell>
+                      <TableCell>{displayTime(rank.average?.value)}</TableCell>
+                      <TableCell>{rank.average?.allRank}</TableCell>
+                      <TableCell>{rank.average?.provinceRank}</TableCell>
+                      <TableCell>{rank.average?.districtRank}</TableCell>
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </CardContent>
@@ -111,9 +148,9 @@ export default function ProfilePage() {
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>1</TableCell>
-                    <TableCell>1</TableCell>
-                    <TableCell>1</TableCell>
+                    <TableCell>{medalsCount?.first}</TableCell>
+                    <TableCell>{medalsCount?.second}</TableCell>
+                    <TableCell>{medalsCount?.third}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -121,22 +158,30 @@ export default function ProfilePage() {
           </Card>
         </div>
         <div className="container px-4 py-6">
-          <h2 className="text-xl text-center mb-4 font-fold">Рекорд</h2>
+          <h2 className="text-xl text-center mb-4 font-fold">
+            Насны ангилал Медал
+          </h2>
           <Card>
             <CardContent className="pt-6 text-center">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-center">WR</TableHead>
-                    <TableHead className="text-center">CR</TableHead>
-                    <TableHead className="text-center">NR</TableHead>
+                    <TableHead className="text-center">
+                      <Medal className="h-12 w-12 text-yellow-500 mx-auto" />
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <Medal className="h-12 w-12 text-gray-400 mx-auto" />
+                    </TableHead>
+                    <TableHead className="text-center">
+                      <Medal className="h-12 w-12 text-amber-700 mx-auto" />
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   <TableRow>
-                    <TableCell>1</TableCell>
-                    <TableCell>1</TableCell>
-                    <TableCell>1</TableCell>
+                    <TableCell>{ageGroupMedalsCount?.first}</TableCell>
+                    <TableCell>{ageGroupMedalsCount?.second}</TableCell>
+                    <TableCell>{ageGroupMedalsCount?.third}</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
@@ -148,7 +193,7 @@ export default function ProfilePage() {
         <Tabs defaultValue="results" className="space-y-4">
           <TabsList>
             <TabsTrigger value="results">Үзүүлэлт</TabsTrigger>
-            <TabsTrigger value="records">Рекорд</TabsTrigger>
+            {/* <TabsTrigger value="records">Рекорд</TabsTrigger> */}
           </TabsList>
 
           {/* Results */}

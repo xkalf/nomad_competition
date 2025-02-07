@@ -1,10 +1,25 @@
-import { and, desc, eq, exists, gt, min, sql } from 'drizzle-orm'
 import {
+  and,
+  count,
+  desc,
+  eq,
+  exists,
+  getTableColumns,
+  gt,
+  min,
+  sql,
+} from 'drizzle-orm'
+import {
+  ageGroupMedals,
   competitions,
   competitors,
   cubeTypes,
+  medals,
+  rankAverage,
+  rankSingle,
   results,
   rounds,
+  users,
 } from '~/server/db/schema'
 import { createTRPCRouter, publicProcedure } from '../trpc'
 import { z } from 'zod'
@@ -18,46 +33,59 @@ export const personsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const competitorsSql = ctx.db
-        .select({
-          id: competitors.id,
-        })
-        .from(competitors)
-        .where(
-          and(
-            eq(competitors.userId, input.userId),
-            eq(competitors.id, results.competitorId),
-          ),
-        )
+      const rank = await ctx.db.query.users.findFirst({
+        where: eq(users.id, input.userId),
+        with: {
+          rankAverage: true,
+          rankSingle: true,
+        },
+      })
 
-      const pbs = await ctx.db
-        .select({
-          cubeTypeId: results.cubeTypeId,
-          best: min(results.best),
-          average: min(results.average),
-          cubeType: {
-            name: cubeTypes.name,
-            image: cubeTypes.image,
+      if (!rank) {
+        throw new Error('Тамирчин олдсонгүй.')
+      }
+
+      type Grouped = {
+        [cubeTypeId: number]: {
+          average?: Pick<
+            typeof rankAverage.$inferSelect,
+            'allRank' | 'provinceRank' | 'districtRank' | 'value'
+          >
+          single?: Pick<
+            typeof rankSingle.$inferSelect,
+            'allRank' | 'provinceRank' | 'districtRank' | 'value'
+          >
+        }
+      }
+
+      let grouped: Grouped = {}
+
+      const updateGrouped = (
+        r: Pick<
+          typeof rankSingle.$inferSelect,
+          'allRank' | 'provinceRank' | 'districtRank' | 'value' | 'cubeTypeId'
+        >,
+        key: 'average' | 'single',
+      ) => {
+        if (!grouped[r.cubeTypeId]) {
+          grouped[r.cubeTypeId] = {}
+        }
+
+        grouped[r.cubeTypeId] = {
+          ...grouped[r.cubeTypeId],
+          [key]: {
+            value: r.value,
+            allRank: r.allRank,
+            provinceRank: r.provinceRank,
+            districtRank: r.districtRank,
           },
-        })
-        .from(results)
-        .leftJoin(cubeTypes, eq(cubeTypes.id, results.cubeTypeId))
-        .where(
-          and(
-            exists(competitorsSql),
-            gt(results.best, 0),
-            gt(results.average, 0),
-          ),
-        )
-        .orderBy(cubeTypes.order)
-        .groupBy(
-          results.cubeTypeId,
-          cubeTypes.name,
-          cubeTypes.image,
-          cubeTypes.order,
-        )
+        }
+      }
 
-      return pbs
+      rank.rankSingle.forEach((r) => updateGrouped(r, 'single'))
+      rank.rankAverage.forEach((r) => updateGrouped(r, 'average'))
+
+      return grouped
     }),
   getCompetitionResults: publicProcedure
     .input(z.object({ userId: z.string().uuid() }))
@@ -115,5 +143,51 @@ export const personsRouter = createTRPCRouter({
       )
 
       return grouped
+    }),
+  getMedalsCount: publicProcedure
+    .input(z.object({ userId: z.string().uuid() }))
+    .query(async ({ ctx, input }) => {
+      const query = await ctx.db
+        .select({
+          first:
+            sql<number>`count(${medals.medal}) filter (where ${medals.medal} = 1)`.as(
+              'first',
+            ),
+          second:
+            sql<number>`count(${medals.medal}) filter (where ${medals.medal} = 2)`.as(
+              'second',
+            ),
+          third:
+            sql<number>`count(${medals.medal}) filter (where ${medals.medal} = 3)`.as(
+              'third',
+            ),
+        })
+        .from(medals)
+        .where(eq(medals.userId, input.userId))
+
+      return query[0]
+    }),
+  getAgeGroupMedalsCount: publicProcedure
+    .input(z.object({ userId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const query = await ctx.db
+        .select({
+          first:
+            sql<number>`count(${ageGroupMedals.medal}) filter (where ${ageGroupMedals.medal} = 1)`.as(
+              'first',
+            ),
+          second:
+            sql<number>`count(${ageGroupMedals.medal}) filter (where ${ageGroupMedals.medal} = 2)`.as(
+              'second',
+            ),
+          third:
+            sql<number>`count(${ageGroupMedals.medal}) filter (where ${ageGroupMedals.medal} = 3)`.as(
+              'third',
+            ),
+        })
+        .from(ageGroupMedals)
+        .where(eq(ageGroupMedals.userId, input.userId))
+
+      return query[0]
     }),
 })

@@ -53,6 +53,8 @@ export const users = createTable('user', {
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts),
   competitors: many(competitors),
+  rankSingle: many(rankSingle),
+  rankAverage: many(rankAverage),
 }))
 
 export const accounts = createTable(
@@ -604,6 +606,13 @@ export const rankAverage = pgTable(
   (t) => [unique().on(t.userId, t.cubeTypeId)],
 )
 
+export const rankAverageRelation = relations(rankAverage, ({ one }) => ({
+  user: one(users, {
+    fields: [rankAverage.userId],
+    references: [users.id],
+  }),
+}))
+
 export const rankSingle = pgTable(
   'rank_single',
   (t) => ({
@@ -636,3 +645,10 @@ export const rankSingle = pgTable(
   }),
   (t) => [unique().on(t.cubeTypeId, t.userId)],
 )
+
+export const rankSingleRelations = relations(rankSingle, ({ one }) => ({
+  user: one(users, {
+    fields: [rankSingle.userId],
+    references: [users.id],
+  }),
+}))
