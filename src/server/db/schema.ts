@@ -571,35 +571,38 @@ export const ageGroupMedals = pgTable('age_group_medals', (t) => ({
   medal: t.integer().notNull(),
 }))
 
-export const rankAverage = pgTable('rank_average', (t) => ({
-  id: t.uuid().primaryKey().defaultRandom(),
-  value: t.integer().notNull(),
-  userId: t
-    .varchar()
-    .notNull()
-    .references(() => users.id)
-    .unique(),
-  cubeTypeId: t
-    .integer()
-    .notNull()
-    .references(() => cubeTypes.id),
-  roundId: t
-    .integer()
-    .notNull()
-    .references(() => rounds.id),
-  resultId: t.integer().references(() => results.id),
-  allRank: t.integer().notNull(),
-  provinceRank: t.integer().notNull(),
-  provinceId: t
-    .uuid()
-    .notNull()
-    .references(() => provinces.id),
-  districtId: t
-    .uuid()
-    .notNull()
-    .references(() => districts.id),
-  districtRank: t.integer().notNull(),
-}))
+export const rankAverage = pgTable(
+  'rank_average',
+  (t) => ({
+    id: t.uuid().primaryKey().defaultRandom(),
+    value: t.integer().notNull(),
+    userId: t
+      .varchar()
+      .notNull()
+      .references(() => users.id),
+    cubeTypeId: t
+      .integer()
+      .notNull()
+      .references(() => cubeTypes.id),
+    roundId: t
+      .integer()
+      .notNull()
+      .references(() => rounds.id),
+    resultId: t.integer().references(() => results.id),
+    allRank: t.integer().notNull(),
+    provinceRank: t.integer().notNull(),
+    provinceId: t
+      .uuid()
+      .notNull()
+      .references(() => provinces.id),
+    districtId: t
+      .uuid()
+      .notNull()
+      .references(() => districts.id),
+    districtRank: t.integer().notNull(),
+  }),
+  (t) => [unique().on(t.userId, t.cubeTypeId)],
+)
 
 export const rankSingle = pgTable(
   'rank_single',
@@ -623,11 +626,11 @@ export const rankSingle = pgTable(
     provinceRank: t.integer().notNull(),
     districtRank: t.integer().notNull(),
     provinceId: t
-      .varchar()
+      .uuid()
       .notNull()
       .references(() => provinces.id),
     districtId: t
-      .varchar()
+      .uuid()
       .notNull()
       .references(() => districts.id),
   }),
