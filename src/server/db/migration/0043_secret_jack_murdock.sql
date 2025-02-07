@@ -1,0 +1,2 @@
+ALTER TABLE "rank_average" DROP CONSTRAINT "rank_average_userId_unique";--> statement-breakpoint
+ALTER TABLE "rank_average" ADD CONSTRAINT "rank_average_userId_cubeTypeId_unique" UNIQUE("user_id","cube_type_id");

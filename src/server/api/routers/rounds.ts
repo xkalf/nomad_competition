@@ -13,7 +13,6 @@ import {
   createRoundSchema,
   getUpdateSchema,
 } from '~/utils/zod'
-import groupBy from 'lodash.groupby'
 
 export const roundsRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -177,7 +176,11 @@ export const roundsRouter = createTRPCRouter({
       })
 
       await ctx.db.transaction(async (db) => {
-        if (input.isMainMedal) {
+        if (input.isMainMedal && _results.length > 0) {
+          await db
+            .delete(medals)
+            .where(eq(medals.competitionId, _results[0]?.competitionId ?? 0))
+
           await db.insert(medals).values(
             _results.slice(0, 3).map((i, index) => ({
               userId: i.competitor.userId,
@@ -192,23 +195,30 @@ export const roundsRouter = createTRPCRouter({
         }
 
         if (input.isAgeGroupMedal) {
-          const grouped = groupBy(_results, (r) => r.competitor?.ageGroupId)
+          await db
+            .delete(ageGroupMedals)
+            .where(
+              eq(ageGroupMedals.competitionId, _results[0]?.competitionId ?? 0),
+            )
+          const keys = Array.from(
+            new Set(_results.map((r) => r.competitor.ageGroupId)),
+          ).filter((i): i is number => !!i)
 
-          for (const ageGroupId in Object.keys(grouped)) {
+          for (const key of keys) {
             const values =
-              grouped[ageGroupId]
-                ?.filter(
-                  (
-                    i,
-                  ): i is typeof i & {
-                    average: NonNullable<typeof i.average>
-                  } => !!i.average,
-                )
-                .sort((a, b) => a.average - b.average) ?? []
+              _results
+                .filter((r) => r.competitor.ageGroupId === key)
+                .sort((a, b) => {
+                  if (a.average === -1 || a.average === null) return 1
+                  if (b.average === -1 || b.average === null) return -1
 
-            console.log(values)
+                  return (a.average as number) - (b.average as number)
+                }) ?? []
 
-            if (values.length > 3) {
+            const filtered =
+              values.filter((i) => i.average && i.average > 0).length > 0
+
+            if (filtered) {
               await db.insert(ageGroupMedals).values(
                 values.slice(0, 3).map((i, index) => ({
                   userId: i.competitor.userId,
@@ -216,7 +226,7 @@ export const roundsRouter = createTRPCRouter({
                   cubeTypeId: i.cubeTypeId,
                   roundId: i.roundId,
                   group: i.group,
-                  ageGroupId: +ageGroupId,
+                  ageGroupId: key,
                   medal: index + 1,
                 })),
               )
