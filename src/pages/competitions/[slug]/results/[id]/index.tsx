@@ -1,82 +1,82 @@
-import { ColumnDef } from "@tanstack/react-table";
-import { createServerSideHelpers } from "@trpc/react-query/server";
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from "next";
-import Layout from "~/components/layout";
-import { appRouter } from "~/server/api/root";
-import { getServerAuthSession } from "~/server/auth";
-import { RouterInputs, RouterOutputs, api } from "~/utils/api";
-import { displayTime } from "~/utils/timeUtils";
-import superjson from "superjson";
-import { db } from "~/server/db";
-import { useEffect, useState } from "react";
-import DataTable from "~/components/data-table/data-table";
+import { ColumnDef } from '@tanstack/react-table'
+import { createServerSideHelpers } from '@trpc/react-query/server'
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
+import Layout from '~/components/layout'
+import { appRouter } from '~/server/api/root'
+import { getServerAuthSession } from '~/server/auth'
+import { RouterInputs, RouterOutputs, api } from '~/utils/api'
+import { displayTime } from '~/utils/timeUtils'
+import superjson from 'superjson'
+import { db } from '~/server/db'
+import { useEffect, useState } from 'react'
+import DataTable from '~/components/data-table/data-table'
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectValue,
-} from "~/components/ui/select";
-import { SelectTrigger } from "@radix-ui/react-select";
+} from '~/components/ui/select'
+import { SelectTrigger } from '@radix-ui/react-select'
 
-type Result = RouterOutputs["result"]["findByRound"][number];
-type Filter = RouterInputs["result"]["findByRound"];
+type Result = RouterOutputs['result']['findByRound'][number]
+type Filter = RouterInputs['result']['findByRound']
 
 const columns: ColumnDef<Result>[] = [
   {
-    accessorKey: "order",
-    header: "№",
+    accessorKey: 'order',
+    header: '№',
     cell: ({ row }) => row.index + 1,
   },
   {
-    accessorKey: "name",
-    header: "Нэр",
+    accessorKey: 'name',
+    header: 'Нэр',
     cell: ({ row }) =>
       `${row.original.competitor?.user.lastname?.[0]}.${row.original.competitor?.user.firstname}`,
   },
   {
-    accessorKey: "average",
-    header: "Дундаж",
+    accessorKey: 'average',
+    header: 'Дундаж',
     cell: ({ row }) => displayTime(row.original.average),
   },
   {
-    accessorKey: "best",
-    header: "Синглэ",
+    accessorKey: 'best',
+    header: 'Синглэ',
     cell: ({ row }) => displayTime(row.original.best),
   },
   {
-    accessorKey: "solve1",
-    header: "Эвлүүлэлт 1",
+    accessorKey: 'solve1',
+    header: 'Эвлүүлэлт 1',
     cell: ({ row }) => displayTime(row.original.solve1),
   },
   {
-    accessorKey: "solve2",
-    header: "Эвлүүлэлт 2",
+    accessorKey: 'solve2',
+    header: 'Эвлүүлэлт 2',
     cell: ({ row }) => displayTime(row.original.solve2),
   },
   {
-    accessorKey: "solve3",
-    header: "Эвлүүлэлт 3",
+    accessorKey: 'solve3',
+    header: 'Эвлүүлэлт 3',
     cell: ({ row }) => displayTime(row.original.solve3),
   },
   {
-    accessorKey: "solve4",
-    header: "Эвлүүлэлт 4",
+    accessorKey: 'solve4',
+    header: 'Эвлүүлэлт 4',
     cell: ({ row }) => displayTime(row.original.solve4),
   },
   {
-    accessorKey: "solve5",
-    header: "Эвлүүлэлт 5",
+    accessorKey: 'solve5',
+    header: 'Эвлүүлэлт 5',
     cell: ({ row }) => displayTime(row.original.solve5 ?? 0),
   },
-];
+]
 
 export default function Page({
   slug,
   id,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
-  const { data: competition } = api.competition.getBySlug.useQuery(slug ?? "", {
+  const { data: competition } = api.competition.getBySlug.useQuery(slug ?? '', {
     enabled: !!slug,
-  });
+  })
 
   const { data: round } = api.round.getAll.useQuery(
     {
@@ -86,20 +86,20 @@ export default function Page({
     {
       enabled: !!competition && !!id,
     },
-  );
+  )
   const [filter, setFilter] = useState<Filter>({
     roundId: id,
     isSolved: true,
-  });
+  })
 
   useEffect(() => {
-    setFilter((prev) => ({ ...prev, roundId: id }));
-  }, [id, setFilter]);
+    setFilter((prev) => ({ ...prev, roundId: id }))
+  }, [id, setFilter])
 
   const { data } = api.result.findByRound.useQuery(filter, {
-    queryKey: ["result.findByRound", filter],
+    queryKey: ['result.findByRound', filter],
     enabled: !!filter.roundId,
-  });
+  })
 
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(
     {
@@ -109,8 +109,14 @@ export default function Page({
     {
       enabled: !!competition && !!round,
     },
-  );
-  const { data: schools } = api.competitor.getSchools.useQuery();
+  )
+  const { data: provinces } = api.competitor.getProvinces.useQuery()
+  const { data: districts } = api.competitor.getDistricts.useQuery(
+    filter.provinceId ?? '',
+    {
+      enabled: !!filter.provinceId,
+    },
+  )
 
   return (
     <Layout>
@@ -126,7 +132,7 @@ export default function Page({
                 ageGroupId: Number(value),
               }))
             }
-            value={filter.ageGroupId?.toString() ?? ""}
+            value={filter.ageGroupId?.toString() ?? ''}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Насны ангилал" />
@@ -134,7 +140,7 @@ export default function Page({
             <SelectContent>
               {ageGroups?.map((ageGroup) => (
                 <SelectItem
-                  key={"ageGroup" + ageGroup.id}
+                  key={'ageGroup' + ageGroup.id}
                   value={ageGroup.id.toString()}
                 >
                   {ageGroup.name}
@@ -143,43 +149,35 @@ export default function Page({
             </SelectContent>
           </Select>
           <Select
-            value={filter.province}
+            value={filter.provinceId}
             onValueChange={(value) => {
-              setFilter((curr) => ({ ...curr, province: value }));
+              setFilter((curr) => ({ ...curr, province: value }))
             }}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Хот/Аймаг сонгох" />
             </SelectTrigger>
             <SelectContent>
-              {Array.from(
-                new Set(schools?.map((school) => school.province)),
-              ).map((province) => (
-                <SelectItem key={province} value={province}>
-                  {province}
+              {provinces?.map((province) => (
+                <SelectItem key={province.id} value={province.id}>
+                  {province.name}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select
-            value={filter.district}
+            value={filter.districtId}
             onValueChange={(value) => {
-              setFilter((curr) => ({ ...curr, district: value }));
+              setFilter((curr) => ({ ...curr, district: value }))
             }}
           >
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Дүүрэг/Сум сонгох" />
             </SelectTrigger>
             <SelectContent>
-              {Array.from(
-                new Set(
-                  schools
-                    ?.filter((school) => school.province === filter.province)
-                    .map((school) => school.district),
-                ),
-              ).map((district) => (
-                <SelectItem key={district} value={district}>
-                  {district}
+              {districts?.map((district) => (
+                <SelectItem key={district.id} value={district.id}>
+                  {district.name}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -188,7 +186,7 @@ export default function Page({
       </div>
       <DataTable columns={columns} data={data ?? []} />
     </Layout>
-  );
+  )
 }
 
 export async function getServerSideProps(
@@ -201,9 +199,9 @@ export async function getServerSideProps(
       db: db,
     },
     transformer: superjson,
-  });
+  })
 
-  await helpers.competition.getBySlug.prefetch(context.params?.slug as string);
+  await helpers.competition.getBySlug.prefetch(context.params?.slug as string)
 
   return {
     props: {
@@ -211,5 +209,5 @@ export async function getServerSideProps(
       slug: context.params?.slug,
       id: Number(context.params?.id) ?? 0,
     },
-  };
+  }
 }

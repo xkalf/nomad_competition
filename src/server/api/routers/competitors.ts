@@ -8,9 +8,11 @@ import {
 import {
   competitors,
   competitorsToCubeTypes,
+  districts,
+  provinces,
   schools,
 } from '~/server/db/schema'
-import { eq, max, sql } from 'drizzle-orm'
+import { eq, getTableColumns, max, sql } from 'drizzle-orm'
 import { getTotalAmount } from '~/server/utils/getTotalAmount'
 
 export const competitorRouter = createTRPCRouter({
@@ -121,17 +123,36 @@ export const competitorRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       return await getTotalAmount(input, ctx.db)
     }),
-  getSchools: protectedProcedure.query(async ({ ctx }) => {
-    const res = await ctx.db
-      .select()
-      .from(schools)
+  getProvinces: protectedProcedure.query(async ({ ctx }) => {
+    return await ctx.db
+      .select({
+        ...getTableColumns(provinces),
+      })
+      .from(provinces)
       .orderBy(
-        sql`case when province = 'Улаанбаатар' then 0 else 1 end`,
-        schools.province,
-        schools.district,
-        schools.school,
+        sql`case when ${provinces.name} = 'Улаанбаатар' then 0 else 1 end`,
+        provinces.name,
       )
-
-    return res
   }),
+  getDistricts: protectedProcedure
+    .input(z.string().uuid())
+    .query(async ({ ctx, input }) => {
+      return await ctx.db
+        .select()
+        .from(districts)
+        .where(eq(districts.provinceId, input))
+    }),
+  getSchools: protectedProcedure
+    .input(z.string().uuid())
+    .query(async ({ ctx, input }) => {
+      const res = await ctx.db
+        .select({
+          ...getTableColumns(schools),
+        })
+        .from(schools)
+        .where(eq(schools.districtId, input))
+        .orderBy(schools.school)
+
+      return res
+    }),
 })

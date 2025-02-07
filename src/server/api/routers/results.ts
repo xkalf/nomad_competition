@@ -1,6 +1,6 @@
-import { createResultSchema } from "~/utils/zod";
-import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
-import { getAverage, getBest } from "~/server/utils/calculate";
+import { createResultSchema } from '~/utils/zod'
+import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
+import { getAverage, getBest } from '~/server/utils/calculate'
 import {
   ageGroups,
   competitors,
@@ -10,8 +10,8 @@ import {
   rounds,
   schools,
   users,
-} from "~/server/db/schema";
-import { z } from "zod";
+} from '~/server/db/schema'
+import { z } from 'zod'
 import {
   and,
   eq,
@@ -22,9 +22,9 @@ import {
   lte,
   ne,
   sql,
-} from "drizzle-orm";
-import { createSelectSchema } from "drizzle-zod";
-import { jsonBuildObject } from "~/server/utils/drizzle.helper";
+} from 'drizzle-orm'
+import { createSelectSchema } from 'drizzle-zod'
+import { jsonBuildObject } from '~/server/utils/drizzle.helper'
 
 export const resultsRouter = createTRPCRouter({
   findByRound: publicProcedure
@@ -58,22 +58,22 @@ export const resultsRouter = createTRPCRouter({
         .where(
           and(
             eq(results.roundId, input.roundId),
-            eq(schools.province, input.province ?? "").if(
-              !!input.province && input.isOther === false,
+            eq(schools.provinceId, input.provinceId ?? '').if(
+              !!input.provinceId && input.isOther === false,
             ),
-            eq(schools.district, input.district ?? "").if(
-              !!input.district && input.isOther === false,
+            eq(schools.districtId, input.districtId ?? '').if(
+              !!input.districtId && input.isOther === false,
             ),
-            eq(schools.school, input.school ?? "").if(
+            eq(schools.school, input.school ?? '').if(
               !!input.school && input.isOther === false,
             ),
-            ne(schools.province, input.province ?? "").if(
-              !!input.province && input.isOther === true,
+            ne(schools.provinceId, input.provinceId ?? '').if(
+              !!input.provinceId && input.isOther === true,
             ),
-            ne(schools.district, input.district ?? "").if(
-              !!input.district && input.isOther === true,
+            ne(schools.districtId, input.districtId ?? '').if(
+              !!input.districtId && input.isOther === true,
             ),
-            ne(schools.school, input.school ?? "").if(
+            ne(schools.school, input.school ?? '').if(
               !!input.school && input.isOther === true,
             ),
             gte(
@@ -96,7 +96,7 @@ export const resultsRouter = createTRPCRouter({
           results.best,
           competitors.verifiedId,
         )
-        .$dynamic();
+        .$dynamic()
 
       if (input.ageGroupId) {
         query = query.leftJoin(
@@ -106,10 +106,10 @@ export const resultsRouter = createTRPCRouter({
             eq(ageGroups.cubeTypeId, results.cubeTypeId),
             eq(ageGroups.id, input.ageGroupId),
           ),
-        );
+        )
       }
 
-      return await query;
+      return await query
     }),
   create: adminProcedure
     .input(createResultSchema)
@@ -120,7 +120,7 @@ export const resultsRouter = createTRPCRouter({
         input.solve3,
         input.solve4,
         input.solve5,
-      ].map((i) => (typeof i === "number" ? i : -1));
+      ].map((i) => (typeof i === 'number' ? i : -1))
 
       const [round] = await ctx.db
         .select({
@@ -130,10 +130,10 @@ export const resultsRouter = createTRPCRouter({
         })
         .from(rounds)
         .where(eq(rounds.id, input.roundId))
-        .leftJoin(cubeTypes, eq(cubeTypes.id, rounds.cubeTypeId));
+        .leftJoin(cubeTypes, eq(cubeTypes.id, rounds.cubeTypeId))
 
       if (!round) {
-        throw new Error("Раунд олдсонгүй.");
+        throw new Error('Раунд олдсонгүй.')
       }
 
       const [competitor] = await ctx.db
@@ -146,14 +146,14 @@ export const resultsRouter = createTRPCRouter({
             eq(competitors.verifiedId, input.verifiedId),
             eq(competitors.competitionId, round.competitionId),
           ),
-        );
+        )
 
       if (!competitor) {
-        throw new Error("Тамирчин олдсонгүй.");
+        throw new Error('Тамирчин олдсонгүй.')
       }
 
-      const best = getBest(solves);
-      const average = getAverage(solves, round.type ?? "ao5");
+      const best = getBest(solves)
+      const average = getAverage(solves, round.type ?? 'ao5')
 
       const [updated] = await ctx.db
         .update(results)
@@ -174,10 +174,10 @@ export const resultsRouter = createTRPCRouter({
             eq(results.cubeTypeId, round.cubeTypeId),
           ),
         )
-        .returning();
+        .returning()
 
       if (!updated) {
-        throw new Error("Тамирчин олдсонгүй.");
+        throw new Error('Тамирчин олдсонгүй.')
       }
     }),
   generate: adminProcedure
@@ -185,7 +185,10 @@ export const resultsRouter = createTRPCRouter({
       /**
        * @input roundId
        */
-      z.number().int().positive(),
+      z
+        .number()
+        .int()
+        .positive(),
     )
     .mutation(async ({ ctx, input }) => {
       const [round] = await ctx.db
@@ -197,10 +200,10 @@ export const resultsRouter = createTRPCRouter({
         })
         .from(rounds)
         .where(eq(rounds.id, input))
-        .leftJoin(cubeTypes, eq(cubeTypes.id, rounds.cubeTypeId));
+        .leftJoin(cubeTypes, eq(cubeTypes.id, rounds.cubeTypeId))
 
       if (!round) {
-        throw new Error("Раунд олдсонгүй.");
+        throw new Error('Раунд олдсонгүй.')
       }
 
       const comps = await ctx.db
@@ -222,15 +225,15 @@ export const resultsRouter = createTRPCRouter({
                   and(
                     eq(competitorsToCubeTypes.competitorId, competitors.id),
                     eq(competitorsToCubeTypes.cubeTypeId, round.cubeTypeId),
-                    eq(competitorsToCubeTypes.status, "Paid"),
+                    eq(competitorsToCubeTypes.status, 'Paid'),
                   ),
                 ),
             ),
           ),
-        );
+        )
 
       if (comps.length === 0) {
-        throw new Error("Тамирчин хоосон байна.");
+        throw new Error('Тамирчин хоосон байна.')
       }
 
       const curr = await ctx.db
@@ -243,10 +246,10 @@ export const resultsRouter = createTRPCRouter({
             eq(results.cubeTypeId, round.cubeTypeId),
             isNotNull(results.best),
           ),
-        );
+        )
 
       if (curr.length > 0) {
-        throw new Error("Үзүүлэлт шивсэн байна устгах боломжгүй .");
+        throw new Error('Үзүүлэлт шивсэн байна устгах боломжгүй .')
       }
 
       await ctx.db
@@ -257,7 +260,7 @@ export const resultsRouter = createTRPCRouter({
             eq(results.competitionId, round.competitionId),
             eq(results.cubeTypeId, round.cubeTypeId),
           ),
-        );
+        )
 
       await ctx.db.insert(results).values(
         comps.map((comp, index): typeof results.$inferInsert => ({
@@ -265,11 +268,11 @@ export const resultsRouter = createTRPCRouter({
           cubeTypeId: round.cubeTypeId,
           competitionId: round.competitionId,
           competitorId: comp.id,
-          type: round.type ?? "ao5",
+          type: round.type ?? 'ao5',
           createdUserId: ctx.session.user.id,
           updatedUserId: ctx.session.user.id,
           group: `${Math.floor(index / round.perGroupCount) + 1}`,
         })),
-      );
+      )
     }),
-});
+})

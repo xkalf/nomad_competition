@@ -1,6 +1,6 @@
-import { User } from "next-auth";
-import { Avatar, AvatarFallback } from "./ui/avatar";
-import { Button } from "./ui/button";
+import { User } from 'next-auth'
+import { Avatar, AvatarFallback } from './ui/avatar'
+import { Button } from './ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,11 +8,12 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "./ui/dropdown-menu";
-import { signOut } from "next-auth/react";
+} from './ui/dropdown-menu'
+import { signOut } from 'next-auth/react'
+import Link from 'next/link'
 
 interface Props {
-  user: User;
+  user: User
 }
 
 export function UserNav({ user }: Props) {
@@ -41,8 +42,12 @@ export function UserNav({ user }: Props) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        <DropdownMenuItem asChild>
+          <Link href={'/profile'}>Профайл</Link>
+        </DropdownMenuItem>
+        <DropdownMenuSeparator />
         <DropdownMenuItem onClick={() => signOut()}>Гарах</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  );
+  )
 }

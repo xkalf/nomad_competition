@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_results" ADD CONSTRAINT "nomad_competition_results_competitor_id_round_id_unique" UNIQUE("competitor_id","round_id");
