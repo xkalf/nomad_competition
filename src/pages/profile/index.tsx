@@ -17,7 +17,7 @@ import React from 'react'
 import groupBy from 'lodash.groupby'
 
 export default function ProfilePage() {
-  const { data: user } = api.auth.me.useQuery()
+  const { data: user } = api.auth.profile.useQuery()
   const { data: personalRecords } = api.persons.getPersonalRecords.useQuery(
     {
       userId: user?.id ?? '',
@@ -89,14 +89,14 @@ export default function ProfilePage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Төрөл</TableHead>
-                  <TableHead>DR</TableHead>
-                  <TableHead>PR</TableHead>
-                  <TableHead>AR</TableHead>
+                  <TableHead>Сум/Дүүрэг</TableHead>
+                  <TableHead>Аймаг/Хот</TableHead>
+                  <TableHead>NR</TableHead>
                   <TableHead>Синглэ</TableHead>
                   <TableHead>Дундаж</TableHead>
-                  <TableHead>AR</TableHead>
-                  <TableHead>PR</TableHead>
-                  <TableHead>DR</TableHead>
+                  <TableHead>NR</TableHead>
+                  <TableHead>Аймаг/Хот</TableHead>
+                  <TableHead>Сум/Дүүрэг</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

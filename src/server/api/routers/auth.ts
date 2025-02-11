@@ -1,4 +1,8 @@
-import { passwordResetSchema, registerSchema } from '~/utils/zod'
+import {
+  passwordResetSchema,
+  registerSchema,
+  updateProfileSchema,
+} from '~/utils/zod'
 import { createTRPCRouter, protectedProcedure, publicProcedure } from '../trpc'
 import { genSalt, hash } from 'bcrypt'
 import { users, verificationTokens } from '~/server/db/schema'
@@ -27,6 +31,11 @@ export const authRouter = createTRPCRouter({
     }),
   me: protectedProcedure.query(async ({ ctx }) => {
     return ctx.session.user
+  }),
+  profile: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.db.query.users.findFirst({
+      where: eq(users.id, ctx.session.user.id),
+    })
   }),
   verify: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const token = await ctx.db.query.verificationTokens.findFirst({
@@ -100,5 +109,13 @@ export const authRouter = createTRPCRouter({
     .input(z.string().email())
     .mutation(async ({ input }) => {
       await generateVerifictionToken(input, 'password')
+    }),
+  updateProfile: protectedProcedure
+    .input(updateProfileSchema)
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(users)
+        .set(input)
+        .where(eq(users.id, ctx.session.user.id))
     }),
 })

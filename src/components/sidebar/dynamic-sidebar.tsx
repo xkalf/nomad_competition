@@ -31,6 +31,7 @@ import { NavUser } from './nav-user'
 import { sidebarItems } from './sidebar-items'
 import Image from 'next/image'
 import { getImageUrl } from '~/utils/supabase'
+import UpdateProfile from '../update-profile'
 
 export function DynamicSidebar({ children }: PropsWithChildren) {
   const router = useRouter()
@@ -144,14 +145,19 @@ export function DynamicSidebar({ children }: PropsWithChildren) {
             })}
         </SidebarContent>
         <SidebarFooter>
-          {session?.data?.user ? (
-            <NavUser user={session?.data?.user} />
-          ) : (
-            <div className="flex flex-col space-y-2">
-              <LoginDialog />
-              <RegisterDialog />
-            </div>
-          )}
+          <div className="flex flex-col space-y-2">
+            {session?.data?.user ? (
+              <>
+                <UpdateProfile />
+                <NavUser user={session?.data?.user} />
+              </>
+            ) : (
+              <>
+                <LoginDialog />
+                <RegisterDialog />
+              </>
+            )}
+          </div>
         </SidebarFooter>
       </Sidebar>
       <SidebarTrigger />

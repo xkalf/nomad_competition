@@ -1,4 +1,11 @@
+import { zodResolver } from '@hookform/resolvers/zod'
+import Image from 'next/image'
+import { useState } from 'react'
 import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { api } from '~/utils/api'
+import { getImageUrl, handleFileUpload } from '~/utils/supabase'
+import { updateProfileSchema } from '~/utils/zod'
 import { Button } from './ui/button'
 import {
   Dialog,
@@ -7,9 +14,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './ui/dialog'
-import { z } from 'zod'
-import { registerSchema } from '~/utils/zod'
-import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Form,
   FormControl,
@@ -19,56 +23,35 @@ import {
   FormLabel,
   FormMessage,
 } from './ui/form'
-import { api } from '~/utils/api'
 import { Input } from './ui/input'
-import { useState } from 'react'
-import { toast } from './ui/use-toast'
-import { Switch } from './ui/switch'
 import { Label } from './ui/label'
-import {
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-} from '@radix-ui/react-popover'
-import { CommandInput, CommandList, CommandGroup, CommandItem } from 'cmdk'
-import { ChevronsUpDown, Command, Check } from 'lucide-react'
+import { Switch } from './ui/switch'
+import { toast } from './ui/use-toast'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { cn } from '~/lib/utils'
-import { handleFileUpload, getImageUrl } from '~/utils/supabase'
-import Image from 'next/image'
+import { Check, ChevronsUpDown } from 'lucide-react'
+import {
+  Command,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from './ui/command'
 
-const defaultValues: z.infer<typeof registerSchema> = {
-  firstname: '',
-  lastname: '',
-  email: '',
-  phone: 0,
-  birthDate: '',
-  password: '',
-  isMale: true,
-}
+type UpdateProfileInput = z.infer<typeof updateProfileSchema>
 
-export default function RegisterDialog() {
-  const [isOpen, setIsOpen] = useState(false)
-  const { mutate: register, isLoading } = api.auth.register.useMutation({
-    onSuccess: () => {
-      toast({
-        title: 'Амжилттай бүртгэгдлээ.',
-        description:
-          'Имэйл хаяг баталгаажуулах хугацаа 20 минут. Та амжиж баталгаажуулна уу.',
-      })
-      setIsOpen(false)
+export default function UpdateProfile() {
+  const { data: me } = api.auth.profile.useQuery()
+
+  const form = useForm<UpdateProfileInput>({
+    resolver: zodResolver(updateProfileSchema),
+    defaultValues: {
+      ...me,
+      wcaId: me?.wcaId ?? undefined,
+      image: me?.image ?? undefined,
+      provinceId: me?.provinceId ?? undefined,
+      districtId: me?.districtId ?? undefined,
     },
-    onError: (error) => {
-      toast({
-        title: 'Алдаа гарлаа',
-        description: error.message,
-        variant: 'destructive',
-      })
-    },
-  })
-
-  const form = useForm<z.infer<typeof registerSchema>>({
-    resolver: zodResolver(registerSchema),
-    defaultValues,
   })
 
   const { data: provinces } = api.competitor.getProvinces.useQuery()
@@ -79,73 +62,73 @@ export default function RegisterDialog() {
     },
   )
 
-  const onSubmit = async (values: z.infer<typeof registerSchema>) => {
-    register(values)
+  const [isOpen, setIsOpen] = useState(false)
+
+  const { mutate, isLoading } = api.auth.updateProfile.useMutation({
+    onSuccess: () => {
+      setIsOpen(false)
+      toast({
+        title: 'Амжилттаи засагдлаа.',
+      })
+    },
+    onError: (err) => {
+      toast({
+        title: 'Алдаа гарлаа',
+        description: err.message,
+        variant: 'destructive',
+      })
+    },
+  })
+
+  const onSubmit = (input: UpdateProfileInput) => {
+    mutate(input)
   }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button>Бүртгүүлэх</Button>
+        <Button>Бүртгэл засах</Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Бүртгүүлэх</DialogTitle>
+          <DialogTitle>Бүртгэл засах</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form
+            className="grid grid-cols-2 gap-x-8 gap-y-4 items-center"
             onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-cols-2 gap-x-8 gap-y-4"
           >
             <FormFieldCustom
               control={form.control}
-              name="email"
-              label="Мэйл хаяг"
-              render={({ field }) => <Input {...field} />}
-            />
-            <FormFieldCustom
-              control={form.control}
-              name="password"
-              label="Нууц үг"
-              render={({ field }) => <Input type="password" {...field} />}
-            />
-            <FormFieldCustom
-              control={form.control}
               name="lastname"
-              label="Овог"
               render={({ field }) => <Input {...field} />}
+              label="Овог"
             />
             <FormFieldCustom
               control={form.control}
               name="firstname"
-              label="Нэр"
               render={({ field }) => <Input {...field} />}
-            />
-            <FormFieldCustom
-              control={form.control}
-              name="wcaId"
-              label="WCA ID"
-              render={({ field }) => (
-                <Input value={field.value || ''} onChange={field.onChange} />
-              )}
+              label="Нэр"
             />
             <FormFieldCustom
               control={form.control}
               name="phone"
-              label="Утасны дугаар"
+              render={({ field }) => <Input {...field} />}
+              label="Утас"
+            />
+            <FormFieldCustom
+              control={form.control}
+              name="wcaId"
               render={({ field }) => (
-                <Input
-                  type="number"
-                  {...field}
-                  onChange={(e) => field.onChange(e.target.valueAsNumber)}
-                />
+                <Input {...field} value={field.value ?? undefined} />
               )}
+              label="WCA ID"
             />
             <FormFieldCustom
               control={form.control}
               name="birthDate"
-              label="Төрсөн өдөр"
               render={({ field }) => <Input type="date" {...field} />}
+              label="Төрсөн өдөр"
             />
             <FormFieldCustom
               control={form.control}
@@ -331,7 +314,7 @@ export default function RegisterDialog() {
               disabled={isLoading}
               onClick={form.handleSubmit(onSubmit)}
             >
-              {isLoading ? 'Уншиж байна...' : 'Бүртгүүлэх'}
+              {isLoading ? 'Уншиж байна...' : 'Засах'}
             </Button>
           </form>
         </Form>

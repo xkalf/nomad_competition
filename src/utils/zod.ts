@@ -1,4 +1,4 @@
-import { createInsertSchema } from 'drizzle-zod'
+import { createInsertSchema, createUpdateSchema } from 'drizzle-zod'
 import { ZodObject, ZodRawShape, z } from 'zod'
 import {
   ageGroups,
@@ -195,3 +195,5 @@ export const passwordResetSchema = z
     path: ['passwordRe'],
   })
 export type PasswordResetInput = z.infer<typeof passwordResetSchema>
+
+export const updateProfileSchema = createUpdateSchema(users)

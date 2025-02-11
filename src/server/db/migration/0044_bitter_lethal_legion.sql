@@ -1,0 +1,4 @@
+ALTER TABLE "nomad_competition_user" ADD COLUMN "province_id" uuid;--> statement-breakpoint
+ALTER TABLE "nomad_competition_user" ADD COLUMN "district_id" uuid;--> statement-breakpoint
+ALTER TABLE "nomad_competition_user" ADD CONSTRAINT "nomad_competition_user_province_id_provinces_id_fk" FOREIGN KEY ("province_id") REFERENCES "public"."provinces"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "nomad_competition_user" ADD CONSTRAINT "nomad_competition_user_district_id_districts_id_fk" FOREIGN KEY ("district_id") REFERENCES "public"."districts"("id") ON DELETE no action ON UPDATE no action;

@@ -48,6 +48,8 @@ export const users = createTable('user', {
   isAdmin: boolean('is_admin').notNull().default(false),
   password: varchar('password', { length: 255 }).notNull(),
   isMale: boolean('is_male').notNull().default(true),
+  provinceId: uuid().references(() => provinces.id),
+  districtId: uuid().references(() => districts.id),
 })
 
 export const usersRelations = relations(users, ({ many }) => ({
