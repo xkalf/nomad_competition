@@ -2,7 +2,7 @@
  * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially useful
  * for Docker builds.
  */
-await import("./src/env.js");
+await import('./src/env.js')
 
 /** @type {import("next").NextConfig} */
 const config = {
@@ -14,25 +14,30 @@ const config = {
    * @see https://github.com/vercel/next.js/issues/41980
    */
   i18n: {
-    locales: ["en"],
-    defaultLocale: "en",
+    locales: ['en'],
+    defaultLocale: 'en',
   },
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "sepqgdowngdjrimbdsop.supabase.co",
+        protocol: 'https',
+        hostname: 'sepqgdowngdjrimbdsop.supabase.co',
       },
       {
-        protocol: "https",
-        hostname: "s3.qpay.mn",
+        protocol: 'https',
+        hostname: 's3.qpay.mn',
       },
       {
-        protocol: "https",
-        hostname: "qpay.mn",
+        protocol: 'https',
+        hostname: 'qpay.mn',
       },
     ],
   },
-};
+  webpack: (config) => {
+    config.resolve.alias.canvas = false
 
-export default config;
+    return config
+  },
+}
+
+export default config

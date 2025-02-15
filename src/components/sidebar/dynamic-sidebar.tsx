@@ -44,8 +44,6 @@ export function DynamicSidebar({ children }: PropsWithChildren) {
 
   const rounds = useRoundsStore((state) => state.rounds)
 
-  console.log(router.pathname)
-
   return (
     <SidebarProvider>
       <Sidebar>
@@ -126,9 +124,12 @@ export function DynamicSidebar({ children }: PropsWithChildren) {
                                   href={{
                                     pathname:
                                       typeof i.href === 'function'
-                                        ? '/'
+                                        ? i.href(slug ?? '')
                                         : i.href,
-                                    query: router.query,
+                                    query:
+                                      typeof i.href === 'function'
+                                        ? undefined
+                                        : router.query,
                                   }}
                                 >
                                   {i.icon && <i.icon />}

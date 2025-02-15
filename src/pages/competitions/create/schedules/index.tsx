@@ -4,7 +4,6 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import CreateButtons, {
   redirectNextCreatePage,
 } from '~/components/create-buttons'
-import CreateLinks from '~/components/create-links'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
 import { Form, FormFieldCustom } from '~/components/ui/form'
@@ -87,7 +86,6 @@ export default function SchedulesForm() {
 
   return (
     <Layout>
-      <CreateLinks />
       <div className="flex gap-4">
         <h1 className="text-3xl font-bold">Цагийн хуваарь бүртгэл</h1>
         <Button

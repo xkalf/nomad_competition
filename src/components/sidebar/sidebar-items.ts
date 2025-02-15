@@ -32,6 +32,10 @@ export const sidebarItems: SidebarConfig = {
       icon: Info,
     },
     {
+      title: 'Удирдамж',
+      href: (slug) => `/competitions/${slug}/guideline`,
+    },
+    {
       title: 'Бүртгүүлэх хүсэлт',
       href: (slug) => `/competitions/${slug}/register`,
       hide: (competition) => {

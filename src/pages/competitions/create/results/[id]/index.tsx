@@ -48,12 +48,18 @@ const columns: ColumnDef<Result>[] = [
   {
     accessorKey: 'average',
     header: 'Дундаж',
-    cell: ({ row }) => displayTime(row.original.average),
+    cell: ({ row }) => (
+      <span className="text-green-500">
+        {displayTime(row.original.average)}
+      </span>
+    ),
   },
   {
     accessorKey: 'best',
     header: 'Синглэ',
-    cell: ({ row }) => displayTime(row.original.best),
+    cell: ({ row }) => (
+      <span className="text-green-500">{displayTime(row.original.best)}</span>
+    ),
   },
   {
     accessorKey: 'solve1',

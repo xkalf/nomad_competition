@@ -4,7 +4,6 @@ import { useRef, useState } from 'react'
 import CreateButtons, {
   redirectNextCreatePage,
 } from '~/components/create-buttons'
-import CreateLinks from '~/components/create-links'
 import DataTable from '~/components/data-table/data-table'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
@@ -112,7 +111,6 @@ export default function GroupsPage() {
 
   return (
     <Layout>
-      <CreateLinks />
       <div className="flex gap-4">
         <h1 className="text-3xl text-bold">Групп</h1>
         <Button

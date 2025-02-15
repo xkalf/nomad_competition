@@ -153,6 +153,7 @@ export const competitions = createTable('competitions', {
   freeGuests: integer('free_guests').notNull().default(0),
   slug: varchar('slug').unique().notNull(),
   image: varchar('image'),
+  guideLines: varchar(),
 })
 
 export const competitionsRelations = relations(competitions, ({ many }) => ({

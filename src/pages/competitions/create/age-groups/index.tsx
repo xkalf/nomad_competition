@@ -5,7 +5,6 @@ import { useFieldArray, useForm } from 'react-hook-form'
 import CreateButtons, {
   redirectNextCreatePage,
 } from '~/components/create-buttons'
-import CreateLinks from '~/components/create-links'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
 import {
@@ -126,7 +125,6 @@ export default function AgeGroupsForm() {
 
   return (
     <Layout>
-      <CreateLinks />
       <div className="flex gap-4">
         <h1 className="text-3xl font-bold">Насны ангилал бүртгэх</h1>
         <Button
