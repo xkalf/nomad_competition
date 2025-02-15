@@ -1,20 +1,13 @@
-import { Document, pdfjs, Page } from 'react-pdf'
+import { Viewer, Worker } from '@react-pdf-viewer/core'
 import LoadingScreen from '~/components/loading-screen'
 import { api } from '~/utils/api'
 import { useGetCompetitionSlug } from '~/utils/hooks'
 import { getImageUrl } from '~/utils/supabase'
 import CompetitionLayout from '../layout'
-import { useState } from 'react'
-import 'react-pdf/dist/Page/AnnotationLayer.css'
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  'pdfjs-dist/build/pdf.worker.min.mjs',
-  import.meta.url,
-).toString()
+import '@react-pdf-viewer/core/lib/styles/index.css'
 
 export default function GuideLinePage() {
   const slug = useGetCompetitionSlug()
-  const [numPages, setNumPages] = useState<number>(0)
 
   const { data: competition, isLoading } = api.competition.getBySlug.useQuery(
     slug,
@@ -31,23 +24,12 @@ export default function GuideLinePage() {
     )
   }
 
-  function onSuccess({ numPages }: { numPages: number }) {
-    console.log(numPages)
-    setNumPages(numPages)
-  }
-
   return (
     <CompetitionLayout>
       <h1 className="text-4xl font-bold capitalize">Удирдамж</h1>
-      <Document
-        file={getImageUrl(competition?.guideLines)}
-        onLoadSuccess={onSuccess}
-        className="w-full"
-      >
-        {[...Array(numPages)].map((_, i) => (
-          <Page pageNumber={i + 1} renderTextLayer={false} className="w-full" />
-        ))}
-      </Document>
+      <Worker workerUrl="https://unpkg.com/pdfjs-dist@3.4.120/build/pdf.worker.min.js">
+        <Viewer fileUrl={getImageUrl(competition?.guideLines)}></Viewer>
+      </Worker>
     </CompetitionLayout>
   )
 }
