@@ -38,6 +38,9 @@ const config = {
 
     return config
   },
+  experimental: {
+    esmExternals: 'loose',
+  },
 }
 
 export default config
