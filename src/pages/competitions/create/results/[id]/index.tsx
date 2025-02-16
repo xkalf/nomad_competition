@@ -1,8 +1,9 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { ColumnDef } from '@tanstack/react-table'
+import { Check, ChevronsUpDown } from 'lucide-react'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import { useRouter } from 'next/router'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import CreateButtons from '~/components/create-buttons'
@@ -10,9 +11,29 @@ import DataTable from '~/components/data-table/data-table'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
-import { Form, FormFieldCustom } from '~/components/ui/form'
+import {
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+  Command,
+} from '~/components/ui/command'
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormFieldCustom,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '~/components/ui/form'
 import { Input } from '~/components/ui/input'
 import { Label } from '~/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '~/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -21,7 +42,8 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { toast } from '~/components/ui/use-toast'
-import { api, RouterInputs, RouterOutputs } from '~/utils/api'
+import { cn } from '~/lib/utils'
+import { RouterInputs, RouterOutputs, api } from '~/utils/api'
 import { useGetCompetitionId } from '~/utils/hooks'
 import { displayTime, formatCustomTime } from '~/utils/timeUtils'
 import { createResultSchema } from '~/utils/zod'
@@ -197,6 +219,9 @@ export default function ResultsPage({
       enabled: !!competitionId,
     },
   )
+  const { data: competitors } = api.competitor.getByCompetitionId.useQuery({
+    competitionId: competitionId,
+  })
 
   const round = useMemo(() => {
     return rounds?.find((round) => round.id === filter.roundId)
@@ -232,6 +257,16 @@ export default function ResultsPage({
     })
   }
 
+  const getUser = useCallback(
+    (verifiedId?: number) => {
+      if (!verifiedId) return 'Тамирчин сонгох'
+      const user = competitors?.find((c) => c.id === verifiedId)?.user
+
+      return user ? `${user.lastname} ${user.firstname}` : 'Тамирчин сонгох'
+    },
+    [competitors],
+  )
+
   return (
     <Layout>
       <div className="flex gap-4">
@@ -249,6 +284,68 @@ export default function ResultsPage({
       <div className="grid grid-cols-12 gap-x-4">
         <div className="col-span-4">
           <Form {...form}>
+            <FormField
+              control={form.control}
+              name="verifiedId"
+              render={({ field }) => (
+                <FormItem className="flex flex-col">
+                  <FormLabel>Тамирчин сонгох</FormLabel>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <FormControl>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          className={cn(
+                            'w-[200px] justify-between',
+                            !field.value && 'text-muted-foreground',
+                          )}
+                        >
+                          {getUser(field.value)}
+                          <ChevronsUpDown className="opacity-50" />
+                        </Button>
+                      </FormControl>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[200px] p-0">
+                      <Command>
+                        <CommandInput
+                          placeholder="Хот/Аймаг сонгох"
+                          className="h-9"
+                        />
+                        <CommandList>
+                          <CommandGroup>
+                            {competitors?.map((c) => (
+                              <CommandItem
+                                value={`${c.verifiedId} ${c.user.lastname} ${c.user.firstname}`}
+                                key={c.id + 'combobox'}
+                                onSelect={(currentValue) => {
+                                  const value = currentValue.split(' ')[0]
+                                  form.setValue(
+                                    'verifiedId',
+                                    value ? +value : 0,
+                                  )
+                                }}
+                              >
+                                {c.user.lastname} {c.user.firstname}
+                                <Check
+                                  className={cn(
+                                    'ml-auto',
+                                    c.verifiedId === field.value
+                                      ? 'opacity-100'
+                                      : 'opacity-0',
+                                  )}
+                                />
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormFieldCustom
               control={form.control}
               name="verifiedId"
