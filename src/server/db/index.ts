@@ -6,7 +6,7 @@ import { PgTransaction } from 'drizzle-orm/pg-core'
 import { env } from '~/env.js'
 import * as schema from './schema'
 
-export const db = drizzle(postgres(env.DATABASE_URL), {
+export const db = drizzle(postgres(env.DATABASE_URL, { prepare: false }), {
   schema,
   casing: 'snake_case',
 })

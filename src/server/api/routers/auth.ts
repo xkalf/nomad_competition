@@ -33,9 +33,14 @@ export const authRouter = createTRPCRouter({
     return ctx.session.user
   }),
   profile: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.db.query.users.findFirst({
-      where: eq(users.id, ctx.session.user.id),
-    })
+    try {
+      return ctx.db.query.users.findFirst({
+        where: eq(users.id, ctx.session.user.id),
+      })
+    } catch (err) {
+      console.log(err)
+      throw err
+    }
   }),
   verify: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const token = await ctx.db.query.verificationTokens.findFirst({
