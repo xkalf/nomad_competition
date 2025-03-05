@@ -398,20 +398,24 @@ export const feesRelation = relations(fees, ({ one }) => ({
   }),
 }))
 
-export const rounds = createTable('rounds', {
-  id: serial('id').primaryKey(),
-  competitionId: integer('competition_id')
-    .notNull()
-    .references(() => competitions.id),
-  cubeTypeId: integer('cube_type_id')
-    .notNull()
-    .references(() => cubeTypes.id),
-  isDuel: boolean('is_duel').default(false),
-  name: varchar('name').notNull(),
-  nextCompetitor: integer('next_competitor').notNull(),
-  perGroupCount: integer('per_group_count').notNull(),
-  isActive: boolean().default(false),
-})
+export const rounds = createTable(
+  'rounds',
+  {
+    id: serial('id').primaryKey(),
+    competitionId: integer('competition_id')
+      .notNull()
+      .references(() => competitions.id),
+    cubeTypeId: integer('cube_type_id')
+      .notNull()
+      .references(() => cubeTypes.id),
+    isDuel: boolean('is_duel').default(false),
+    name: varchar('name').notNull(),
+    nextCompetitor: integer('next_competitor').notNull(),
+    perGroupCount: integer('per_group_count').notNull(),
+    isActive: boolean().default(false),
+  },
+  (t) => [unique().on(t.competitionId, t.cubeTypeId, t.name)],
+)
 
 export const roundsRelation = relations(rounds, ({ one }) => ({
   cubeType: one(cubeTypes, {

@@ -32,6 +32,10 @@ export const sidebarItems: SidebarConfig = {
       icon: Info,
     },
     {
+      title: 'Цагийн хуваарь',
+      href: (slug) => `/competitions/${slug}/schedule`,
+    },
+    {
       title: 'Удирдамж',
       href: (slug) => `/competitions/${slug}/guideline`,
     },
