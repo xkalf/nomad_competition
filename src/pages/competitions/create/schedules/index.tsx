@@ -23,6 +23,7 @@ import { CreateScheduleManyInput, createScheduleManySchema } from '~/utils/zod'
 export default function SchedulesForm() {
   const router = useRouter()
   const competitionId = useGetCompetitionId()
+  const context = api.useUtils()
 
   api.schedule.getByCompetitionId.useQuery(
     {
@@ -58,6 +59,7 @@ export default function SchedulesForm() {
       toast({
         title: 'Амжилттай бүртгэгдлээ.',
       })
+      context.schedule.getByCompetitionId.invalidate()
       redirectNextCreatePage(router)
     },
     onError: (error) => {
