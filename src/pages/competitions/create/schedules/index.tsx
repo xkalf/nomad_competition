@@ -39,6 +39,9 @@ export default function SchedulesForm() {
             startTime: schedule.startTime,
             endTime: schedule.endTime,
             roundId: schedule.roundId,
+            cutOff: schedule.cutOff,
+            timeLimit: schedule.timeLimit,
+            competitorLimit: schedule.competitorLimit,
           })),
         )
       },
