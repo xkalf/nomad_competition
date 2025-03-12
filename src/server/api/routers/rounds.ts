@@ -83,27 +83,12 @@ export const roundsRouter = createTRPCRouter({
         const insertValues: (typeof rounds.$inferInsert)[] = []
         const founds: number[] = []
 
+        console.log(current)
         for (const i of input.data) {
-          const found = current.find((c) => i.id?.includes(c.id))
+          const found = current.filter((c) => i.id?.includes(c.id))
           const { id: _, ...rest } = i
 
-          if (found) {
-            founds.push(found.id)
-            await db.update(rounds).set(rest).where(eq(rounds.id, found.id))
-            if (i.cubeTypes.length > 1) {
-              insertValues.push(
-                ...i.cubeTypes
-                  .filter((j) => found.cubeTypeId !== j)
-                  .map((j) => {
-                    return {
-                      ...rest,
-                      cubeTypeId: j,
-                      competitionId: input.competitionId,
-                    }
-                  }),
-              )
-            }
-          } else {
+          if (found.length === 0) {
             insertValues.push(
               ...i.cubeTypes.map((j) => {
                 return {
@@ -113,6 +98,24 @@ export const roundsRouter = createTRPCRouter({
                 }
               }),
             )
+          }
+
+          for (const f of found) {
+            founds.push(f.id)
+            await db.update(rounds).set(rest).where(eq(rounds.id, f.id))
+            if (i.cubeTypes.length > 1) {
+              insertValues.push(
+                ...i.cubeTypes
+                  .filter((j) => f.cubeTypeId !== j)
+                  .map((j) => {
+                    return {
+                      ...rest,
+                      cubeTypeId: j,
+                      competitionId: input.competitionId,
+                    }
+                  }),
+              )
+            }
           }
         }
 

@@ -5,8 +5,8 @@ import {
   useReactTable,
   SortingState,
   getSortedRowModel,
-} from "@tanstack/react-table";
-import { useState } from "react";
+} from '@tanstack/react-table'
+import { useState } from 'react'
 
 import {
   Table,
@@ -15,13 +15,13 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { cn } from "~/lib/utils";
+} from '~/components/ui/table'
+import { cn } from '~/lib/utils'
 
 interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[];
-  data: TData[];
-  className?: string;
+  columns: ColumnDef<TData, TValue>[]
+  data: TData[]
+  className?: string
 }
 
 export default function DataTable<TData, TValue>({
@@ -29,7 +29,7 @@ export default function DataTable<TData, TValue>({
   data,
   className,
 }: DataTableProps<TData, TValue>) {
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [sorting, setSorting] = useState<SortingState>([])
 
   const table = useReactTable({
     data,
@@ -40,10 +40,10 @@ export default function DataTable<TData, TValue>({
     state: {
       sorting,
     },
-  });
+  })
 
   return (
-    <div className={cn("rounded-md border", className)}>
+    <div className={cn('rounded-md border', className)}>
       <Table>
         <TableHeader>
           {table.getHeaderGroups().map((headerGroup) => (
@@ -58,7 +58,7 @@ export default function DataTable<TData, TValue>({
                           header.getContext(),
                         )}
                   </TableHead>
-                );
+                )
               })}
             </TableRow>
           ))}
@@ -68,7 +68,7 @@ export default function DataTable<TData, TValue>({
             table.getRowModel().rows.map((row) => (
               <TableRow
                 key={row.id}
-                data-state={row.getIsSelected() && "selected"}
+                data-state={row.getIsSelected() && 'selected'}
                 className="odd:bg-gray-200"
               >
                 {row.getVisibleCells().map((cell) => (
@@ -88,5 +88,5 @@ export default function DataTable<TData, TValue>({
         </TableBody>
       </Table>
     </div>
-  );
+  )
 }

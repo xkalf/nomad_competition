@@ -54,6 +54,12 @@ export default function SchedulesForm() {
       enabled: competitionId > 0,
     },
   )
+  const { data: competition } = api.competition.getById.useQuery(
+    competitionId,
+    {
+      enabled: competitionId > 0,
+    },
+  )
   const { mutate, isLoading } = api.schedule.createMany.useMutation({
     onSuccess: () => {
       toast({
@@ -97,7 +103,7 @@ export default function SchedulesForm() {
           type="button"
           onClick={() =>
             append({
-              date: '',
+              date: competition?.startDate ?? '',
               startTime: '',
               endTime: '',
               name: '',
