@@ -47,11 +47,9 @@ export const ResetPasswordTemplate: FC<Readonly<ResetPasswordProps>> = ({
             <Link
               style={button}
               target="_blank"
-              href={`https://competition.nomad-team.com/password?${new URLSearchParams(
-                {
-                  token,
-                },
-              )}`}
+              href={`https://nomad-team.com/password?${new URLSearchParams({
+                token,
+              })}`}
             >
               Нууц үг сэргээх
             </Link>

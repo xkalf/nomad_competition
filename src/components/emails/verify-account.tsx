@@ -48,11 +48,9 @@ export const VerifyAccountTemplate: FC<Readonly<VerifyAccountProps>> = ({
             <Link
               style={button}
               target="_blank"
-              href={`https://competition.nomad-team.com/verify?${new URLSearchParams(
-                {
-                  token,
-                },
-              )}`}
+              href={`https://nomad-team.com/verify?${new URLSearchParams({
+                token,
+              })}`}
             >
               Баталгаажуулах
             </Link>
