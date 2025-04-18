@@ -659,3 +659,35 @@ export const rankSingleRelations = relations(rankSingle, ({ one }) => ({
     references: [users.id],
   }),
 }))
+
+export const recordTypes = pgEnum('record_type', ['single', 'average'])
+export const recordRegion = pgEnum('record_region', [
+  'province',
+  'district',
+  'all',
+])
+export const recordGender = pgEnum('record_gender', ['male', 'female', 'all'])
+
+export const records = pgTable('records', (t) => ({
+  id: t.uuid().primaryKey().defaultRandom(),
+  value: t.integer().notNull(),
+  userId: t
+    .varchar()
+    .notNull()
+    .references(() => users.id),
+  cubeTypeId: t
+    .integer()
+    .notNull()
+    .references(() => cubeTypes.id),
+  roundId: t
+    .integer()
+    .notNull()
+    .references(() => rounds.id),
+  resultId: t.integer().references(() => results.id),
+  type: recordTypes('type').notNull(),
+  region: recordRegion('region').notNull(),
+  gender: recordGender('gender').notNull(),
+  createdAt: t.timestamp('created_at').defaultNow().notNull(),
+  provinceId: t.uuid().references(() => provinces.id),
+  districtId: t.uuid().references(() => districts.id),
+}))

@@ -83,7 +83,6 @@ export const roundsRouter = createTRPCRouter({
         const insertValues: (typeof rounds.$inferInsert)[] = []
         const founds: number[] = []
 
-        console.log(current)
         for (const i of input.data) {
           const found = current.filter((c) => i.id?.includes(c.id))
           const { id: _, ...rest } = i
@@ -173,6 +172,13 @@ export const roundsRouter = createTRPCRouter({
               ageGroupId: true,
               provinceId: true,
               districtId: true,
+            },
+            with: {
+              user: {
+                columns: {
+                  isMale: true,
+                },
+              },
             },
           },
         },
