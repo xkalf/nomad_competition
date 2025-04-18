@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from '~/components/ui/select'
 import { SelectTrigger } from '@radix-ui/react-select'
+import { Button } from '~/components/ui/button'
 
 type Result = RouterOutputs['result']['findByRound'][number]
 type Filter = RouterInputs['result']['findByRound']
@@ -45,27 +46,27 @@ const columns: ColumnDef<Result>[] = [
   },
   {
     accessorKey: 'solve1',
-    header: 'Эвлүүлэлт 1',
+    header: '1',
     cell: ({ row }) => displayTime(row.original.solve1),
   },
   {
     accessorKey: 'solve2',
-    header: 'Эвлүүлэлт 2',
+    header: '2',
     cell: ({ row }) => displayTime(row.original.solve2),
   },
   {
     accessorKey: 'solve3',
-    header: 'Эвлүүлэлт 3',
+    header: '3',
     cell: ({ row }) => displayTime(row.original.solve3),
   },
   {
     accessorKey: 'solve4',
-    header: 'Эвлүүлэлт 4',
+    header: '4',
     cell: ({ row }) => displayTime(row.original.solve4),
   },
   {
     accessorKey: 'solve5',
-    header: 'Эвлүүлэлт 5',
+    header: '5',
     cell: ({ row }) => displayTime(row.original.solve5 ?? 0),
   },
 ]
@@ -120,11 +121,11 @@ export default function Page({
 
   return (
     <Layout>
-      <div className="flex justify-between">
+      <div className="flex flex-col md:flex-row justify-between">
         <h1>
           Үзүүлэлт ({round?.[0]?.cubeType.name} : {round?.[0]?.name})
         </h1>
-        <div className="flex gap-4">
+        <div className="flex gap-4 mt-4 md:mt-0">
           <Select
             onValueChange={(value) =>
               setFilter((curr) => ({
@@ -134,7 +135,7 @@ export default function Page({
             }
             value={filter.ageGroupId?.toString() ?? ''}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[100px] md:w-[180px]">
               <SelectValue placeholder="Насны ангилал" />
             </SelectTrigger>
             <SelectContent>
@@ -154,7 +155,7 @@ export default function Page({
               setFilter((curr) => ({ ...curr, province: value }))
             }}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[100px] md:w-[180px]">
               <SelectValue placeholder="Хот/Аймаг сонгох" />
             </SelectTrigger>
             <SelectContent>
@@ -171,7 +172,7 @@ export default function Page({
               setFilter((curr) => ({ ...curr, district: value }))
             }}
           >
-            <SelectTrigger className="w-[180px]">
+            <SelectTrigger className="w-[100px] md:w-[180px]">
               <SelectValue placeholder="Дүүрэг/Сум сонгох" />
             </SelectTrigger>
             <SelectContent>
@@ -182,6 +183,41 @@ export default function Page({
               ))}
             </SelectContent>
           </Select>
+          <Select
+            value={
+              filter.isWcaId === undefined
+                ? 'none'
+                : filter.isWcaId
+                  ? 'true'
+                  : 'false'
+            }
+            onValueChange={(value) => {
+              setFilter((curr) => ({
+                ...curr,
+                isWcaId: value === 'none' ? undefined : value === 'true',
+              }))
+            }}
+          >
+            <SelectTrigger className="w-[100px] md:w-[180px]">
+              <SelectValue placeholder="WCA ID эсэх" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="true">Тийм</SelectItem>
+              <SelectItem value="false">Үгүй</SelectItem>
+              <SelectItem value="none">WCA ID Сонгох</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            type="button"
+            onClick={() => {
+              setFilter({
+                roundId: id,
+                isSolved: true,
+              })
+            }}
+          >
+            Цэвэрлэх
+          </Button>
         </div>
       </div>
       <DataTable columns={columns} data={data ?? []} />

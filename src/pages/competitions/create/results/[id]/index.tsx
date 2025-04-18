@@ -85,27 +85,27 @@ const columns: ColumnDef<Result>[] = [
   },
   {
     accessorKey: 'solve1',
-    header: 'Эвлүүлэлт 1',
+    header: '1',
     cell: ({ row }) => displayTime(row.original.solve1),
   },
   {
     accessorKey: 'solve2',
-    header: 'Эвлүүлэлт 2',
+    header: '2',
     cell: ({ row }) => displayTime(row.original.solve2),
   },
   {
     accessorKey: 'solve3',
-    header: 'Эвлүүлэлт 3',
+    header: '3',
     cell: ({ row }) => displayTime(row.original.solve3),
   },
   {
     accessorKey: 'solve4',
-    header: 'Эвлүүлэлт 4',
+    header: '4',
     cell: ({ row }) => displayTime(row.original.solve4),
   },
   {
     accessorKey: 'solve5',
-    header: 'Эвлүүлэлт 5',
+    header: '5',
     cell: ({ row }) => displayTime(row.original.solve5 ?? 0),
   },
 ]
@@ -518,7 +518,7 @@ export default function ResultsPage({
               </SelectContent>
             </Select>
             <Select
-              value={filter.provinceId}
+              value={filter.provinceId ?? ''}
               onValueChange={(value) => {
                 setFilter((curr) => ({ ...curr, province: value }))
               }}
@@ -535,7 +535,7 @@ export default function ResultsPage({
               </SelectContent>
             </Select>
             <Select
-              value={filter.districtId}
+              value={filter.districtId ?? ''}
               onValueChange={(value) =>
                 setFilter((curr) => ({ ...curr, district: value }))
               }
@@ -552,7 +552,7 @@ export default function ResultsPage({
               </SelectContent>
             </Select>
             <Select
-              value={filter.school}
+              value={filter.school ?? ''}
               onValueChange={(value) =>
                 setFilter((curr) => ({ ...curr, school: value }))
               }
@@ -568,6 +568,40 @@ export default function ResultsPage({
                 ))}
               </SelectContent>
             </Select>
+            <Select
+              value={
+                filter.isWcaId === undefined
+                  ? 'none'
+                  : filter.isWcaId
+                    ? 'true'
+                    : 'false'
+              }
+              onValueChange={(value) => {
+                setFilter((curr) => ({
+                  ...curr,
+                  isWcaId: value === 'none' ? undefined : value === 'true',
+                }))
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="WCA ID эсэх" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="true">Тийм</SelectItem>
+                <SelectItem value="false">Үгүй</SelectItem>
+                <SelectItem value="none">WCA ID Сонгох</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              type="button"
+              onClick={() => {
+                setFilter({
+                  roundId: id,
+                })
+              }}
+            >
+              Цэвэрлэх
+            </Button>
             <div className="flex items-center gap-1">
               <Label htmlFor="isOther">Бусад эсэх</Label>
               <Checkbox

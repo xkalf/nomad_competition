@@ -19,6 +19,7 @@ import {
   getTableColumns,
   gte,
   isNotNull,
+  isNull,
   lte,
   ne,
   sql,
@@ -36,6 +37,7 @@ export const resultsRouter = createTRPCRouter({
           ageGroupId: z.number().int().positive().optional(),
           verifiedId: z.number().int().positive().optional(),
           isSolved: z.boolean().optional(),
+          isWcaId: z.boolean().optional(),
         })
         .merge(createSelectSchema(schools).omit({ id: true }).partial()),
     )
@@ -87,6 +89,8 @@ export const resultsRouter = createTRPCRouter({
               !!input.verifiedId,
             ),
             isNotNull(results.average).if(input.isSolved),
+            isNotNull(users.wcaId).if(input.isWcaId === true),
+            isNull(users.wcaId).if(input.isWcaId === false),
           ),
         )
         .orderBy(
