@@ -123,7 +123,7 @@ export const competitorRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       return await getTotalAmount(input, ctx.db)
     }),
-  getProvinces: protectedProcedure.query(async ({ ctx }) => {
+  getProvinces: publicProcedure.query(async ({ ctx }) => {
     return await ctx.db
       .select({
         ...getTableColumns(provinces),
@@ -134,7 +134,7 @@ export const competitorRouter = createTRPCRouter({
         provinces.name,
       )
   }),
-  getDistricts: protectedProcedure
+  getDistricts: publicProcedure
     .input(z.string().uuid())
     .query(async ({ ctx, input }) => {
       return await ctx.db
@@ -142,7 +142,7 @@ export const competitorRouter = createTRPCRouter({
         .from(districts)
         .where(eq(districts.provinceId, input))
     }),
-  getSchools: protectedProcedure
+  getSchools: publicProcedure
     .input(z.string().uuid())
     .query(async ({ ctx, input }) => {
       const res = await ctx.db
