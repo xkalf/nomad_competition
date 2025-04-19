@@ -151,20 +151,29 @@ export default function ResultsPage({
     }
   }, [router.query.id])
 
-  // useEffect(() => {
-  //   setFilter((curr) => ({
-  //     ...curr,
-  //     verifiedId: isNaN(form.watch('verifiedId'))
-  //       ? undefined
-  //       : form.watch('verifiedId'),
-  //   }))
-  // }, [form.watch('verifiedId')])
+  useEffect(() => {
+    setFilter((curr) => ({
+      ...curr,
+      verifiedId: isNaN(form.watch('verifiedId'))
+        ? undefined
+        : form.watch('verifiedId'),
+    }))
+  }, [form.watch('verifiedId')])
 
   const { mutate, isLoading } = api.result.create.useMutation({
     onSuccess: () => {
       utils.result.findByRound.invalidate()
       toast({
         title: 'Амжилттай хадгаллаа.',
+      })
+      form.reset({
+        roundId: id,
+        verifiedId: undefined,
+        solve1: undefined,
+        solve2: undefined,
+        solve3: undefined,
+        solve4: undefined,
+        solve5: undefined,
       })
     },
     onError: (err) => {
@@ -353,7 +362,7 @@ export default function ResultsPage({
               render={({ field }) => (
                 <Input
                   type="number"
-                  value={field.value}
+                  value={field.value ?? ''}
                   onChange={(e) => field.onChange(e.target.valueAsNumber)}
                 />
               )}
@@ -368,6 +377,7 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
+                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
@@ -383,6 +393,7 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
+                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
@@ -398,6 +409,7 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
+                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
@@ -413,6 +425,7 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
+                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
@@ -428,6 +441,7 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
+                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
