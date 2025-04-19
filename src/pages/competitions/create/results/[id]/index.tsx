@@ -325,7 +325,7 @@ export default function ResultsPage({
                           <CommandGroup>
                             {competitors?.map((c) => (
                               <CommandItem
-                                value={`${c.verifiedId} ${c.user.lastname} ${c.user.firstname}`}
+                                value={`${c.verifiedId} ${c.user.lastname} ${c.user.firstname} ${c.user.lastname}`}
                                 key={c.id + 'combobox'}
                                 onSelect={(currentValue) => {
                                   const value = currentValue.split(' ')[0]
