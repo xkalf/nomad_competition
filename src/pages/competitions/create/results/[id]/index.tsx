@@ -271,8 +271,6 @@ export default function ResultsPage({
       if (!verifiedId) return 'Тамирчин сонгох'
       const user = competitors?.find((c) => c.id === verifiedId)?.user
 
-      console.log('')
-
       return user ? `${user.lastname} ${user.firstname}` : 'Тамирчин сонгох'
     },
     [competitors],
@@ -364,7 +362,6 @@ export default function ResultsPage({
               render={({ field }) => (
                 <Input
                   type="number"
-                  value={field.value ?? ''}
                   onChange={(e) => field.onChange(e.target.valueAsNumber)}
                 />
               )}
@@ -379,7 +376,6 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
-                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
@@ -395,7 +391,6 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
-                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
@@ -411,7 +406,6 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
-                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
@@ -427,7 +421,6 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
-                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
@@ -443,7 +436,6 @@ export default function ResultsPage({
                     onChange={(e) => {
                       field.onChange(formatCustomTime(e.target.value))
                     }}
-                    value={field.value ?? ''}
                   />
                   <span>{displayTime(field.value)}</span>
                 </div>
