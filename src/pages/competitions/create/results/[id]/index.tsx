@@ -151,14 +151,14 @@ export default function ResultsPage({
     }
   }, [router.query.id])
 
-  useEffect(() => {
-    setFilter((curr) => ({
-      ...curr,
-      verifiedId: isNaN(form.watch('verifiedId'))
-        ? undefined
-        : form.watch('verifiedId'),
-    }))
-  }, [form.watch('verifiedId')])
+  // useEffect(() => {
+  //   setFilter((curr) => ({
+  //     ...curr,
+  //     verifiedId: isNaN(form.watch('verifiedId'))
+  //       ? undefined
+  //       : form.watch('verifiedId'),
+  //   }))
+  // }, [form.watch('verifiedId')])
 
   const { mutate, isLoading } = api.result.create.useMutation({
     onSuccess: () => {
