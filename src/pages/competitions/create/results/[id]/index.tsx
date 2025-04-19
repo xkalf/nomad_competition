@@ -271,6 +271,8 @@ export default function ResultsPage({
       if (!verifiedId) return 'Тамирчин сонгох'
       const user = competitors?.find((c) => c.id === verifiedId)?.user
 
+      console.log('')
+
       return user ? `${user.lastname} ${user.firstname}` : 'Тамирчин сонгох'
     },
     [competitors],
