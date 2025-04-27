@@ -230,7 +230,7 @@ export default function ProfilePage() {
                           </TableRow>
                           {Object.entries(
                             groupBy(results, (r) => r.competition?.name),
-                          ).map(([key, results], index) => (
+                          ).map(([key, results]) => (
                             <React.Fragment
                               key={'competitionResultsRound' + key}
                             >
@@ -238,7 +238,7 @@ export default function ProfilePage() {
                                 <TableRow
                                   key={'competitionResultsResult' + result.id}
                                 >
-                                  <TableCell>{index === 0 && key}</TableCell>
+                                  <TableCell>{key}</TableCell>
                                   <TableCell>{result.round?.name}</TableCell>
                                   <TableCell>{result.place}</TableCell>
                                   <TableCell>

@@ -161,14 +161,16 @@ export const createResultSchema = createInsertSchema(results)
     average: true,
     createdUserId: true,
     updatedUserId: true,
-    competitorId: true,
     cubeTypeId: true,
     competitionId: true,
     type: true,
     group: true,
   })
   .extend({
-    verifiedId: z.number().int().positive(),
+    verifiedId: z.number().int().positive().optional(),
+  })
+  .partial({
+    competitorId: true,
   })
 
 export const createScheduleManySchema = z.object({

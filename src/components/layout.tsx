@@ -44,7 +44,7 @@ export default function Layout({ children }: Props) {
       <Head>
         <title>Nomad Competition</title>
       </Head>
-      <div className="space-y-4 p-4">{children}</div>
+      <div className="space-y-4 p-2 md:p-4">{children}</div>
     </div>
   )
 }

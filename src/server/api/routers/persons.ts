@@ -1,14 +1,4 @@
-import {
-  and,
-  count,
-  desc,
-  eq,
-  exists,
-  getTableColumns,
-  gt,
-  min,
-  sql,
-} from 'drizzle-orm'
+import { and, desc, eq, exists, gt, sql } from 'drizzle-orm'
 import {
   ageGroupMedals,
   competitions,

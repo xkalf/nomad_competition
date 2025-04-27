@@ -1,17 +1,3 @@
-import { createResultSchema } from '~/utils/zod'
-import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
-import { getAverage, getBest } from '~/server/utils/calculate'
-import {
-  ageGroups,
-  competitors,
-  competitorsToCubeTypes,
-  cubeTypes,
-  results,
-  rounds,
-  schools,
-  users,
-} from '~/server/db/schema'
-import { z } from 'zod'
 import {
   and,
   eq,
@@ -22,10 +8,25 @@ import {
   isNull,
   lte,
   ne,
+  or,
   sql,
 } from 'drizzle-orm'
 import { createSelectSchema } from 'drizzle-zod'
+import { z } from 'zod'
+import {
+  ageGroups,
+  competitors,
+  competitorsToCubeTypes,
+  cubeTypes,
+  results,
+  rounds,
+  schools,
+  users,
+} from '~/server/db/schema'
+import { getAverage, getBest } from '~/server/utils/calculate'
 import { jsonBuildObject } from '~/server/utils/drizzle.helper'
+import { createResultSchema } from '~/utils/zod'
+import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
 
 export const resultsRouter = createTRPCRouter({
   findByRound: publicProcedure
@@ -38,6 +39,7 @@ export const resultsRouter = createTRPCRouter({
           verifiedId: z.number().int().positive().optional(),
           isSolved: z.boolean().optional(),
           isWcaId: z.boolean().optional(),
+          competitorId: z.number().int().positive().optional(),
         })
         .merge(createSelectSchema(schools).omit({ id: true }).partial()),
     )
@@ -46,6 +48,7 @@ export const resultsRouter = createTRPCRouter({
         .select({
           ...getTableColumns(results),
           competitor: {
+            id: competitors.id,
             verifiedId: competitors.verifiedId,
             user: jsonBuildObject({
               firstname: users.firstname,
@@ -60,19 +63,22 @@ export const resultsRouter = createTRPCRouter({
         .where(
           and(
             eq(results.roundId, input.roundId),
-            eq(schools.provinceId, input.provinceId ?? '').if(
+            eq(competitors.provinceId, input.provinceId ?? '').if(
               !!input.provinceId && input.isOther === false,
             ),
-            eq(schools.districtId, input.districtId ?? '').if(
+            eq(competitors.districtId, input.districtId ?? '').if(
               !!input.districtId && input.isOther === false,
             ),
             eq(schools.school, input.school ?? '').if(
               !!input.school && input.isOther === false,
             ),
-            ne(schools.provinceId, input.provinceId ?? '').if(
-              !!input.provinceId && input.isOther === true,
-            ),
-            ne(schools.districtId, input.districtId ?? '').if(
+            !!input.provinceId && input.isOther === true
+              ? or(
+                  ne(competitors.provinceId, input.provinceId ?? ''),
+                  isNull(competitors.provinceId),
+                )
+              : undefined,
+            ne(competitors.districtId, input.districtId ?? '').if(
               !!input.districtId && input.isOther === true,
             ),
             ne(schools.school, input.school ?? '').if(
@@ -87,6 +93,9 @@ export const resultsRouter = createTRPCRouter({
             ),
             eq(competitors.verifiedId, input.verifiedId ?? 0).if(
               !!input.verifiedId,
+            ),
+            eq(competitors.id, input.competitorId ?? 0).if(
+              !!input.competitorId,
             ),
             isNotNull(results.average).if(input.isSolved),
             isNotNull(users.wcaId).if(input.isWcaId === true),
@@ -128,6 +137,7 @@ export const resultsRouter = createTRPCRouter({
 
       const [round] = await ctx.db
         .select({
+          id: rounds.id,
           competitionId: rounds.competitionId,
           cubeTypeId: rounds.cubeTypeId,
           type: cubeTypes.type,
@@ -147,7 +157,12 @@ export const resultsRouter = createTRPCRouter({
         .from(competitors)
         .where(
           and(
-            eq(competitors.verifiedId, input.verifiedId),
+            eq(competitors.verifiedId, input.verifiedId ?? 0).if(
+              !!input.verifiedId,
+            ),
+            eq(competitors.id, input.competitorId ?? 0).if(
+              !!input.competitorId,
+            ),
             eq(competitors.competitionId, round.competitionId),
           ),
         )
@@ -181,7 +196,23 @@ export const resultsRouter = createTRPCRouter({
         .returning()
 
       if (!updated) {
-        throw new Error('Тамирчин олдсонгүй.')
+        await ctx.db.insert(results).values({
+          cubeTypeId: round.cubeTypeId,
+          competitionId: round.competitionId,
+          competitorId: competitor.id,
+          type: round.type ?? 'ao5',
+          createdUserId: ctx.session.user.id,
+          updatedUserId: ctx.session.user.id,
+          group: '1',
+          solve1: input.solve1,
+          solve2: input.solve2,
+          solve3: input.solve3,
+          solve4: input.solve4,
+          solve5: input.solve5,
+          average,
+          best,
+          roundId: round.id,
+        })
       }
     }),
   generate: adminProcedure

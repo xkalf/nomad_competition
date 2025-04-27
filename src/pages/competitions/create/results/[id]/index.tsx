@@ -65,7 +65,7 @@ const columns: ColumnDef<Result>[] = [
     accessorKey: 'name',
     header: 'Нэр',
     cell: ({ row }) =>
-      `${row.original.competitor?.user.lastname?.[0]}.${row.original.competitor?.user.firstname}`,
+      `${row.original.competitor?.user.firstname} ${row.original.competitor?.user.lastname}`,
   },
   {
     accessorKey: 'average',
@@ -154,11 +154,20 @@ export default function ResultsPage({
   useEffect(() => {
     setFilter((curr) => ({
       ...curr,
-      verifiedId: isNaN(form.watch('verifiedId'))
+      verifiedId: isNaN(form.watch('verifiedId') ?? NaN)
         ? undefined
         : form.watch('verifiedId'),
     }))
   }, [form.watch('verifiedId')])
+
+  useEffect(() => {
+    setFilter((curr) => ({
+      ...curr,
+      competitorId: isNaN(form.watch('competitorId') ?? NaN)
+        ? undefined
+        : form.watch('competitorId'),
+    }))
+  }, [form.watch('competitorId')])
 
   const { mutate, isLoading } = api.result.create.useMutation({
     onSuccess: () => {
@@ -271,7 +280,7 @@ export default function ResultsPage({
       if (!verifiedId) return 'Тамирчин сонгох'
       const user = competitors?.find((c) => c.id === verifiedId)?.user
 
-      return user ? `${user.lastname} ${user.firstname}` : 'Тамирчин сонгох'
+      return user ? `${user.firstname} ${user.lastname}` : 'Тамирчин сонгох'
     },
     [competitors],
   )
@@ -295,7 +304,7 @@ export default function ResultsPage({
           <Form {...form}>
             <FormField
               control={form.control}
-              name="verifiedId"
+              name="competitorId"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel>Тамирчин сонгох</FormLabel>
@@ -325,13 +334,13 @@ export default function ResultsPage({
                           <CommandGroup>
                             {competitors?.map((c) => (
                               <CommandItem
-                                value={`${c.verifiedId} ${c.user.lastname} ${c.user.firstname} ${c.user.lastname}`}
+                                value={`${c.verifiedId} ${c.id} ${c.user.lastname} ${c.user.firstname} ${c.user.lastname}`}
                                 key={c.id + 'combobox'}
                                 onSelect={(currentValue) => {
-                                  const value = currentValue.split(' ')[0]
+                                  const compValue = currentValue.split(' ')[1]
                                   form.setValue(
-                                    'verifiedId',
-                                    value ? +value : 0,
+                                    'competitorId',
+                                    compValue ? +compValue : 0,
                                   )
                                 }}
                               >
@@ -528,7 +537,7 @@ export default function ResultsPage({
             <Select
               value={filter.provinceId ?? ''}
               onValueChange={(value) => {
-                setFilter((curr) => ({ ...curr, province: value }))
+                setFilter((curr) => ({ ...curr, provinceId: value }))
               }}
             >
               <SelectTrigger className="w-[180px]">
@@ -545,7 +554,7 @@ export default function ResultsPage({
             <Select
               value={filter.districtId ?? ''}
               onValueChange={(value) =>
-                setFilter((curr) => ({ ...curr, district: value }))
+                setFilter((curr) => ({ ...curr, districtId: value }))
               }
             >
               <SelectTrigger className="w-[180px]">

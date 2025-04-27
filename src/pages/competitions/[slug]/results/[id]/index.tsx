@@ -8,7 +8,7 @@ import { RouterInputs, RouterOutputs, api } from '~/utils/api'
 import { displayTime } from '~/utils/timeUtils'
 import superjson from 'superjson'
 import { db } from '~/server/db'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import DataTable from '~/components/data-table/data-table'
 import {
   Select,
@@ -18,63 +18,72 @@ import {
 } from '~/components/ui/select'
 import { SelectTrigger } from '@radix-ui/react-select'
 import { Button } from '~/components/ui/button'
+import { useIsMobile } from '~/hooks/use-mobile'
 
 type Result = RouterOutputs['result']['findByRound'][number]
 type Filter = RouterInputs['result']['findByRound']
-
-const columns: ColumnDef<Result>[] = [
-  {
-    accessorKey: 'order',
-    header: '№',
-    cell: ({ row }) => row.index + 1,
-  },
-  {
-    accessorKey: 'name',
-    header: 'Нэр',
-    cell: ({ row }) =>
-      `${row.original.competitor?.user.lastname?.[0]}.${row.original.competitor?.user.firstname}`,
-  },
-  {
-    accessorKey: 'average',
-    header: 'Дундаж',
-    cell: ({ row }) => displayTime(row.original.average),
-  },
-  {
-    accessorKey: 'best',
-    header: 'Синглэ',
-    cell: ({ row }) => displayTime(row.original.best),
-  },
-  {
-    accessorKey: 'solve1',
-    header: '1',
-    cell: ({ row }) => displayTime(row.original.solve1),
-  },
-  {
-    accessorKey: 'solve2',
-    header: '2',
-    cell: ({ row }) => displayTime(row.original.solve2),
-  },
-  {
-    accessorKey: 'solve3',
-    header: '3',
-    cell: ({ row }) => displayTime(row.original.solve3),
-  },
-  {
-    accessorKey: 'solve4',
-    header: '4',
-    cell: ({ row }) => displayTime(row.original.solve4),
-  },
-  {
-    accessorKey: 'solve5',
-    header: '5',
-    cell: ({ row }) => displayTime(row.original.solve5 ?? 0),
-  },
-]
 
 export default function Page({
   slug,
   id,
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
+  const isMobile = useIsMobile()
+
+  const columns = useMemo(() => {
+    const desktopColumns: ColumnDef<Result>[] = [
+      {
+        accessorKey: 'solve1',
+        header: '1',
+        cell: ({ row }) => displayTime(row.original.solve1),
+      },
+      {
+        accessorKey: 'solve2',
+        header: '2',
+        cell: ({ row }) => displayTime(row.original.solve2),
+      },
+      {
+        accessorKey: 'solve3',
+        header: '3',
+        cell: ({ row }) => displayTime(row.original.solve3),
+      },
+      {
+        accessorKey: 'solve4',
+        header: '4',
+        cell: ({ row }) => displayTime(row.original.solve4),
+      },
+      {
+        accessorKey: 'solve5',
+        header: '5',
+        cell: ({ row }) => displayTime(row.original.solve5 ?? 0),
+      },
+    ]
+    const columns: ColumnDef<Result>[] = [
+      {
+        accessorKey: 'order',
+        header: '№',
+        cell: ({ row }) => row.index + 1,
+      },
+      {
+        accessorKey: 'name',
+        header: 'Нэр',
+        cell: ({ row }) =>
+          `${row.original.competitor?.user.firstname} ${row.original.competitor?.user.lastname}`,
+      },
+      {
+        accessorKey: 'average',
+        header: 'Дундаж',
+        cell: ({ row }) => displayTime(row.original.average),
+      },
+      {
+        accessorKey: 'best',
+        header: 'Синглэ',
+        cell: ({ row }) => displayTime(row.original.best),
+      },
+      ...(isMobile ? [] : desktopColumns),
+    ]
+    return columns
+  }, [isMobile])
+
   const { data: competition } = api.competition.getBySlug.useQuery(slug ?? '', {
     enabled: !!slug,
   })
