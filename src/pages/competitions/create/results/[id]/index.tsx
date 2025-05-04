@@ -289,7 +289,8 @@ export default function ResultsPage({
     <Layout>
       <div className="flex gap-4">
         <h1 className="text-3xl text-bold">
-          Үзүүлэлт шивэх ({round?.cubeType.name} : {round?.name})
+          Үзүүлэлт шивэх ({round?.cubeType.name} : {round?.name} ID: {round?.id}
+          )
         </h1>
         <Button
           type="button"

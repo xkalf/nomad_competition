@@ -29,9 +29,9 @@ export const competitionRouter = createTRPCRouter({
       return ctx.db.query.competitions.findMany({
         where: (t, { gte, lte }) =>
           input === true
-            ? gte(t.startDate, sql`now()`)
+            ? gte(t.startDate, sql`CURRENT_DATE`)
             : input === false
-              ? lte(t.startDate, sql`now()`)
+              ? lte(t.startDate, sql`CURRENT_DATE`)
               : undefined,
         with: {
           competitionsToCubeTypes: true,
