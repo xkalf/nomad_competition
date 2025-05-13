@@ -412,7 +412,9 @@ export const rounds = createTable(
     name: varchar('name').notNull(),
     nextCompetitor: integer('next_competitor').notNull(),
     perGroupCount: integer('per_group_count').notNull(),
-    isActive: boolean().default(false),
+    isActive: boolean().notNull().default(false),
+    isAgeGroup: boolean().notNull().default(false),
+    isFinal: boolean().notNull().default(false),
   },
   (t) => [unique().on(t.competitionId, t.cubeTypeId, t.name)],
 )

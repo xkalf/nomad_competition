@@ -29,6 +29,64 @@ import { createResultSchema } from '~/utils/zod'
 import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
 
 export const resultsRouter = createTRPCRouter({
+  findByAgeGroup: publicProcedure
+    .input(
+      z.object({
+        cubeTypeId: z.number().int().positive(),
+        competitionId: z.number().int().positive(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const columns = getTableColumns(results)
+
+      const filter = and(
+        eq(rounds.isAgeGroup, true),
+        eq(rounds.cubeTypeId, input.cubeTypeId),
+      )
+
+      const isFinalQuery = ctx.db.$with('isFinalQuery').as(
+        ctx.db
+          .select({
+            competitorId: results.competitorId,
+            cubeTypeId: results.cubeTypeId,
+          })
+          .from(results)
+          .innerJoin(rounds, eq(rounds.id, results.roundId))
+          .where(eq(rounds.isFinal, true)),
+      )
+
+      let query = ctx.db
+        .with(isFinalQuery)
+        .select({
+          ...columns,
+          competitor: {
+            id: competitors.id,
+            verifiedId: competitors.verifiedId,
+            user: jsonBuildObject({
+              firstname: users.firstname,
+              lastname: users.lastname,
+              birthDate: users.birthDate,
+            }),
+          },
+          isFinal: sql`${isFinalQuery.competitorId} is not null`.mapWith(
+            Boolean,
+          ),
+        })
+        .from(results)
+        .innerJoin(competitors, eq(results.competitorId, competitors.id))
+        .innerJoin(users, eq(users.id, competitors.userId))
+        .leftJoin(rounds, eq(rounds.id, results.roundId))
+        .leftJoin(
+          isFinalQuery,
+          and(
+            eq(isFinalQuery.competitorId, results.competitorId),
+            eq(isFinalQuery.cubeTypeId, results.cubeTypeId),
+          ),
+        )
+        .where(filter)
+
+      return await query
+    }),
   findByRound: publicProcedure
     .input(
       z

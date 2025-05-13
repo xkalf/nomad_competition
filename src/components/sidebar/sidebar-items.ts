@@ -75,6 +75,10 @@ export const sidebarItems: SidebarConfig = {
         return groupdByCubeType
       },
     },
+    {
+      title: 'Насны ангилал',
+      href: (slug) => `/competitions/${slug}/ageGroups`,
+    },
   ],
   '/competitions/create Тэмцээн Бүртгэх': [
     {

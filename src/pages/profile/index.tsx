@@ -48,7 +48,7 @@ export default function ProfilePage() {
         enabled: !!user?.id,
       },
     )
-  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery()
+  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery({})
 
   const getImageByCubeType = (cubeTypeId: number) => {
     const found = cubeTypes?.find((c) => c.id === cubeTypeId)

@@ -1,26 +1,35 @@
-import { createCubeTypeSchema, getUpdateSchema } from "~/utils/zod";
-import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
-import { competitionsToCubeType, cubeTypes } from "~/server/db/schema";
-import { and, eq, exists } from "drizzle-orm";
-import { z } from "zod";
+import { createCubeTypeSchema, getUpdateSchema } from '~/utils/zod'
+import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
+import { competitionsToCubeType, cubeTypes } from '~/server/db/schema'
+import { and, eq, exists, inArray } from 'drizzle-orm'
+import { z } from 'zod'
 
 export const cubeTypesRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async ({ ctx }) => {
-    try {
-      const res = await ctx.db.query.cubeTypes.findMany({
-        orderBy: (t) => [t.order],
-      });
+  getAll: publicProcedure
+    .input(
+      z.object({
+        isAgeGroup: z.boolean().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const res = await ctx.db.query.cubeTypes.findMany({
+          orderBy: (t) => [t.order],
+          where: input.isAgeGroup
+            ? inArray(cubeTypes.id, [2, 6, 9])
+            : undefined,
+        })
 
-      return res;
-    } catch (err) {
-      console.log(err);
-      return [];
-    }
-  }),
+        return res
+      } catch (err) {
+        console.log(err)
+        return []
+      }
+    }),
   create: adminProcedure
     .input(createCubeTypeSchema)
     .mutation(async ({ ctx, input }) => {
-      await ctx.db.insert(cubeTypes).values(input);
+      await ctx.db.insert(cubeTypes).values(input)
     }),
   update: adminProcedure
     .input(getUpdateSchema(createCubeTypeSchema))
@@ -28,10 +37,10 @@ export const cubeTypesRouter = createTRPCRouter({
       await ctx.db
         .update(cubeTypes)
         .set(input)
-        .where(eq(cubeTypes.id, input.id));
+        .where(eq(cubeTypes.id, input.id))
     }),
   delete: adminProcedure.input(z.number()).mutation(async ({ ctx, input }) => {
-    await ctx.db.delete(cubeTypes).where(eq(cubeTypes.id, input));
+    await ctx.db.delete(cubeTypes).where(eq(cubeTypes.id, input))
   }),
   getByCompetitionId: publicProcedure
     .input(z.number().int().positive())
@@ -46,14 +55,14 @@ export const cubeTypesRouter = createTRPCRouter({
             eq(competitionsToCubeType.competitionId, input),
             eq(cubeTypes.id, competitionsToCubeType.cubeTypeId),
           ),
-        );
+        )
 
       const res = await ctx.db
         .select()
         .from(cubeTypes)
         .where(exists(sq))
-        .orderBy(cubeTypes.order);
+        .orderBy(cubeTypes.order)
 
-      return res;
+      return res
     }),
-});
+})

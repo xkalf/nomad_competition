@@ -37,7 +37,7 @@ export default function CompetitionCreatePage() {
   const { data: current } = api.competition.getById.useQuery(competitionId, {
     enabled: competitionId > 0,
   })
-  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery()
+  const { data: cubeTypes } = api.cubeTypes.getAll.useQuery({})
 
   const { mutate: create, isLoading: createLoading } =
     api.competition.create.useMutation({

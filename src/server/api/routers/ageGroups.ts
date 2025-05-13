@@ -1,12 +1,12 @@
+import { eq } from 'drizzle-orm'
 import { z } from 'zod'
-import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
+import { ageGroups } from '~/server/db/schema'
 import {
   createAgeGroupManySchema,
   createAgeGroupSchema,
   getUpdateSchema,
 } from '~/utils/zod'
-import { ageGroups } from '~/server/db/schema'
-import { eq } from 'drizzle-orm'
+import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
 
 export const ageGroupRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -28,7 +28,12 @@ export const ageGroupRouter = createTRPCRouter({
         },
       })
 
-      return res
+      return res.sort((a, b) => {
+        const numA = parseInt(a.name.match(/^\d+/)?.[0] || '0', 10)
+        const numB = parseInt(b.name.match(/^\d+/)?.[0] || '0', 10)
+
+        return numA - numB
+      })
     }),
   create: adminProcedure
     .input(createAgeGroupSchema)

@@ -1,4 +1,4 @@
-import Layout from "~/components/layout";
+import Layout from '~/components/layout'
 import {
   Table,
   TableBody,
@@ -6,47 +6,47 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "~/components/ui/table";
-import { api } from "~/utils/api";
-import CubeTypeForm from "./form";
-import { useState } from "react";
-import { Button } from "~/components/ui/button";
-import { toast } from "~/components/ui/use-toast";
-import Image from "next/image";
-import { getImageUrl } from "~/utils/supabase";
-import { useSession } from "next-auth/react";
-import DeleteButton from "~/components/delete-button";
+} from '~/components/ui/table'
+import { api } from '~/utils/api'
+import CubeTypeForm from './form'
+import { useState } from 'react'
+import { Button } from '~/components/ui/button'
+import { toast } from '~/components/ui/use-toast'
+import Image from 'next/image'
+import { getImageUrl } from '~/utils/supabase'
+import { useSession } from 'next-auth/react'
+import DeleteButton from '~/components/delete-button'
 
 export default function CubeTypesPage() {
-  const utils = api.useUtils();
-  const [selected, setSelected] = useState(0);
-  const [isOpen, setIsOpen] = useState(false);
+  const utils = api.useUtils()
+  const [selected, setSelected] = useState(0)
+  const [isOpen, setIsOpen] = useState(false)
   useSession({
     required: true,
-  });
+  })
 
-  const { data } = api.cubeTypes.getAll.useQuery();
+  const { data } = api.cubeTypes.getAll.useQuery({})
   const { mutate: remove } = api.cubeTypes.delete.useMutation({
     onSuccess: () => {
-      utils.cubeTypes.getAll.invalidate();
+      utils.cubeTypes.getAll.invalidate()
       toast({
-        title: "Амжилттай устгалаа.",
-      });
+        title: 'Амжилттай устгалаа.',
+      })
     },
     onError: (error) => {
       toast({
-        title: "Алдаа гарлаа",
+        title: 'Алдаа гарлаа',
         description: error.message,
-        variant: "destructive",
-      });
+        variant: 'destructive',
+      })
     },
-  });
+  })
 
   const handleSelected = (id: number) => () => {
-    setSelected(id);
-    setIsOpen(true);
-  };
-  const handleRemove = (id: number) => () => remove(id);
+    setSelected(id)
+    setIsOpen(true)
+  }
+  const handleRemove = (id: number) => () => remove(id)
 
   return (
     <Layout>
@@ -71,7 +71,7 @@ export default function CubeTypesPage() {
               <TableCell>
                 {item.image && (
                   <Image
-                    src={getImageUrl(item.image) || ""}
+                    src={getImageUrl(item.image) || ''}
                     width={50}
                     height={50}
                     priority
@@ -91,5 +91,5 @@ export default function CubeTypesPage() {
         </TableBody>
       </Table>
     </Layout>
-  );
+  )
 }

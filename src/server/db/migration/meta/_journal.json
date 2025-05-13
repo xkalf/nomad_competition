@@ -330,6 +330,20 @@
       "when": 1741154229480,
       "tag": "0046_lively_unus",
       "breakpoints": true
+    },
+    {
+      "idx": 47,
+      "version": "7",
+      "when": 1746966367800,
+      "tag": "0047_violet_absorbing_man",
+      "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1747122956062,
+      "tag": "0048_superb_deathstrike",
+      "breakpoints": true
     }
   ]
 }
