@@ -7,6 +7,7 @@ import CreateButtons, {
 } from '~/components/create-buttons'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
+import { Checkbox } from '~/components/ui/checkbox'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -218,6 +219,38 @@ export default function RoundsForm() {
                         type="number"
                         value={field.value ?? undefined}
                         onChange={(e) => field.onChange(e.target.valueAsNumber)}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={`data.${index}.isAgeGroup`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Насны ангилалтай эсэх</FormLabel>
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name={`data.${index}.isFinal`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Финал эсэх</FormLabel>
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
                       />
                     </FormControl>
                     <FormMessage />
