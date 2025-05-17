@@ -153,12 +153,13 @@ export default function AgeGroupsPage({
             onClick={() => {
               setCubeTypeId(cubeType.id)
             }}
+            className="p-2"
           >
             {cubeType.image ? (
               <Image
                 src={getImageUrl(cubeType.image) ?? ''}
-                width={30}
-                height={30}
+                width={25}
+                height={25}
                 alt={cubeType.name}
               />
             ) : (

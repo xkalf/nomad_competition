@@ -19,6 +19,7 @@ import {
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
+  SidebarInset,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -161,8 +162,10 @@ export function DynamicSidebar({ children }: PropsWithChildren) {
           </div>
         </SidebarFooter>
       </Sidebar>
-      <SidebarTrigger />
-      <div className="space-y-4 p-4 w-full">{children}</div>
+      <SidebarTrigger className="ml-4 mt-4" />
+      <SidebarInset>
+        <div className="space-y-4 p-4 w-full">{children}</div>
+      </SidebarInset>
     </SidebarProvider>
   )
 }
