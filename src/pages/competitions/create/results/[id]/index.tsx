@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import CreateButtons from '~/components/create-buttons'
 import DataTable from '~/components/data-table/data-table'
+import ImportWcaLiveDialog from '~/components/import-wcalive-dialog'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
@@ -299,6 +300,7 @@ export default function ResultsPage({
         >
           Групп-ийн хуваарилалт
         </Button>
+        <ImportWcaLiveDialog roundId={id} />
       </div>
       <div className="grid grid-cols-12 gap-x-4">
         <div className="col-span-4">

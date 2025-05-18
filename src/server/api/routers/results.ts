@@ -27,6 +27,8 @@ import { getAverage, getBest } from '~/server/utils/calculate'
 import { jsonBuildObject } from '~/server/utils/drizzle.helper'
 import { createResultSchema } from '~/utils/zod'
 import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
+import * as cheerio from 'cheerio'
+import { formatStringToMilliSeconds } from '~/utils/timeUtils'
 
 export const resultsRouter = createTRPCRouter({
   findByAgeGroup: publicProcedure
@@ -367,5 +369,111 @@ export const resultsRouter = createTRPCRouter({
           group: `${Math.floor(index / round.perGroupCount) + 1}`,
         })),
       )
+    }),
+  createFromWcaLive: adminProcedure
+    .input(
+      z.object({
+        roundId: z.number().int().positive(),
+        htmlText: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const round = await ctx.db.query.rounds.findFirst({
+        where: eq(rounds.id, input.roundId),
+        with: {
+          cubeType: true,
+        },
+      })
+
+      if (!round) {
+        throw new Error('Раунд олдсонгүй.')
+      }
+
+      const competitors = await ctx.db.query.competitors.findMany({
+        where: (table) => eq(table.competitionId, round.competitionId),
+        with: {
+          user: true,
+        },
+      })
+
+      const $ = cheerio.load(input.htmlText)
+
+      const ins: {
+        rank: string
+        firstname: string
+        lastname: string
+        solve1: string
+        solve2: string
+        solve3: string
+        solve4: string
+        solve5: string
+        average: string
+        best: string
+      }[] = []
+
+      $('.MuiTableBody-root .MuiTableRow-root').each((_, el) => {
+        const cells = $(el).find('.MuiTableCell-root')
+
+        const fullName = $(cells[1]).text().trim().split(' ')
+        const firstname = fullName[0] || ''
+        const lastname = fullName[1] || ''
+
+        ins.push({
+          rank: $(cells[0]).text().trim(),
+          firstname,
+          lastname,
+          solve1: $(cells[2]).text().replace('PR', '').trim(),
+          solve2: $(cells[3]).text().replace('PR', '').trim(),
+          solve3: $(cells[4]).text().replace('PR', '').trim(),
+          solve4: $(cells[5]).text().replace('PR', '').trim(),
+          solve5: $(cells[6]).text().replace('PR', '').trim(),
+          average: $(cells[7]).text().replace('PR', '').trim(),
+          best: $(cells[8]).text().replace('PR', '').trim(),
+        })
+      })
+
+      const insertValues: (typeof results.$inferInsert)[] = []
+      const notFoundCompetitors: string[] = []
+
+      for (const result of ins) {
+        const competitor = competitors.find(
+          (c) =>
+            c.user.firstname === result.firstname &&
+            c.user.lastname === result.lastname,
+        )
+
+        if (!competitor) {
+          notFoundCompetitors.push(`${result.firstname} ${result.lastname}`)
+          continue
+        }
+
+        insertValues.push({
+          solve1: formatStringToMilliSeconds(result.solve1),
+          solve2: formatStringToMilliSeconds(result.solve2),
+          solve3: formatStringToMilliSeconds(result.solve3),
+          solve4: formatStringToMilliSeconds(result.solve4),
+          solve5: formatStringToMilliSeconds(result.solve5),
+          best: formatStringToMilliSeconds(result.best),
+          average: formatStringToMilliSeconds(result.average),
+          type: round.cubeType.type,
+          cubeTypeId: round.cubeTypeId,
+          competitionId: round.competitionId,
+          competitorId: competitor.id,
+          createdUserId: ctx.session.user.id,
+          updatedUserId: ctx.session.user.id,
+          group: '1',
+          roundId: round.id,
+        })
+      }
+
+      if (insertValues.length > 0) {
+        await ctx.db.delete(results).where(eq(results.roundId, input.roundId))
+        await ctx.db.insert(results).values(insertValues)
+      }
+
+      return {
+        notFoundCompetitors,
+        success: insertValues.length,
+      }
     }),
 })
