@@ -7,24 +7,20 @@ export function displayTime(time?: number | null): string {
     return 'DNF'
   }
 
-  const hours = Math.floor(time / 3_600_000) // 1 Hour = 3600000 Milliseconds
-  const minutes = Math.floor((time % 3_600_000) / 60_000) // 1 Minute = 60000 Milliseconds
-  const seconds = Math.floor(((time % 3_600_000) % 60_000) / 1000) // 1 Second = 1000 Milliseconds
-  const milliseconds = Math.floor(((time % 3_600_000) % 60_000) % 1000)
+  const hours = Math.floor(time / 3_600_000)
+  const minutes = Math.floor((time % 3_600_000) / 60_000)
+  const seconds = Math.floor((time % 60_000) / 1000)
+  const milliseconds = Math.floor((time % 1000) / 10) // get hundredths
 
-  let base = `${milliseconds.toString().padStart(3, '0')}`
-
-  base = base.slice(0, -1)
+  const msString = milliseconds.toString().padStart(2, '0')
 
   if (hours > 0) {
-    base = `${hours}:${pad(minutes)}:${pad(seconds)}.${base}`
+    return `${hours}:${pad(minutes)}:${pad(seconds)}.${msString}`
   } else if (minutes > 0) {
-    base = `${minutes}:${pad(seconds)}.${base}`
+    return `${minutes}:${pad(seconds)}.${msString}`
   } else {
-    base = `${seconds}.${base}`
+    return `${seconds}.${msString}`
   }
-
-  return base
 }
 
 export function pad(num: number): string {
@@ -44,47 +40,33 @@ export function formatCustomTime(timeString: string) {
   }
 }
 
-export function formatStringToMilliSeconds(timeString: string) {
-  const regex = /^((\d{1,2}:)?\d{1,2}:)?\d{1,2}\.\d{1,2}$/gm
+export function formatStringToMilliSeconds(
+  timeString: string,
+): number | undefined {
+  if (timeString === 'DNF') {
+    return -1
+  }
+  // Match formats like SS.MS, MM:SS.MS, or HH:MM:SS.MS
+  const regex = /^(\d{1,2}:)?(\d{1,2}:)?\d{1,2}\.\d{1,3}$/
 
-  if (!regex.exec(timeString)) {
+  if (!regex.test(timeString)) {
     return
   }
 
-  const parts = timeString.split(':').reverse()
+  const parts = timeString.split(':')
+  const lastPart = parts.pop() // always SS.MS
+  if (!lastPart) return
 
-  if (parts.length > 3) {
-    return
-  }
-
-  const s = parts.shift()
-
-  if (!s) return
-
-  const [seconds, milliseconds] = s.split('.')
-
-  if (!seconds || !milliseconds) {
-    return 0
-  }
-
-  let totalMilliseconds = parseInt(seconds) * 1000 + parseInt(milliseconds) * 10
+  const secondsWithMillis = parseFloat(lastPart)
+  let totalMilliseconds = Math.round(secondsWithMillis * 1000)
 
   if (parts.length === 1) {
-    const [minutes] = parts
-
-    if (!minutes) {
-      return 0
-    }
-
-    totalMilliseconds += parseInt(minutes) * 60 * 1000
+    const minutes = parseInt(parts[0]!, 10)
+    totalMilliseconds += minutes * 60 * 1000
   } else if (parts.length === 2) {
-    const [minutes, hours] = parts
-
-    if (!minutes || !hours) {
-      return 0
-    }
-    totalMilliseconds += parseInt(minutes) * 60 * 1000
-    totalMilliseconds += parseInt(hours) * 60 * 60 * 1000
+    const minutes = parseInt(parts[1]!, 10)
+    const hours = parseInt(parts[0]!, 10)
+    totalMilliseconds += minutes * 60 * 1000 + hours * 60 * 60 * 1000
   }
 
   return totalMilliseconds

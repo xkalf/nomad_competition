@@ -3,19 +3,23 @@
 // aimgiin medal
 // surguuli deer avsan medaliin too
 
-import { ColumnDef } from '@tanstack/react-table'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import Image from 'next/image'
-import { useCallback, useMemo, useState } from 'react'
-import DataTable from '~/components/data-table/data-table'
+import { useCallback, useState } from 'react'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '~/components/ui/table'
 import { useIsMobile } from '~/hooks/use-mobile'
-import { RouterOutputs, api } from '~/utils/api'
+import { api } from '~/utils/api'
 import { getImageUrl } from '~/utils/supabase'
 import { displayTime } from '~/utils/timeUtils'
-
-type Result = RouterOutputs['result']['findByAgeGroup'][number]
 
 export default function AgeGroupsPage({
   slug,
@@ -51,65 +55,6 @@ export default function AgeGroupsPage({
     },
   )
 
-  const columns = useMemo(() => {
-    const desktopColumns: ColumnDef<Result>[] = [
-      {
-        accessorKey: 'solve1',
-        header: '1',
-        cell: ({ row }) => displayTime(row.original.solve1),
-      },
-      {
-        accessorKey: 'solve2',
-        header: '2',
-        cell: ({ row }) => displayTime(row.original.solve2),
-      },
-      {
-        accessorKey: 'solve3',
-        header: '3',
-        cell: ({ row }) => displayTime(row.original.solve3),
-      },
-      {
-        accessorKey: 'solve4',
-        header: '4',
-        cell: ({ row }) => displayTime(row.original.solve4),
-      },
-      {
-        accessorKey: 'solve5',
-        header: '5',
-        cell: ({ row }) => displayTime(row.original.solve5 ?? 0),
-      },
-    ]
-
-    const columns: ColumnDef<Result>[] = [
-      {
-        accessorKey: 'order',
-        header: '№',
-        cell: ({ row }) => row.index + 1,
-      },
-      {
-        accessorKey: 'name',
-        header: 'Нэр',
-        cell: ({ row }) => (
-          <div className={row.original.isFinal ? 'text-orange-500' : ''}>
-            {`${row.original.competitor?.user.firstname} ${row.original.competitor?.user.lastname}`}
-          </div>
-        ),
-      },
-      {
-        accessorKey: 'average',
-        header: 'Дундаж',
-        cell: ({ row }) => displayTime(row.original.average),
-      },
-      {
-        accessorKey: 'best',
-        header: 'Синглэ',
-        cell: ({ row }) => displayTime(row.original.best),
-      },
-      ...(isMobile ? [] : desktopColumns),
-    ]
-    return columns
-  }, [isMobile])
-
   const getAgeGroupResults = useCallback(
     (ageGroupId: number) => {
       const ageGroup = ageGroups?.find((group) => group.id === ageGroupId)
@@ -140,7 +85,7 @@ export default function AgeGroupsPage({
 
       return filtered ?? []
     },
-    [results],
+    [results, ageGroups],
   )
 
   return (
@@ -154,6 +99,7 @@ export default function AgeGroupsPage({
               setCubeTypeId(cubeType.id)
             }}
             className="p-2"
+            key={'cubetype-' + cubeType.id}
           >
             {cubeType.image ? (
               <Image
@@ -168,12 +114,59 @@ export default function AgeGroupsPage({
           </Button>
         ))}
       </div>
-      {ageGroups?.map((ageGroup) => (
-        <div className="space-y-2" key={ageGroup.id}>
-          <h2>{ageGroup.name}</h2>
-          <DataTable columns={columns} data={getAgeGroupResults(ageGroup.id)} />
-        </div>
-      ))}
+      {ageGroups
+        ?.filter((group) => getAgeGroupResults(group.id).length > 0)
+        .map((ageGroup) => (
+          <div className="space-y-2" key={'ageGroup-' + ageGroup.id}>
+            <h2>{ageGroup.name}</h2>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>№</TableHead>
+                  <TableHead>Нэр</TableHead>
+                  <TableHead>Дундаж</TableHead>
+                  <TableHead>Синглэ</TableHead>
+                  {isMobile ? null : (
+                    <>
+                      <TableHead>1</TableHead>
+                      <TableHead>2</TableHead>
+                      <TableHead>3</TableHead>
+                      <TableHead>4</TableHead>
+                      <TableHead>5</TableHead>
+                    </>
+                  )}
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {getAgeGroupResults(ageGroup.id).map((result, index) => (
+                  <TableRow
+                    key={'result-' + result.id + ageGroup.id}
+                    className="odd:bg-gray-200"
+                  >
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell
+                      className={result.isFinal ? 'bg-orange-500' : ''}
+                    >
+                      {`${result.competitor?.user.firstname} ${result.competitor?.user.lastname}`}
+                    </TableCell>
+                    <TableCell>{displayTime(result.average)}</TableCell>
+                    <TableCell>{displayTime(result.best)}</TableCell>
+                    <TableCell>{displayTime(result.solve1)}</TableCell>
+                    {isMobile ? null : (
+                      <>
+                        <TableCell>{displayTime(result.solve1)}</TableCell>
+                        <TableCell>{displayTime(result.solve2)}</TableCell>
+                        <TableCell>{displayTime(result.solve3)}</TableCell>
+                        <TableCell>{displayTime(result.solve4)}</TableCell>
+                        <TableCell>{displayTime(result.solve5)}</TableCell>
+                      </>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ))}
     </Layout>
   )
 }
