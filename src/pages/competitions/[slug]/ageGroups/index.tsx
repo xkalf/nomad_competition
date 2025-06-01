@@ -5,7 +5,7 @@
 
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import Image from 'next/image'
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
 import {
@@ -55,39 +55,6 @@ export default function AgeGroupsPage({
     },
   )
 
-  const getAgeGroupResults = useCallback(
-    (ageGroupId: number) => {
-      const ageGroup = ageGroups?.find((group) => group.id === ageGroupId)
-      if (!ageGroup) {
-        return []
-      }
-      const filtered = results
-        ?.filter((result) => {
-          const date = result.competitor?.user.birthDate
-
-          if (!date) {
-            return false
-          }
-
-          const year = +date.slice(0, 4)
-
-          if (!ageGroup.end) {
-            return ageGroup.start <= year
-          }
-
-          return ageGroup.start <= year && ageGroup.end >= year
-        })
-        .sort((a, b) => {
-          if (!a.average || a.average < 0) return 1
-          if (!b.average || b.average < 0) return -1
-          return a.average - b.average
-        })
-
-      return filtered ?? []
-    },
-    [results, ageGroups],
-  )
-
   return (
     <Layout>
       <h1>Насны ангилал</h1>
@@ -115,7 +82,7 @@ export default function AgeGroupsPage({
         ))}
       </div>
       {ageGroups
-        ?.filter((group) => getAgeGroupResults(group.id).length > 0)
+        ?.filter((group) => !!results?.get(group.id)?.length)
         .map((ageGroup) => (
           <div className="space-y-2" key={'ageGroup-' + ageGroup.id}>
             <h2>{ageGroup.name}</h2>
@@ -138,20 +105,19 @@ export default function AgeGroupsPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {getAgeGroupResults(ageGroup.id).map((result, index) => (
+                {[...(results?.get(ageGroup.id) ?? [])].map((result, index) => (
                   <TableRow
-                    key={'result-' + result.id + ageGroup.id}
+                    key={'result-' + result.id}
                     className="odd:bg-gray-200"
                   >
                     <TableCell>{index + 1}</TableCell>
                     <TableCell
-                      className={result.isFinal ? 'bg-orange-500' : ''}
+                      className={result.isFinal ? 'text-orange-500' : ''}
                     >
                       {`${result.competitor?.user.firstname} ${result.competitor?.user.lastname}`}
                     </TableCell>
                     <TableCell>{displayTime(result.average)}</TableCell>
                     <TableCell>{displayTime(result.best)}</TableCell>
-                    <TableCell>{displayTime(result.solve1)}</TableCell>
                     {isMobile ? null : (
                       <>
                         <TableCell>{displayTime(result.solve1)}</TableCell>

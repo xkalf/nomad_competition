@@ -1,19 +1,21 @@
+import { eq, getTableColumns, max, sql } from 'drizzle-orm'
 import { z } from 'zod'
-import {
-  adminProcedure,
-  createTRPCRouter,
-  protectedProcedure,
-  publicProcedure,
-} from '../trpc'
 import {
   competitors,
   competitorsToCubeTypes,
   districts,
   provinces,
   schools,
+  users,
 } from '~/server/db/schema'
-import { eq, getTableColumns, max, sql } from 'drizzle-orm'
 import { getTotalAmount } from '~/server/utils/getTotalAmount'
+import {
+  adminProcedure,
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from '../trpc'
+import { randomUUID } from 'node:crypto'
 
 export const competitorRouter = createTRPCRouter({
   getByCompetitionId: publicProcedure
@@ -154,5 +156,78 @@ export const competitorRouter = createTRPCRouter({
         .orderBy(schools.school)
 
       return res
+    }),
+  importFromWca: adminProcedure
+    .input(
+      z
+        .object({
+          Email: z.string().email(),
+          'WCA ID': z.string().optional(),
+          Name: z.string(),
+          'Birth Date': z.string().date(),
+        })
+        .array(),
+    )
+    .mutation(async ({ input, ctx }) => {
+      for (const user of input) {
+        let userId = ''
+        const [dbUser] = await ctx.db
+          .select()
+          .from(users)
+          .where(eq(users.email, user.Email))
+
+        if (dbUser) {
+          userId = dbUser.id
+          const firstname = user.Name.split(' ')[0] ?? ''
+          const lastname = user.Name.split(' ')[1] ?? ''
+
+          if (dbUser.firstname !== firstname || dbUser.lastname !== lastname) {
+            await ctx.db
+              .update(users)
+              .set({
+                firstname,
+                lastname,
+              })
+              .where(eq(users.id, dbUser.id))
+          }
+        } else {
+          const [insertedUser] = await ctx.db
+            .insert(users)
+            .values({
+              email: user.Email,
+              wcaId: user['WCA ID'] === 'null' ? undefined : user['WCA ID'],
+              firstname: user.Name?.split(' ')?.[0] ?? '',
+              lastname: user.Name?.split(' ')?.[1] ?? '',
+              phone: 0,
+              birthDate: user['Birth Date'],
+              password: '',
+              emailVerified: sql`now()`,
+              id: randomUUID(),
+            })
+            .returning()
+
+          userId = insertedUser?.id ?? ''
+        }
+
+        if (!userId) {
+          console.log('COMPETITOR NOT FOUND ', user.Email)
+          continue
+        }
+
+        let competitorId = 0
+
+        const [competitor] = await ctx.db
+          .insert(competitors)
+          .values({
+            userId: userId,
+            competitionId: COMPETITION_ID,
+            status: 'Verified',
+            guestCount: user.Guests || 0,
+            verifiedAt: sql`now()`,
+            verifiedId: user['User Id'],
+          })
+          .returning()
+          .onConflictDoNothing()
+      }
     }),
 })

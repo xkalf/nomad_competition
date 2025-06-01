@@ -43,7 +43,8 @@ export const resultsRouter = createTRPCRouter({
 
       const filter = and(
         eq(rounds.isAgeGroup, true),
-        eq(rounds.cubeTypeId, input.cubeTypeId),
+        eq(results.cubeTypeId, input.cubeTypeId),
+        eq(results.competitionId, input.competitionId),
       )
 
       const isFinalQuery = ctx.db.$with('isFinalQuery').as(
@@ -87,7 +88,48 @@ export const resultsRouter = createTRPCRouter({
         )
         .where(filter)
 
-      return await query
+      const ageGroupsResult = await ctx.db.query.ageGroups.findMany({
+        where: (table) =>
+          and(
+            eq(table.competitionId, input.competitionId),
+            eq(table.cubeTypeId, input.cubeTypeId),
+          ),
+      })
+      const res = await query
+      const map = new Map<number, typeof res>()
+
+      ageGroupsResult.forEach((ageGroup) => {
+        const filtered = res
+          .filter((result) => {
+            const date = result.competitor.user.birthDate
+            const year = +date.slice(0, 4)
+
+            if (!ageGroup.end) {
+              return ageGroup.start <= year
+            }
+
+            return ageGroup.start <= year && ageGroup.end >= year
+          })
+          .sort((a, b) => {
+            if (!a.average || a.average < 0) return 1
+            if (!b.average || b.average < 0) return -1
+            if (a.average === b.average) {
+              if (!a.best || a.best < 0) {
+                return 1
+              }
+              if (!b.best || b.best < 0) {
+                return -1
+              }
+
+              return a.best - b.best
+            }
+            return a.average - b.average
+          })
+
+        map.set(ageGroup.id, filtered)
+      })
+
+      return map
     }),
   findByRound: publicProcedure
     .input(
