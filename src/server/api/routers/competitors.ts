@@ -216,18 +216,18 @@ export const competitorRouter = createTRPCRouter({
 
         let competitorId = 0
 
-        const [competitor] = await ctx.db
-          .insert(competitors)
-          .values({
-            userId: userId,
-            competitionId: COMPETITION_ID,
-            status: 'Verified',
-            guestCount: user.Guests || 0,
-            verifiedAt: sql`now()`,
-            verifiedId: user['User Id'],
-          })
-          .returning()
-          .onConflictDoNothing()
+        // const [competitor] = await ctx.db
+        //   .insert(competitors)
+        //   .values({
+        //     userId: userId,
+        //     competitionId: 0,
+        //     status: 'Verified',
+        //     guestCount: 0,
+        //     verifiedAt: sql`now()`,
+        //     verifiedId: user['User Id'],
+        //   })
+        //   .returning()
+        //   .onConflictDoNothing()
       }
     }),
 })
