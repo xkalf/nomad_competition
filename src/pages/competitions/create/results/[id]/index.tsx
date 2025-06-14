@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import { z } from 'zod'
 import CreateButtons from '~/components/create-buttons'
 import DataTable from '~/components/data-table/data-table'
+import ImportCompetitorsDialog from '~/components/import-competitors-dialog'
 import ImportWcaLiveDialog from '~/components/import-wcalive-dialog'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
@@ -300,6 +301,7 @@ export default function ResultsPage({
         >
           Групп-ийн хуваарилалт
         </Button>
+        <ImportCompetitorsDialog competitionId={competitionId} />
         <ImportWcaLiveDialog roundId={id} />
       </div>
       <div className="grid grid-cols-12 gap-x-4">

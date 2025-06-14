@@ -113,6 +113,9 @@ dependencies:
   csv:
     specifier: ^6.3.10
     version: 6.3.11
+  csv-simple-parser:
+    specifier: ^2.0.2
+    version: 2.0.2
   csv-writer:
     specifier: ^1.6.0
     version: 1.6.0
@@ -3592,6 +3595,12 @@ packages:
     resolution: {integrity: sha512-l3nz3euub2QMg5ouu5U09Ew9Wf6/wQ8I++ch1loQ0ljmzhmfZYrH9fflS22i/PQEvsPvxCwxgz5q7UB8K1JO4Q==}
     dev: false
 
+  /csv-simple-parser@2.0.2:
+    resolution: {integrity: sha512-G9KUSB7Bh8mRjZcg340FJM96tJYPPfb+UjR6T+dOcdRLChmwOTP6jB9+rJwmqDoaPHMJW/CXabYbJ1ZEjbkrrg==}
+    dependencies:
+      detect-eol: 3.0.1
+    dev: false
+
   /csv-stringify@6.5.2:
     resolution: {integrity: sha512-RFPahj0sXcmUyjrObAK+DOWtMvMIFV328n4qZJhgX3x2RqkQgOTU2mCUmiFR0CzM6AzChlRSUErjiJeEt8BaQA==}
     dev: false
@@ -3656,6 +3665,10 @@ packages:
 
   /delegates@1.0.0:
     resolution: {integrity: sha512-bd2L678uiWATM6m5Z1VzNCErI3jiGzt6HGY8OVICs40JQq/HALfbyNJmp0UDakEY4pMMaN0Ly5om/B1VI/+xfQ==}
+    dev: false
+
+  /detect-eol@3.0.1:
+    resolution: {integrity: sha512-ncnuLiZCKO7Kt+3CpwUIV8QnnwpBsSFxGQBY6Nve18K2aOrTim2xpzDa8YunHkePt39OCfV2qOX+b7xjYSDRWg==}
     dev: false
 
   /detect-libc@2.0.3:

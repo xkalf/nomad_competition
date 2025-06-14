@@ -1,4 +1,4 @@
-import { eq, getTableColumns, max, sql } from 'drizzle-orm'
+import { and, eq, getTableColumns, max, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import {
   competitors,
@@ -159,17 +159,28 @@ export const competitorRouter = createTRPCRouter({
     }),
   importFromWca: adminProcedure
     .input(
-      z
-        .object({
-          Email: z.string().email(),
-          'WCA ID': z.string().optional(),
-          Name: z.string(),
-          'Birth Date': z.string().date(),
-        })
-        .array(),
+      z.object({
+        competitionId: z.number().int().positive(),
+        data: z
+          .object({
+            Email: z.string().email(),
+            'WCA ID': z.string().optional(),
+            Name: z.string(),
+            'Birth Date': z.string().date(),
+            'User Id': z.coerce.number().optional(),
+            '333': z.string().optional(),
+            '444': z.string().optional(),
+            '222': z.string().optional(),
+            '555': z.string().optional(),
+            '333bf': z.string().optional(),
+            minx: z.string().optional(),
+            pyram: z.string().optional(),
+          })
+          .array(),
+      }),
     )
     .mutation(async ({ input, ctx }) => {
-      for (const user of input) {
+      for (const user of input.data) {
         let userId = ''
         const [dbUser] = await ctx.db
           .select()
@@ -216,18 +227,78 @@ export const competitorRouter = createTRPCRouter({
 
         let competitorId = 0
 
-        // const [competitor] = await ctx.db
-        //   .insert(competitors)
-        //   .values({
-        //     userId: userId,
-        //     competitionId: 0,
-        //     status: 'Verified',
-        //     guestCount: 0,
-        //     verifiedAt: sql`now()`,
-        //     verifiedId: user['User Id'],
-        //   })
-        //   .returning()
-        //   .onConflictDoNothing()
+        const [competitor] = await ctx.db
+          .insert(competitors)
+          .values({
+            userId: userId,
+            competitionId: input.competitionId,
+            status: 'Verified',
+            guestCount: 0,
+            verifiedAt: sql`now()`,
+            verifiedId: user['User Id'],
+          })
+          .returning()
+          .onConflictDoNothing()
+
+        if (competitor) {
+          competitorId = competitor.id
+        } else {
+          const curr = await ctx.db.query.competitors.findFirst({
+            where: and(
+              eq(competitors.userId, userId),
+              eq(competitors.competitionId, input.competitionId),
+            ),
+          })
+
+          if (!curr) {
+            continue
+          }
+
+          competitorId = curr.id
+        }
+
+        if (!competitorId) {
+          console.log('COMPETITOR NOT FOUND', user.Email, userId)
+        }
+
+        const insert: number[] = []
+
+        if (user['333'] === '1') {
+          insert.push(2)
+        }
+        if (user['222'] === '1') {
+          insert.push(6)
+        }
+        if (user['444'] === '1') {
+          insert.push(3)
+        }
+        if (user['555'] === '1') {
+          insert.push(4)
+        }
+        if (user['333bf'] === '1') {
+          insert.push(11)
+        }
+        if (user.minx === '1') {
+          insert.push(8)
+        }
+        if (user.pyram === '1') {
+          insert.push(9)
+        }
+
+        if (insert.length > 0) {
+          await ctx.db
+            .insert(competitorsToCubeTypes)
+            .values(
+              insert.map((i): typeof competitorsToCubeTypes.$inferInsert => ({
+                competitorId: competitorId,
+                cubeTypeId: i,
+                status: 'Paid',
+              })),
+            )
+            .onConflictDoNothing()
+        }
+
+        console.log(user.Email, ' Done')
       }
     }),
 })
