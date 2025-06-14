@@ -3,21 +3,26 @@ import {
   eq,
   exists,
   getTableColumns,
+  gt,
   gte,
+  inArray,
   isNotNull,
   isNull,
   lte,
   ne,
+  notInArray,
   or,
   sql,
 } from 'drizzle-orm'
 import { createSelectSchema } from 'drizzle-zod'
 import { z } from 'zod'
 import {
+  ageGroupMedals,
   ageGroups,
   competitors,
   competitorsToCubeTypes,
   cubeTypes,
+  medals,
   results,
   rounds,
   schools,
@@ -517,5 +522,177 @@ export const resultsRouter = createTRPCRouter({
         notFoundCompetitors,
         success: insertValues.length,
       }
+    }),
+  generateMedals: adminProcedure
+    .input(
+      z.object({
+        competitionId: z.number().int().positive(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const competition = await ctx.db.query.competitions.findFirst({
+        where: (table) => eq(table.id, input.competitionId),
+        with: {
+          competitionsToCubeTypes: {
+            with: {
+              cubeType: true,
+            },
+          },
+        },
+      })
+
+      if (!competition) {
+        throw new Error('Тэмцээн олдсонгүй.')
+      }
+
+      const allRounds = await ctx.db.query.rounds.findMany({
+        where: (table) => and(eq(table.competitionId, competition.id)),
+      })
+      const allAgeGroups = await ctx.db.query.ageGroups.findMany({
+        where: (table) => eq(table.competitionId, input.competitionId),
+      })
+
+      const insertMedals: (typeof medals.$inferInsert)[] = []
+      const insertAgegroupMedals: (typeof ageGroupMedals.$inferInsert)[] = []
+      const finalCompetitorIds = new Set<number>()
+
+      // Helper to get final round for a cube type
+      const getFinalRound = (cubeTypeId: number) =>
+        allRounds.find((r) => r.isFinal === true && r.cubeTypeId === cubeTypeId)
+
+      // Helper to get age group round for a cube type
+      const getAgeGroupRound = (cubeTypeId: number) =>
+        allRounds.find((r) => r.isAgeGroup && r.cubeTypeId === cubeTypeId)
+
+      // Final medals
+      for (const cubeType of competition.competitionsToCubeTypes) {
+        const finalRound = getFinalRound(cubeType.cubeTypeId)
+        if (!finalRound) {
+          throw new Error(
+            `${cubeType.cubeType.name} төрөл дээр финал раунд олдсонгүй.`,
+          )
+        }
+
+        const finalResults = await ctx.db.query.results.findMany({
+          where: (table) =>
+            and(
+              eq(table.competitionId, input.competitionId),
+              eq(table.roundId, finalRound.id),
+              gt(table.average, 0),
+            ),
+          limit: 3,
+          orderBy: (table) => [table.average, table.best],
+          with: {
+            competitor: {
+              columns: {
+                userId: true,
+              },
+            },
+          },
+        })
+
+        insertMedals.push(
+          ...finalResults.map((r, i): typeof medals.$inferInsert => ({
+            userId: r.competitor.userId,
+            competitionId: r.competitionId,
+            cubeTypeId: r.cubeTypeId,
+            roundId: r.roundId,
+            group: '',
+            medal: i + 1,
+          })),
+        )
+        finalResults.forEach((r) => finalCompetitorIds.add(r.competitorId))
+      }
+
+      // AgeGroup medals
+      for (const cubeType of competition.competitionsToCubeTypes.filter((ct) =>
+        [2, 6, 9].includes(ct.cubeTypeId),
+      )) {
+        const ageGroupRound = getAgeGroupRound(cubeType.cubeTypeId)
+        if (!ageGroupRound) {
+          throw new Error(
+            `${cubeType.cubeType.name} төрөл дээр насны ангилал раунд олдсонгүй.`,
+          )
+        }
+
+        const currentAgeGroups = allAgeGroups.filter(
+          (i) => i.cubeTypeId === cubeType.cubeTypeId,
+        )
+
+        for (const ageGroup of currentAgeGroups) {
+          const currentAgeGroupCompetitors = await ctx.db
+            .select({
+              id: competitors.id,
+            })
+            .from(competitors)
+            .innerJoin(users, eq(users.id, competitors.userId))
+            .where(
+              and(
+                eq(competitors.competitionId, input.competitionId),
+                gte(
+                  sql`(extract(year from ${users.birthDate}))`,
+                  ageGroup.start,
+                ),
+                lte(
+                  sql`(extract(year from ${users.birthDate}))`,
+                  ageGroup.end ?? 0,
+                ).if(ageGroup.id),
+              ),
+            )
+
+          const ageGroupResults = await ctx.db.query.results.findMany({
+            where: (table) =>
+              and(
+                eq(table.competitionId, input.competitionId),
+                eq(table.roundId, ageGroupRound.id),
+                gt(table.average, 0),
+                notInArray(table.competitorId, Array.from(finalCompetitorIds)),
+                inArray(
+                  table.competitorId,
+                  currentAgeGroupCompetitors.map((c) => c.id),
+                ),
+              ),
+            limit: 3,
+            orderBy: (table) => [table.average, table.best],
+            with: {
+              competitor: {
+                columns: {
+                  userId: true,
+                },
+              },
+            },
+          })
+
+          insertAgegroupMedals.push(
+            ...ageGroupResults.map(
+              (r, i): typeof ageGroupMedals.$inferInsert => ({
+                userId: r.competitor.userId,
+                competitionId: r.competitionId,
+                cubeTypeId: r.cubeTypeId,
+                roundId: r.roundId,
+                group: '',
+                medal: i + 1,
+                ageGroupId: ageGroup.id,
+              }),
+            ),
+          )
+        }
+      }
+
+      // Single transaction for all inserts/deletes
+      await ctx.db.transaction(async (db) => {
+        if (insertMedals.length > 0) {
+          await db
+            .delete(medals)
+            .where(eq(medals.competitionId, input.competitionId))
+          await db.insert(medals).values(insertMedals)
+        }
+        if (insertAgegroupMedals.length > 0) {
+          await db
+            .delete(ageGroupMedals)
+            .where(eq(ageGroupMedals.competitionId, input.competitionId))
+          await db.insert(ageGroupMedals).values(insertAgegroupMedals)
+        }
+      })
     }),
 })

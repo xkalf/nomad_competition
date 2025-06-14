@@ -11,6 +11,7 @@ import DataTable from '~/components/data-table/data-table'
 import ImportCompetitorsDialog from '~/components/import-competitors-dialog'
 import ImportWcaLiveDialog from '~/components/import-wcalive-dialog'
 import Layout from '~/components/layout'
+import { Loader } from '~/components/loading-screen'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import {
@@ -270,6 +271,9 @@ export default function ResultsPage({
     },
   )
 
+  const { mutate: generateMedals, isLoading: medalsLoading } =
+    api.result.generateMedals.useMutation()
+
   const onSubmit = (input: z.infer<typeof createResultSchema>) => {
     mutate({
       ...input,
@@ -303,6 +307,17 @@ export default function ResultsPage({
         </Button>
         <ImportCompetitorsDialog competitionId={competitionId} />
         <ImportWcaLiveDialog roundId={id} />
+        <Button
+          type="button"
+          disabled={medalsLoading}
+          onClick={() =>
+            generateMedals({
+              competitionId: competitionId,
+            })
+          }
+        >
+          {medalsLoading ? <Loader /> : 'Медал хадгалах'}
+        </Button>
       </div>
       <div className="grid grid-cols-12 gap-x-4">
         <div className="col-span-4">
