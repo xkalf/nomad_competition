@@ -1,9 +1,11 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { signIn } from 'next-auth/react'
+import Image from 'next/image'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { z } from 'zod'
-import { toast } from './ui/use-toast'
+import { api } from '~/utils/api'
+import { Button } from './ui/button'
 import {
   Dialog,
   DialogContent,
@@ -11,7 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from './ui/dialog'
-import { Button } from './ui/button'
 import {
   Form,
   FormControl,
@@ -21,7 +22,7 @@ import {
   FormMessage,
 } from './ui/form'
 import { Input } from './ui/input'
-import { api } from '~/utils/api'
+import { toast } from './ui/use-toast'
 
 const schema = z.object({
   email: z.string().email(),
@@ -103,30 +104,53 @@ export default function LoginDialog() {
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Нууц үг</FormLabel>
-                  <FormControl>
-                    <Input type="password" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            {error && <p className="text-red-500">{error}</p>}
-            <div>
+            <div className="">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Нууц үг</FormLabel>
+                    <FormControl>
+                      <Input type="password" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              {error && <p className="text-red-500">{error}</p>}
+              <div>
+                <Button
+                  variant={'link'}
+                  className="block text-gray-500 px-0"
+                  type="button"
+                  onClick={() => onPasswordResetClick()}
+                >
+                  Нууц үг сэргээх
+                </Button>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <Button
+                  variant={'outline'}
+                  type="button"
+                  className="flex justify-center items-center p-4"
+                  onClick={async () => {
+                    await signIn('wca')
+                  }}
+                >
+                  <Image
+                    src="/wca-logo.svg"
+                    alt="WCA Logo"
+                    width={30}
+                    height={30}
+                  />
+                </Button>
+              </div>
               <Button
-                variant={'link'}
-                className="block text-gray-500 px-0"
-                type="button"
-                onClick={() => onPasswordResetClick()}
+                type="submit"
+                className="mt-4"
+                onClick={form.handleSubmit(onSubmit)}
               >
-                Нууц үг сэргээх
-              </Button>
-              <Button type="submit" onClick={form.handleSubmit(onSubmit)}>
                 Нэвтрэх
               </Button>
             </div>

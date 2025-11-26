@@ -2,21 +2,20 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { compare } from 'bcrypt'
 import { type GetServerSidePropsContext } from 'next'
 import {
-  getServerSession,
   type DefaultSession,
   type NextAuthOptions,
+  getServerSession,
 } from 'next-auth'
-import { type Adapter } from 'next-auth/adapters'
 import Credentials from 'next-auth/providers/credentials'
 
-import { db, DBType } from '~/server/db'
-import { createTable, users, verificationTokens } from '~/server/db/schema'
-import { Resend } from 'resend'
-import { eq } from 'drizzle-orm'
 import { randomUUID } from 'crypto'
-import { VerifyAccountTemplate } from '~/components/emails/verify-account'
-import { ResetPasswordTemplate } from '~/components/emails/reset-password'
 import { addHours, isBefore } from 'date-fns'
+import { eq } from 'drizzle-orm'
+import { Resend } from 'resend'
+import { ResetPasswordTemplate } from '~/components/emails/reset-password'
+import { VerifyAccountTemplate } from '~/components/emails/verify-account'
+import { DBType, db } from '~/server/db'
+import * as schema from '~/server/db/schema'
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -69,8 +68,46 @@ export const authOptions: NextAuthOptions = {
 
       return token
     },
+    signIn: async ({ user, account }) => {
+      const existingUser = await db.query.users.findFirst({
+        where: (t, { eq }) => eq(t.email, user.email ?? ''),
+      })
+
+      if (!existingUser || !account) {
+        return true
+      }
+
+      const currentAccount = await db.query.accounts.findFirst({
+        where: (t, { eq, and }) =>
+          and(eq(t.userId, existingUser.id), eq(t.provider, account?.provider)),
+      })
+
+      if (!currentAccount) {
+        // @ts-ignore
+        await db.insert(schema.accounts).values({
+          userId: existingUser.id,
+          type: account.type,
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+          access_token: account.access_token,
+          refresh_token: account.refresh_token,
+          expires_at: account.expires_at,
+        })
+
+        return true
+      }
+
+      return true
+    },
   },
-  adapter: DrizzleAdapter(db, createTable) as Adapter,
+  // @ts-ignore
+  adapter: DrizzleAdapter(db, {
+    // @ts-ignore
+    usersTable: schema.users,
+    accountsTable: schema.accounts,
+    sessionsTable: schema.sessions,
+    verificationTokensTable: schema.verificationTokens,
+  }),
   providers: [
     /**
      * ...add more providers here.
@@ -114,6 +151,33 @@ export const authOptions: NextAuthOptions = {
         return user
       },
     }),
+    {
+      id: 'wca',
+      name: 'WCA',
+      type: 'oauth',
+      // wellKnown:
+      //   'https://www.worldcubeassociation.org/.well-known/openid-configuration',
+      authorization: {
+        url: 'https://www.worldcubeassociation.org/oauth/authorize',
+        params: { scope: 'public email' },
+      },
+      token: 'https://www.worldcubeassociation.org/oauth/token',
+      userinfo: 'https://www.worldcubeassociation.org/api/v0/me',
+      // @ts-ignore
+      profile(profile) {
+        console.log(profile)
+        return {
+          id: profile.me.id,
+          name: profile.me.name,
+          email: profile.me.email,
+          image: profile.me.avatar.url,
+          wcaId: profile.me.wca_id,
+          isMale: profile.me.gender === 'm',
+        }
+      },
+      clientId: process.env.WCA_CLIENT_ID,
+      clientSecret: process.env.WCA_CLIENT_SECRET,
+    },
   ],
 }
 
@@ -138,8 +202,8 @@ export async function generateVerifictionToken(
 ) {
   const [curr] = await d
     .select()
-    .from(verificationTokens)
-    .where(eq(verificationTokens.identifier, email))
+    .from(schema.verificationTokens)
+    .where(eq(schema.verificationTokens.identifier, email))
 
   // if token not expired throw error
   if (curr && isBefore(new Date(), curr.expires)) {
@@ -147,11 +211,11 @@ export async function generateVerifictionToken(
   }
 
   await d
-    .delete(verificationTokens)
-    .where(eq(verificationTokens.identifier, email))
+    .delete(schema.verificationTokens)
+    .where(eq(schema.verificationTokens.identifier, email))
 
   const [res] = await d
-    .insert(verificationTokens)
+    .insert(schema.verificationTokens)
     .values({
       identifier: email,
       token: randomUUID(),
@@ -163,7 +227,10 @@ export async function generateVerifictionToken(
     throw new Error('Бүртгэлтэй хэрэглэгч олдсонгүй.')
   }
 
-  const [user] = await d.select().from(users).where(eq(users.email, email))
+  const [user] = await d
+    .select()
+    .from(schema.users)
+    .where(eq(schema.users.email, email))
 
   if (!user) {
     throw new Error('Бүртгэлтэй хэрэглэгч олдсонгүй.')
