@@ -1,8 +1,8 @@
-import { createCubeTypeSchema, getUpdateSchema } from '~/utils/zod'
-import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
-import { competitionsToCubeType, cubeTypes } from '~/server/db/schema'
 import { and, eq, exists, inArray } from 'drizzle-orm'
 import { z } from 'zod'
+import { competitionsToCubeType, cubeTypes } from '~/server/db/schema'
+import { createCubeTypeSchema, getUpdateSchema } from '~/utils/zod'
+import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
 
 export const cubeTypesRouter = createTRPCRouter({
   getAll: publicProcedure
@@ -16,7 +16,7 @@ export const cubeTypesRouter = createTRPCRouter({
         const res = await ctx.db.query.cubeTypes.findMany({
           orderBy: (t) => [t.order],
           where: input.isAgeGroup
-            ? inArray(cubeTypes.id, [2, 6, 9])
+            ? inArray(cubeTypes.id, [2, 6, 9, 13, 14])
             : undefined,
         })
 

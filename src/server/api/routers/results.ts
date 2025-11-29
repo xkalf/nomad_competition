@@ -1,3 +1,4 @@
+import * as cheerio from 'cheerio'
 import {
   and,
   eq,
@@ -30,10 +31,9 @@ import {
 } from '~/server/db/schema'
 import { getAverage, getBest } from '~/server/utils/calculate'
 import { jsonBuildObject } from '~/server/utils/drizzle.helper'
+import { formatStringToMilliSeconds } from '~/utils/timeUtils'
 import { createResultSchema } from '~/utils/zod'
 import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
-import * as cheerio from 'cheerio'
-import { formatStringToMilliSeconds } from '~/utils/timeUtils'
 
 export const resultsRouter = createTRPCRouter({
   findByAgeGroup: publicProcedure
@@ -240,7 +240,7 @@ export const resultsRouter = createTRPCRouter({
         input.solve3,
         input.solve4,
         input.solve5,
-      ].map((i) => (typeof i === 'number' ? i : -1))
+      ].map((i) => (typeof i === 'number' ? i : -2))
 
       const [round] = await ctx.db
         .select({
@@ -606,7 +606,7 @@ export const resultsRouter = createTRPCRouter({
 
       // AgeGroup medals
       for (const cubeType of competition.competitionsToCubeTypes.filter((ct) =>
-        [2, 6, 9].includes(ct.cubeTypeId),
+        [2, 6, 9, 13, 14].includes(ct.cubeTypeId),
       )) {
         const ageGroupRound = getAgeGroupRound(cubeType.cubeTypeId)
         if (!ageGroupRound) {

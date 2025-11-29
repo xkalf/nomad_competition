@@ -22,13 +22,13 @@ export const getAverage = (solves: number[], type: ResultType) => {
 }
 
 const getAverage3 = (solves: number[]) => {
-  if (solves.length !== 3) {
+  if (solves.filter((i) => i > -2).length !== 3) {
     throw new Error('Эвлүүлэлтийн тоо таарахгүй байна.')
   }
 
   const filtered = solves.filter((i) => i > 0)
 
-  if (solves.length > filtered.length) {
+  if (3 > filtered.length) {
     return -1
   }
 

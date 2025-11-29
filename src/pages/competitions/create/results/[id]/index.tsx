@@ -15,11 +15,11 @@ import { Loader } from '~/components/loading-screen'
 import { Button } from '~/components/ui/button'
 import { Checkbox } from '~/components/ui/checkbox'
 import {
+  Command,
   CommandGroup,
   CommandInput,
   CommandItem,
   CommandList,
-  Command,
 } from '~/components/ui/command'
 import {
   Form,
@@ -361,6 +361,10 @@ export default function ResultsPage({
                                   form.setValue(
                                     'competitorId',
                                     compValue ? +compValue : 0,
+                                  )
+                                  form.setValue(
+                                    'verifiedId',
+                                    c.verifiedId ?? undefined,
                                   )
                                 }}
                               >
