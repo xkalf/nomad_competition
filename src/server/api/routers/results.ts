@@ -79,11 +79,13 @@ export const resultsRouter = createTRPCRouter({
           isFinal: sql`${isFinalQuery.competitorId} is not null`.mapWith(
             Boolean,
           ),
+          ageGroupMedal: ageGroupMedals.medal,
         })
         .from(results)
         .innerJoin(competitors, eq(results.competitorId, competitors.id))
         .innerJoin(users, eq(users.id, competitors.userId))
         .leftJoin(rounds, eq(rounds.id, results.roundId))
+        .leftJoin(ageGroupMedals, eq(ageGroupMedals.userId, competitors.userId))
         .leftJoin(
           isFinalQuery,
           and(

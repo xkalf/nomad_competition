@@ -9,15 +9,33 @@ export const cubeTypesRouter = createTRPCRouter({
     .input(
       z.object({
         isAgeGroup: z.boolean().optional(),
+        competitionId: z.number().int().positive().optional(),
       }),
     )
     .query(async ({ ctx, input }) => {
       try {
         const res = await ctx.db.query.cubeTypes.findMany({
           orderBy: (t) => [t.order],
-          where: input.isAgeGroup
-            ? inArray(cubeTypes.id, [2, 6, 9, 13, 14])
-            : undefined,
+          where: (t) =>
+            and(
+              input.isAgeGroup ? inArray(t.id, [2, 6, 9, 13, 14]) : undefined,
+              input.competitionId
+                ? exists(
+                    ctx.db
+                      .select({ id: competitionsToCubeType.cubeTypeId })
+                      .from(competitionsToCubeType)
+                      .where(
+                        and(
+                          eq(
+                            competitionsToCubeType.competitionId,
+                            input.competitionId,
+                          ),
+                          eq(t.id, competitionsToCubeType.cubeTypeId),
+                        ),
+                      ),
+                  )
+                : undefined,
+            ),
         })
 
         return res

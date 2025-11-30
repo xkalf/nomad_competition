@@ -1,11 +1,6 @@
-// final uldsen, (medal avsan, filter) humuus uur unguur
-// temtseeniin medeellin door podium haragdah
-// aimgiin medal
-// surguuli deer avsan medaliin too
-
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import Image from 'next/image'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
 import {
@@ -33,7 +28,14 @@ export default function AgeGroupsPage({
 
   const { data: cubeTypes } = api.cubeTypes.getAll.useQuery({
     isAgeGroup: true,
+    competitionId: competition?.id,
   })
+
+  useEffect(() => {
+    if (cubeTypes?.[0]) {
+      setCubeTypeId(cubeTypes[0].id)
+    }
+  }, [cubeTypes])
 
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(
     {
@@ -53,6 +55,25 @@ export default function AgeGroupsPage({
     {
       enabled: !!competition,
     },
+  )
+
+  const getRowTextColor = useCallback(
+    (result: { ageGroupMedal: number | null; isFinal: boolean }) => {
+      if (!results) return ''
+
+      const ageGroupMedalExists = [...results.values()]
+        .flat()
+        .some((r) => r.ageGroupMedal)
+
+      if (result.ageGroupMedal) {
+        return 'text-green-500'
+      } else if (result.isFinal && !ageGroupMedalExists) {
+        return 'text-orange-500'
+      }
+      // Default/no color
+      return ''
+    },
+    [results],
   )
 
   return (
@@ -112,7 +133,10 @@ export default function AgeGroupsPage({
                   >
                     <TableCell>{index + 1}</TableCell>
                     <TableCell
-                      className={result.isFinal ? 'text-orange-500' : ''}
+                      className={getRowTextColor({
+                        ageGroupMedal: result.ageGroupMedal,
+                        isFinal: result.isFinal,
+                      })}
                     >
                       {`${result.competitor?.user.firstname} ${result.competitor?.user.lastname}`}
                     </TableCell>
