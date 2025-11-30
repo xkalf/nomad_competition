@@ -154,6 +154,7 @@ export const competitions = createTable('competitions', {
   slug: varchar('slug').unique().notNull(),
   image: varchar('image'),
   guideLines: varchar(),
+  isActive: boolean('is_active').notNull().default(true),
 })
 
 export const competitionsRelations = relations(competitions, ({ many }) => ({

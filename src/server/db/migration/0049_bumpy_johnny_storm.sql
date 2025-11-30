@@ -1,0 +1,1 @@
+ALTER TABLE "nomad_competition_competitions" ADD COLUMN "is_active" boolean DEFAULT true NOT NULL;

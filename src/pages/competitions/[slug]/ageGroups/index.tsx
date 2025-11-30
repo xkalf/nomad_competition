@@ -1,5 +1,7 @@
+import { Medal, Trophy } from 'lucide-react'
 import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
 import Image from 'next/image'
+import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import Layout from '~/components/layout'
 import { Button } from '~/components/ui/button'
@@ -21,6 +23,7 @@ export default function AgeGroupsPage({
 }: InferGetServerSidePropsType<typeof getServerSideProps>) {
   const [cubeTypeId, setCubeTypeId] = useState<number>(2)
   const isMobile = useIsMobile()
+  const router = useRouter()
 
   const { data: competition } = api.competition.getBySlug.useQuery(slug ?? '', {
     enabled: !!slug,
@@ -32,10 +35,12 @@ export default function AgeGroupsPage({
   })
 
   useEffect(() => {
-    if (cubeTypes?.[0]) {
+    if (router.query.cubeTypeId) {
+      setCubeTypeId(Number(router.query.cubeTypeId))
+    } else if (cubeTypes?.[0]) {
       setCubeTypeId(cubeTypes[0].id)
     }
-  }, [cubeTypes])
+  }, [cubeTypes, router.query.cubeTypeId])
 
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(
     {
@@ -57,24 +62,19 @@ export default function AgeGroupsPage({
     },
   )
 
-  const getRowTextColor = useCallback(
-    (result: { ageGroupMedal: number | null; isFinal: boolean }) => {
-      if (!results) return ''
+  useEffect(() => {
+    if (!router.isReady) return
 
-      const ageGroupMedalExists = [...results.values()]
-        .flat()
-        .some((r) => r.ageGroupMedal)
-
-      if (result.ageGroupMedal) {
-        return 'text-green-500'
-      } else if (result.isFinal && !ageGroupMedalExists) {
-        return 'text-orange-500'
-      }
-      // Default/no color
-      return ''
-    },
-    [results],
-  )
+    const hash = router.asPath.split('#')[1]
+    if (hash) {
+      setTimeout(() => {
+        const element = document.getElementById(hash)
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' })
+        }
+      }, 100)
+    }
+  }, [router.isReady, results])
 
   return (
     <Layout>
@@ -84,7 +84,13 @@ export default function AgeGroupsPage({
           <Button
             variant={cubeType.id === cubeTypeId ? 'default' : 'secondary'}
             onClick={() => {
-              setCubeTypeId(cubeType.id)
+              router.push({
+                pathname: router.pathname,
+                query: {
+                  ...router.query,
+                  cubeTypeId: cubeType.id.toString(),
+                },
+              })
             }}
             className="p-2"
             key={'cubetype-' + cubeType.id}
@@ -105,7 +111,11 @@ export default function AgeGroupsPage({
       {ageGroups
         ?.filter((group) => !!results?.get(group.id)?.length)
         .map((ageGroup) => (
-          <div className="space-y-2" key={'ageGroup-' + ageGroup.id}>
+          <div
+            className="space-y-2"
+            id={ageGroup.id.toString()}
+            key={'ageGroup-' + ageGroup.id}
+          >
             <h2>{ageGroup.name}</h2>
             <Table>
               <TableHeader>
@@ -132,13 +142,18 @@ export default function AgeGroupsPage({
                     className="odd:bg-gray-200"
                   >
                     <TableCell>{index + 1}</TableCell>
-                    <TableCell
-                      className={getRowTextColor({
-                        ageGroupMedal: result.ageGroupMedal,
-                        isFinal: result.isFinal,
-                      })}
-                    >
+                    <TableCell className={'flex gap-2 items-center'}>
+                      {result.ageGroupMedal && (
+                        <Medal
+                          className={`w-6 h-6 ${result.ageGroupMedal === 1 ? 'text-yellow-500' : result.ageGroupMedal === 2 ? 'text-gray-400' : result.ageGroupMedal === 3 ? 'text-amber-700' : ''}`}
+                        />
+                      )}
                       {`${result.competitor?.user.firstname} ${result.competitor?.user.lastname}`}
+                      {result.medal && (
+                        <Trophy
+                          className={`w-6 h-6 ${result.medal === 1 ? 'text-yellow-500' : result.medal === 2 ? 'text-gray-400' : result.medal === 3 ? 'text-amber-700' : ''}`}
+                        />
+                      )}
                     </TableCell>
                     <TableCell>{displayTime(result.average)}</TableCell>
                     <TableCell>{displayTime(result.best)}</TableCell>

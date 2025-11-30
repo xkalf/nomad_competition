@@ -1,8 +1,13 @@
-import { api, RouterOutputs } from '~/utils/api'
-import { mnFormat } from '~/utils/date'
-import CompetitionLayout from './layout'
-import LoadingScreen from '~/components/loading-screen'
+import { createServerSideHelpers } from '@trpc/react-query/server'
+import { createCallerFactory } from '@trpc/server'
+import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
+import Head from 'next/head'
+import Image from 'next/image'
+import Link from 'next/link'
 import { useMemo } from 'react'
+import superjson from 'superjson'
+import LoadingScreen from '~/components/loading-screen'
+import { Badge } from '~/components/ui/badge'
 import {
   Table,
   TableBody,
@@ -10,18 +15,14 @@ import {
   TableHead,
   TableRow,
 } from '~/components/ui/table'
-import { getImageUrl } from '~/utils/supabase'
-import Image from 'next/image'
-import { Badge } from '~/components/ui/badge'
-import { GetServerSidePropsContext, InferGetServerSidePropsType } from 'next'
-import { competitionRouter } from '~/server/api/routers/competitions'
-import { db } from '~/server/db'
-import { createCallerFactory } from '@trpc/server'
-import Head from 'next/head'
-import { createServerSideHelpers } from '@trpc/react-query/server'
 import { appRouter } from '~/server/api/root'
-import superjson from 'superjson'
+import { competitionRouter } from '~/server/api/routers/competitions'
 import { getServerAuthSession } from '~/server/auth'
+import { db } from '~/server/db'
+import { RouterOutputs, api } from '~/utils/api'
+import { mnFormat } from '~/utils/date'
+import { getImageUrl } from '~/utils/supabase'
+import CompetitionLayout from './layout'
 
 type Competition = RouterOutputs['competition']['getBySlug']
 
@@ -35,6 +36,14 @@ export default function CompetitionShowPage({
     },
   )
   const { data: ageGroups } = api.ageGroup.getAll.useQuery(
+    {
+      competitionId: data?.id ?? 0,
+    },
+    {
+      enabled: !!data?.id,
+    },
+  )
+  const { data: rounds } = api.round.getAll.useQuery(
     {
       competitionId: data?.id ?? 0,
     },
@@ -92,19 +101,29 @@ export default function CompetitionShowPage({
                 .map((i) => {
                   if (i.cubeType.image) {
                     return (
-                      <Image
-                        src={getImageUrl(i.cubeType.image) || ''}
-                        alt={i.cubeType.name}
-                        width={40}
-                        height={40}
-                        key={i.cubeTypeId}
-                      />
+                      <Link
+                        href={`/competitions/${slug}/results/${rounds?.find((r) => r.cubeTypeId === i.cubeTypeId)?.id}`}
+                        scroll={false}
+                      >
+                        <Image
+                          src={getImageUrl(i.cubeType.image) || ''}
+                          alt={i.cubeType.name}
+                          width={40}
+                          height={40}
+                          key={i.cubeTypeId}
+                        />
+                      </Link>
                     )
                   } else {
                     return (
-                      <Badge className="mr-2" key={i.cubeTypeId}>
-                        {i.cubeType.name}
-                      </Badge>
+                      <Link
+                        href={`/competitions/${slug}/results/${rounds?.find((r) => r.cubeTypeId === i.cubeTypeId)?.id}`}
+                        scroll={false}
+                      >
+                        <Badge className="mr-2" key={i.cubeTypeId}>
+                          {i.cubeType.name}
+                        </Badge>
+                      </Link>
                     )
                   }
                 })}
@@ -161,13 +180,18 @@ export default function CompetitionShowPage({
                         key={'age-group' + item.id}
                         className="space-x-4 p-2 even:bg-gray-200"
                       >
-                        <span>
-                          {item.start === item.end
-                            ? `${item.name} ${item.start} онд төрсөн`
-                            : item.end
-                              ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
-                              : `${item.name} ${item.start} оноос өмнө төрсөн`}{' '}
-                        </span>
+                        <Link
+                          href={`/competitions/${slug}/ageGroups?cubeTypeId=${item.cubeTypeId}#${item.id}`}
+                          scroll={false}
+                        >
+                          <span>
+                            {item.start === item.end
+                              ? `${item.name} ${item.start} онд төрсөн`
+                              : item.end
+                                ? `${item.name} ${item.start} - ${item.end} оны хооронд төрсөн`
+                                : `${item.name} ${item.start} оноос өмнө төрсөн`}{' '}
+                          </span>
+                        </Link>
                       </li>
                     ))}
                 </ul>

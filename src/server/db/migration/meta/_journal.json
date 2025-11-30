@@ -344,6 +344,13 @@
       "when": 1747122956062,
       "tag": "0048_superb_deathstrike",
       "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1764482901537,
+      "tag": "0049_bumpy_johnny_storm",
+      "breakpoints": true
     }
   ]
 }

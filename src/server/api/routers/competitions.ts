@@ -1,4 +1,4 @@
-import { and, count, eq, exists, inArray, sql } from 'drizzle-orm'
+import { and, count, desc, eq, exists, inArray, sql } from 'drizzle-orm'
 import slugify from 'slugify'
 import { z } from 'zod'
 import {
@@ -28,19 +28,23 @@ export const competitionRouter = createTRPCRouter({
     .query(({ ctx, input }) => {
       return ctx.db.query.competitions.findMany({
         where: (t, { gte, lte }) =>
-          input === true
-            ? gte(t.startDate, sql`CURRENT_DATE`)
-            : input === false
-              ? lte(t.startDate, sql`CURRENT_DATE`)
-              : undefined,
+          and(
+            eq(t.isActive, true),
+            input === true
+              ? gte(t.startDate, sql`CURRENT_DATE`)
+              : input === false
+                ? lte(t.startDate, sql`CURRENT_DATE`)
+                : undefined,
+          ),
         with: {
           competitionsToCubeTypes: true,
         },
+        orderBy: (t) => [desc(t.startDate)],
       })
     }),
   getBySlug: publicProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const res = await ctx.db.query.competitions.findFirst({
-      where: eq(competitions.slug, input),
+      where: and(eq(competitions.slug, input), eq(competitions.isActive, true)),
       extras: {
         isRegisterAble:
           sql`${competitions.registerStartDate} <= now() AND ${competitions.registerEndDate} >= now() AND ${competitions.maxCompetitors} > (${ctx.db
@@ -74,7 +78,7 @@ export const competitionRouter = createTRPCRouter({
     .input(z.number().int().positive())
     .query(async ({ ctx, input }) => {
       const res = await ctx.db.query.competitions.findFirst({
-        where: eq(competitions.id, input),
+        where: and(eq(competitions.id, input), eq(competitions.isActive, true)),
         extras: {
           isRegisterAble:
             sql`${competitions.registerStartDate} <= now() AND ${competitions.registerEndDate} >= now() AND ${competitions.maxCompetitors} > (${ctx.db
@@ -182,7 +186,10 @@ export const competitionRouter = createTRPCRouter({
     .input(z.number().int().positive())
     .mutation(async ({ ctx, input }) => {
       await ctx.db
-        .delete(competitions)
+        .update(competitions)
+        .set({
+          isActive: false,
+        })
         .where(eq(competitions.id, input))
         .returning()
     }),
