@@ -163,6 +163,21 @@ export default function CompetitionShowPage({
             <TableHead>Холбоо барих</TableHead>
             <TableCell>{data.contact}</TableCell>
           </TableRow>
+          {data.id === 10 && (
+            <TableRow>
+              <TableHead>Тамирчидийн цагийн хуваарь</TableHead>
+              <TableCell>
+                <Link
+                  href={
+                    'https://www.competitiongroups.com/competitions/SainshandCup2025'
+                  }
+                  target="_blank"
+                >
+                  Цагийн хуваарь үзэх
+                </Link>
+              </TableCell>
+            </TableRow>
+          )}
           <TableRow>
             <TableHead className="flex items-center justify-between">
               <span>Насны ангилал</span>

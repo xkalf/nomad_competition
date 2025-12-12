@@ -64,7 +64,7 @@
     "lodash.groupby": "^4.6.0",
     "lucide-react": "^0.469.0",
     "mn-payment": "^0.0.4",
-    "next": "^15.0.3",
+    "next": "15.1.11",
     "next-auth": "^4.24.8",
     "pdfjs-dist": "3.4.120",
     "postgres": "^3.4.4",
