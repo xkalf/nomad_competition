@@ -1,4 +1,7 @@
+import parse from 'csv-simple-parser'
+import { Loader2 } from 'lucide-react'
 import { useState } from 'react'
+import { api } from '~/utils/api'
 import { Button } from './ui/button'
 import {
   Dialog,
@@ -9,10 +12,7 @@ import {
   DialogTrigger,
 } from './ui/dialog'
 import { Input } from './ui/input'
-import { api } from '~/utils/api'
 import { toast } from './ui/use-toast'
-import parse from 'csv-simple-parser'
-import { Loader2 } from 'lucide-react'
 
 interface Props {
   competitionId: number

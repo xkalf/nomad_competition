@@ -86,8 +86,20 @@ export const resultsRouter = createTRPCRouter({
         .innerJoin(competitors, eq(results.competitorId, competitors.id))
         .innerJoin(users, eq(users.id, competitors.userId))
         .leftJoin(rounds, eq(rounds.id, results.roundId))
-        .leftJoin(ageGroupMedals, eq(ageGroupMedals.userId, competitors.userId))
-        .leftJoin(medals, eq(medals.userId, competitors.userId))
+        .leftJoin(
+          ageGroupMedals,
+          and(
+            eq(ageGroupMedals.userId, competitors.userId),
+            eq(ageGroupMedals.cubeTypeId, results.cubeTypeId),
+          ),
+        )
+        .leftJoin(
+          medals,
+          and(
+            eq(medals.userId, competitors.userId),
+            eq(medals.cubeTypeId, results.cubeTypeId),
+          ),
+        )
         .leftJoin(
           isFinalQuery,
           and(
@@ -473,13 +485,13 @@ export const resultsRouter = createTRPCRouter({
           rank: $(cells[0]).text().trim(),
           firstname,
           lastname,
-          solve1: $(cells[2]).text().replace('PR', '').trim(),
-          solve2: $(cells[3]).text().replace('PR', '').trim(),
-          solve3: $(cells[4]).text().replace('PR', '').trim(),
-          solve4: $(cells[5]).text().replace('PR', '').trim(),
-          solve5: $(cells[6]).text().replace('PR', '').trim(),
-          average: $(cells[7]).text().replace('PR', '').trim(),
-          best: $(cells[8]).text().replace('PR', '').trim(),
+          solve1: $(cells[3]).text().replace('PR', '').trim(),
+          solve2: $(cells[4]).text().replace('PR', '').trim(),
+          solve3: $(cells[5]).text().replace('PR', '').trim(),
+          solve4: $(cells[6]).text().replace('PR', '').trim(),
+          solve5: $(cells[7]).text().replace('PR', '').trim(),
+          average: $(cells[8]).text().replace('PR', '').trim(),
+          best: $(cells[9]).text().replace('PR', '').trim(),
         })
       })
 

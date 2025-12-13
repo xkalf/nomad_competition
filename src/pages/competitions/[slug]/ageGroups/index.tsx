@@ -136,38 +136,45 @@ export default function AgeGroupsPage({
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {[...(results?.get(ageGroup.id) ?? [])].map((result, index) => (
-                  <TableRow
-                    key={'result-' + result.id}
-                    className="odd:bg-gray-200"
-                  >
-                    <TableCell>{index + 1}</TableCell>
-                    <TableCell className={'flex gap-2 items-center'}>
-                      {result.ageGroupMedal && (
-                        <Medal
-                          className={`w-6 h-6 ${result.ageGroupMedal === 1 ? 'text-yellow-500' : result.ageGroupMedal === 2 ? 'text-gray-400' : result.ageGroupMedal === 3 ? 'text-amber-700' : ''}`}
-                        />
+                {[...(results?.get(ageGroup.id) ?? [])]
+                  .filter(
+                    (result, idx, arr) =>
+                      arr.findIndex(
+                        (r) => r.competitor?.id === result.competitor?.id,
+                      ) === idx,
+                  )
+                  .map((result, index) => (
+                    <TableRow
+                      key={'result-' + result.id}
+                      className="odd:bg-gray-200"
+                    >
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell className={'flex gap-2 items-center'}>
+                        {result.ageGroupMedal && (
+                          <Medal
+                            className={`w-6 h-6 ${result.ageGroupMedal === 1 ? 'text-yellow-500' : result.ageGroupMedal === 2 ? 'text-gray-400' : result.ageGroupMedal === 3 ? 'text-amber-700' : ''}`}
+                          />
+                        )}
+                        {`${result.competitor?.user.firstname} ${result.competitor?.user.lastname}`}
+                        {result.medal && (
+                          <Trophy
+                            className={`w-6 h-6 ${result.medal === 1 ? 'text-yellow-500' : result.medal === 2 ? 'text-gray-400' : result.medal === 3 ? 'text-amber-700' : ''}`}
+                          />
+                        )}
+                      </TableCell>
+                      <TableCell>{displayTime(result.average)}</TableCell>
+                      <TableCell>{displayTime(result.best)}</TableCell>
+                      {isMobile ? null : (
+                        <>
+                          <TableCell>{displayTime(result.solve1)}</TableCell>
+                          <TableCell>{displayTime(result.solve2)}</TableCell>
+                          <TableCell>{displayTime(result.solve3)}</TableCell>
+                          <TableCell>{displayTime(result.solve4)}</TableCell>
+                          <TableCell>{displayTime(result.solve5)}</TableCell>
+                        </>
                       )}
-                      {`${result.competitor?.user.firstname} ${result.competitor?.user.lastname}`}
-                      {result.medal && (
-                        <Trophy
-                          className={`w-6 h-6 ${result.medal === 1 ? 'text-yellow-500' : result.medal === 2 ? 'text-gray-400' : result.medal === 3 ? 'text-amber-700' : ''}`}
-                        />
-                      )}
-                    </TableCell>
-                    <TableCell>{displayTime(result.average)}</TableCell>
-                    <TableCell>{displayTime(result.best)}</TableCell>
-                    {isMobile ? null : (
-                      <>
-                        <TableCell>{displayTime(result.solve1)}</TableCell>
-                        <TableCell>{displayTime(result.solve2)}</TableCell>
-                        <TableCell>{displayTime(result.solve3)}</TableCell>
-                        <TableCell>{displayTime(result.solve4)}</TableCell>
-                        <TableCell>{displayTime(result.solve5)}</TableCell>
-                      </>
-                    )}
-                  </TableRow>
-                ))}
+                    </TableRow>
+                  ))}
               </TableBody>
             </Table>
           </div>
