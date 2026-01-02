@@ -79,4 +79,13 @@
   @page {
     size: 21cm 29.7cm;
   }
+
+  .result-pdf {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+  }
+
+  .result-pdf td, th {
+    border: 1.2px solid #9ca3af !important;
+  }
 }

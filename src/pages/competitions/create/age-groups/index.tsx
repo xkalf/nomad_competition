@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { useFieldArray, useForm } from 'react-hook-form'
 import CreateButtons, {
   redirectNextCreatePage,
@@ -26,6 +26,204 @@ import { toast } from '~/components/ui/use-toast'
 import { api } from '~/utils/api'
 import { useGetCompetitionId } from '~/utils/hooks'
 import { CreateAgeGroupManyInput, createAgeGroupManySchema } from '~/utils/zod'
+
+const DEFAULT_AGE_GROUP: CreateAgeGroupManyInput['data'][number] = {
+  name: '',
+  cubeTypes: [],
+  start: 0,
+  end: null,
+}
+
+const AGE_GROUP_SUFFIX = ' насны ангилал'
+
+type CubeType = {
+  id: number
+  name: string
+}
+
+interface AgeGroupRowProps {
+  index: number
+  cubeTypes?: CubeType[]
+  onRemove: () => void
+  control: ReturnType<typeof useForm<CreateAgeGroupManyInput>>['control']
+  onCalculateName: (index: number) => void
+}
+
+function AgeGroupRow({
+  index,
+  cubeTypes = [],
+  onRemove,
+  control,
+  onCalculateName,
+}: AgeGroupRowProps) {
+  return (
+    <div className="flex items-center gap-4">
+      <FormField
+        control={control}
+        name={`data.${index}.start`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Эхлэх он</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                {...field}
+                onChange={(e) => {
+                  field.onChange(e.target.valueAsNumber)
+                  onCalculateName(index)
+                }}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name={`data.${index}.end`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Дуусах он</FormLabel>
+            <FormControl>
+              <Input
+                type="number"
+                value={field.value ?? undefined}
+                onChange={(e) => {
+                  field.onChange(e.target.valueAsNumber)
+                  onCalculateName(index)
+                }}
+              />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <FormField
+        control={control}
+        name={`data.${index}.name`}
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Нэр</FormLabel>
+            <FormControl>
+              <Input {...field} />
+            </FormControl>
+            <FormMessage />
+          </FormItem>
+        )}
+      />
+      <CubeTypeSelector control={control} index={index} cubeTypes={cubeTypes} />
+      <Button variant="destructive" onClick={onRemove}>
+        Устгах
+      </Button>
+    </div>
+  )
+}
+
+interface CubeTypeSelectorProps {
+  control: ReturnType<typeof useForm<CreateAgeGroupManyInput>>['control']
+  index: number
+  cubeTypes: CubeType[]
+}
+
+function CubeTypeSelector({
+  control,
+  index,
+  cubeTypes,
+}: CubeTypeSelectorProps) {
+  return (
+    <FormField
+      control={control}
+      name={`data.${index}.cubeTypes`}
+      render={({ field }) => {
+        const selectedCubeTypes = cubeTypes.filter((cubeType) =>
+          field.value?.includes(cubeType.id),
+        )
+        const displayText = selectedCubeTypes
+          .map((cubeType) => cubeType.name)
+          .join(', ')
+
+        const handleCheckedChange = (cubeTypeId: number, checked: boolean) => {
+          const currentValue = field.value ?? []
+          if (checked) {
+            field.onChange([...currentValue, cubeTypeId])
+          } else {
+            field.onChange(currentValue.filter((id) => id !== cubeTypeId))
+          }
+        }
+
+        return (
+          <FormItem>
+            <FormLabel>Төрөл</FormLabel>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button className="block">
+                  {displayText || 'Төрөл сонгох'}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                {cubeTypes.map((cubeType) => (
+                  <DropdownMenuCheckboxItem
+                    key={cubeType.id}
+                    checked={field.value?.includes(cubeType.id) ?? false}
+                    onCheckedChange={(checked) =>
+                      handleCheckedChange(cubeType.id, checked)
+                    }
+                  >
+                    {cubeType.name}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <FormMessage />
+          </FormItem>
+        )
+      }}
+    />
+  )
+}
+
+function transformAgeGroupsData(
+  current: Array<{
+    name: string
+    cubeTypeId: number
+    start: number
+    end: number | null
+  }>,
+): CreateAgeGroupManyInput['data'] {
+  const grouped = current.reduce(
+    (acc: Record<string, CreateAgeGroupManyInput['data'][number]>, curr) => {
+      if (!acc[curr.name]) {
+        acc[curr.name] = {
+          name: curr.name,
+          start: curr.start,
+          end: curr.end ?? null,
+          cubeTypes: [],
+        }
+      }
+      acc[curr.name]?.cubeTypes.push(curr.cubeTypeId)
+      return acc
+    },
+    {},
+  )
+
+  return Object.values(grouped)
+}
+
+function calculateAgeGroupName(start: number, end: number | null): string {
+  const currentYear = new Date().getFullYear()
+  const startAge = currentYear - start
+  const endAge = end ? currentYear - end : null
+
+  if (!endAge) {
+    return `${startAge}+${AGE_GROUP_SUFFIX}`
+  }
+
+  if (startAge === endAge) {
+    return `${startAge}${AGE_GROUP_SUFFIX}`
+  }
+
+  return `${endAge} - ${startAge}${AGE_GROUP_SUFFIX}`
+}
 
 export default function AgeGroupsForm() {
   const router = useRouter()
@@ -73,190 +271,68 @@ export default function AgeGroupsForm() {
     ),
   })
 
+  const transformedData = useMemo(
+    () => (current ? transformAgeGroupsData(current) : undefined),
+    [current],
+  )
+
   useEffect(() => {
-    if (current) {
-      const newData = current.reduce(
-        (
-          base: Record<string, CreateAgeGroupManyInput['data'][number]>,
-          curr,
-        ) => {
-          if (!base[curr.name]) {
-            base[curr.name] = {
-              ...curr,
-              cubeTypes: [],
-            }
-          }
-
-          base[curr.name]?.cubeTypes.push(curr.cubeTypeId)
-
-          return base
-        },
-        {},
-      )
-      form.setValue('data', Object.values(newData))
+    if (transformedData) {
+      form.setValue('data', transformedData)
     }
-  }, [current])
-
-  console.log(form.getValues())
+  }, [transformedData, form])
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: 'data',
   })
 
-  const onSubmit = (values: CreateAgeGroupManyInput) => {
-    mutate({
-      ...values,
-      competitionId,
-    })
-  }
+  const handleCalculateName = useCallback(
+    (index: number) => {
+      const start = form.getValues(`data.${index}.start`)
+      const end = form.getValues(`data.${index}.end`) ?? null
+      const name = calculateAgeGroupName(start, end)
+      form.setValue(`data.${index}.name`, name)
+    },
+    [form],
+  )
 
-  const calculateName = (index: number) => {
-    const start = form.getValues(`data.${index}.start`)
-    const end = form.getValues(`data.${index}.end`)
-    const nowYear = new Date().getFullYear()
-    const startAge = nowYear - start
-    const endAge = nowYear - (end ?? 0)
+  const handleAdd = useCallback(() => {
+    append(DEFAULT_AGE_GROUP)
+  }, [append])
 
-    const text = `${!end ? `${startAge}+` : startAge === endAge ? startAge : `${endAge} - ${startAge}`} насны ангилал`
-
-    form.setValue(`data.${index}.name`, text)
-  }
+  const handleSubmit = useCallback(
+    (values: CreateAgeGroupManyInput) => {
+      mutate({
+        ...values,
+        competitionId,
+      })
+    },
+    [mutate, competitionId],
+  )
 
   return (
     <Layout>
       <div className="flex gap-4">
         <h1 className="text-3xl font-bold">Насны ангилал бүртгэх</h1>
-        <Button
-          type="button"
-          onClick={() =>
-            append({
-              name: '',
-              cubeTypes: [],
-              start: 0,
-              end: 0,
-            })
-          }
-        >
+        <Button type="button" onClick={handleAdd}>
           Нэмэх
         </Button>
       </div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           {fields.map((field, index) => (
-            <div className="flex items-center gap-4" key={field.id}>
-              <FormField
-                control={form.control}
-                name={`data.${index}.start`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Эхлэх он</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        {...field}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber)
-                          calculateName(index)
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={`data.${index}.end`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Дуусах он</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        value={field.value || undefined}
-                        onChange={(e) => {
-                          field.onChange(e.target.valueAsNumber)
-                          calculateName(index)
-                        }}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={`data.${index}.name`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Нэр</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={`data.${index}.cubeTypes`}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Төрөл</FormLabel>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button className="block">
-                          {field.value
-                            ? cubeTypes
-                                ?.filter((cubeType) =>
-                                  field.value.includes(cubeType.id),
-                                )
-                                .map((cubeType) => cubeType.name)
-                                .join(', ')
-                            : 'Төрөл сонгох'}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        {cubeTypes?.map((cubeType) => (
-                          <DropdownMenuCheckboxItem
-                            key={cubeType.id}
-                            checked={field.value?.includes(cubeType.id)}
-                            onCheckedChange={(value) => {
-                              if (!field.value) {
-                                field.value = []
-                              }
-
-                              if (value && !field.value.includes(cubeType.id)) {
-                                field.onChange([...field.value, cubeType.id])
-                              } else if (
-                                !value &&
-                                field.value.includes(cubeType.id)
-                              ) {
-                                field.onChange(
-                                  field.value.filter(
-                                    (id) => id !== cubeType.id,
-                                  ),
-                                )
-                              }
-                            }}
-                          >
-                            {cubeType.name}
-                          </DropdownMenuCheckboxItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button variant={'destructive'} onClick={() => remove(index)}>
-                Устгах
-              </Button>
-            </div>
+            <AgeGroupRow
+              key={field.id}
+              index={index}
+              cubeTypes={cubeTypes}
+              onRemove={() => remove(index)}
+              control={form.control}
+              onCalculateName={handleCalculateName}
+            />
           ))}
           <CreateButtons
-            onSubmit={form.handleSubmit(onSubmit)}
+            onSubmit={form.handleSubmit(handleSubmit)}
             isLoading={isLoading}
           />
         </form>

@@ -1,11 +1,14 @@
 import { ColumnDef } from '@tanstack/react-table'
 import { useRouter } from 'next/router'
 import { useRef, useState } from 'react'
+import { useReactToPrint } from 'react-to-print'
 import CreateButtons, {
   redirectNextCreatePage,
 } from '~/components/create-buttons'
 import DataTable from '~/components/data-table/data-table'
 import Layout from '~/components/layout'
+import ResultPdf from '~/components/result-pdf'
+import RoundPdf from '~/components/round-pdf'
 import { Button } from '~/components/ui/button'
 import {
   Select,
@@ -17,8 +20,6 @@ import {
 import { toast } from '~/components/ui/use-toast'
 import { RouterOutputs, api } from '~/utils/api'
 import { useGetCompetitionId } from '~/utils/hooks'
-import { useReactToPrint } from 'react-to-print'
-import RoundPdf from '~/components/round-pdf'
 import ScrambleImage from '~/utils/scrambleImage'
 
 type Group = RouterOutputs['group']['getAll'][number]
@@ -62,6 +63,7 @@ export default function GroupsPage() {
     roundId?: number
   }>({})
   const printRef = useRef<HTMLDivElement>(null)
+  const resultPrintRef = useRef<HTMLDivElement>(null)
 
   const { data } = api.group.getAll.useQuery(
     {
@@ -93,6 +95,14 @@ export default function GroupsPage() {
       enabled: !!competitionId,
     },
   )
+  const { data: results } = api.result.findByRound.useQuery(
+    {
+      roundId: filters.roundId ?? 0,
+    },
+    {
+      enabled: !!filters.roundId,
+    },
+  )
   const { mutate, isLoading } = api.group.generate.useMutation({
     onSuccess: () => {
       ctx.group.getAll.invalidate()
@@ -108,6 +118,7 @@ export default function GroupsPage() {
   })
 
   const print = useReactToPrint({ contentRef: printRef })
+  const resultPrint = useReactToPrint({ contentRef: resultPrintRef })
 
   return (
     <Layout>
@@ -149,6 +160,24 @@ export default function GroupsPage() {
           </>
         )}
       </div>
+      {results?.length && (
+        <>
+          <Button onClick={() => resultPrint()}>Хэвлэх</Button>
+          <div className="hidden">
+            <ResultPdf
+              results={results}
+              ref={resultPrintRef}
+              competitionName={competition?.name ?? ' '}
+              cubeType={
+                cubeTypes?.find((c) => c.id === filters.cubeTypeId)?.name ?? ''
+              }
+              roundName={
+                rounds?.find((r) => r.id === filters.roundId)?.name ?? ''
+              }
+            />
+          </div>
+        </>
+      )}
       <div className="flex gap-4">
         <Select
           value={filters.cubeTypeId?.toString()}
