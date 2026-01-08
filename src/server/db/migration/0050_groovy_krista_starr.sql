@@ -1,0 +1,2 @@
+ALTER TABLE "age_group_medals" ADD COLUMN "result_id" integer;--> statement-breakpoint
+ALTER TABLE "age_group_medals" ADD CONSTRAINT "age_group_medals_result_id_nomad_competition_results_id_fk" FOREIGN KEY ("result_id") REFERENCES "public"."nomad_competition_results"("id") ON DELETE no action ON UPDATE no action;

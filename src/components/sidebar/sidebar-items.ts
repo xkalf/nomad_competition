@@ -1,5 +1,5 @@
 import { isAfter, isBefore } from 'date-fns'
-import { Grid3x3, Home, Info, Trophy, ClipboardMinus } from 'lucide-react'
+import { ClipboardMinus, Grid3x3, Home, Info, Trophy } from 'lucide-react'
 import { RouterOutputs } from '~/utils/api'
 
 type Competition = RouterOutputs['competition']['getBySlug']
@@ -78,6 +78,10 @@ export const sidebarItems: SidebarConfig = {
     {
       title: 'Насны ангилал',
       href: (slug) => `/competitions/${slug}/ageGroups`,
+    },
+    {
+      title: 'Медал',
+      href: (slug) => `/competitions/${slug}/podium`,
     },
   ],
   '/competitions/create Тэмцээн Бүртгэх': [

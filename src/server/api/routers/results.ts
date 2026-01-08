@@ -615,6 +615,7 @@ export const resultsRouter = createTRPCRouter({
             roundId: r.roundId,
             group: '',
             medal: i + 1,
+            resultId: r.id,
           })),
         )
         finalResults.forEach((r) => finalCompetitorIds.add(r.competitorId))
@@ -689,6 +690,7 @@ export const resultsRouter = createTRPCRouter({
                 group: '',
                 medal: i + 1,
                 ageGroupId: ageGroup.id,
+                resultId: r.id,
               }),
             ),
           )
@@ -710,5 +712,151 @@ export const resultsRouter = createTRPCRouter({
           await db.insert(ageGroupMedals).values(insertAgegroupMedals)
         }
       })
+    }),
+  getMedals: publicProcedure
+    .input(
+      z.object({
+        competitionId: z.number().int().positive(),
+        cubeTypeId: z.number().int().positive().optional(),
+        ageGroupId: z.number().int().positive().optional(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      // Get final medals
+      const finalMedalsQuery = ctx.db
+        .select({
+          id: medals.id,
+          userId: medals.userId,
+          competitionId: medals.competitionId,
+          cubeTypeId: medals.cubeTypeId,
+          roundId: medals.roundId,
+          group: medals.group,
+          resultId: medals.resultId,
+          medal: medals.medal,
+          cubeType: jsonBuildObject({
+            id: cubeTypes.id,
+            name: cubeTypes.name,
+            image: cubeTypes.image,
+          }),
+          round: jsonBuildObject({
+            id: rounds.id,
+            name: rounds.name,
+          }),
+          result: jsonBuildObject({
+            id: results.id,
+            average: results.average,
+            best: results.best,
+            solve1: results.solve1,
+            solve2: results.solve2,
+            solve3: results.solve3,
+            solve4: results.solve4,
+            solve5: results.solve5,
+          }),
+        })
+        .from(medals)
+        .leftJoin(cubeTypes, eq(cubeTypes.id, medals.cubeTypeId))
+        .leftJoin(rounds, eq(rounds.id, medals.roundId))
+        .leftJoin(results, eq(results.id, medals.resultId))
+        .where(
+          and(
+            eq(medals.competitionId, input.competitionId),
+            eq(medals.cubeTypeId, input.cubeTypeId ?? 0).if(!!input.cubeTypeId),
+          ),
+        )
+        .orderBy(medals.cubeTypeId, medals.medal)
+
+      const finalMedals = await finalMedalsQuery
+
+      // Get age group medals
+      const ageGroupMedalsQuery = ctx.db
+        .select({
+          id: ageGroupMedals.id,
+          userId: ageGroupMedals.userId,
+          competitionId: ageGroupMedals.competitionId,
+          cubeTypeId: ageGroupMedals.cubeTypeId,
+          roundId: ageGroupMedals.roundId,
+          group: ageGroupMedals.group,
+          ageGroupId: ageGroupMedals.ageGroupId,
+          medal: ageGroupMedals.medal,
+          cubeType: jsonBuildObject({
+            id: cubeTypes.id,
+            name: cubeTypes.name,
+            image: cubeTypes.image,
+          }),
+          round: jsonBuildObject({
+            id: rounds.id,
+            name: rounds.name,
+          }),
+          ageGroup: jsonBuildObject({
+            id: ageGroups.id,
+            name: ageGroups.name,
+            start: ageGroups.start,
+            end: ageGroups.end,
+          }),
+          result: jsonBuildObject({
+            id: results.id,
+            average: results.average,
+            best: results.best,
+            solve1: results.solve1,
+            solve2: results.solve2,
+            solve3: results.solve3,
+            solve4: results.solve4,
+            solve5: results.solve5,
+          }),
+        })
+        .from(ageGroupMedals)
+        .leftJoin(cubeTypes, eq(cubeTypes.id, ageGroupMedals.cubeTypeId))
+        .leftJoin(rounds, eq(rounds.id, ageGroupMedals.roundId))
+        .leftJoin(ageGroups, eq(ageGroups.id, ageGroupMedals.ageGroupId))
+        .leftJoin(results, eq(results.id, ageGroupMedals.resultId))
+        .where(
+          and(
+            eq(ageGroupMedals.competitionId, input.competitionId),
+            eq(ageGroupMedals.cubeTypeId, input.cubeTypeId ?? 0).if(
+              !!input.cubeTypeId,
+            ),
+            eq(ageGroupMedals.ageGroupId, input.ageGroupId ?? 0).if(
+              input.ageGroupId !== undefined,
+            ),
+          ),
+        )
+        .orderBy(
+          ageGroupMedals.cubeTypeId,
+          ageGroupMedals.ageGroupId,
+          ageGroupMedals.medal,
+        )
+
+      const ageGroupMedalsData = await ageGroupMedalsQuery
+
+      // Get user info for medals
+      const userIds = new Set<string>()
+      finalMedals.forEach((m) => userIds.add(m.userId))
+      ageGroupMedalsData.forEach((m) => userIds.add(m.userId))
+
+      const usersData = await ctx.db.query.users.findMany({
+        where: (table) => inArray(table.id, Array.from(userIds)),
+        columns: {
+          id: true,
+          firstname: true,
+          lastname: true,
+        },
+      })
+
+      const usersMap = new Map(usersData.map((u) => [u.id, u]))
+
+      const finalMedalsWithUsers = finalMedals.map((m) => ({
+        ...m,
+        user: usersMap.get(m.userId),
+      }))
+
+      const ageGroupMedalsWithUsers = ageGroupMedalsData.map((m) => ({
+        ...m,
+        user: usersMap.get(m.userId),
+      }))
+
+      return {
+        finalMedals: finalMedalsWithUsers,
+        ageGroupMedals: ageGroupMedalsWithUsers,
+      }
     }),
 })

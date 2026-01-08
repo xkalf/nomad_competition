@@ -581,6 +581,7 @@ export const ageGroupMedals = pgTable('age_group_medals', (t) => ({
     .notNull()
     .references(() => ageGroups.id),
   medal: t.integer().notNull(),
+  resultId: t.integer().references(() => results.id),
 }))
 
 export const rankAverage = pgTable(
