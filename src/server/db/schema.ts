@@ -553,7 +553,9 @@ export const medals = pgTable('medals', (t) => ({
     .notNull()
     .references(() => rounds.id),
   group: t.varchar().notNull(),
-  resultId: t.integer().references(() => results.id),
+  resultId: t.integer().references(() => results.id, {
+    onDelete: 'cascade',
+  }),
   medal: t.integer().notNull(),
 }))
 
@@ -581,7 +583,9 @@ export const ageGroupMedals = pgTable('age_group_medals', (t) => ({
     .notNull()
     .references(() => ageGroups.id),
   medal: t.integer().notNull(),
-  resultId: t.integer().references(() => results.id),
+  resultId: t.integer().references(() => results.id, {
+    onDelete: 'cascade',
+  }),
 }))
 
 export const rankAverage = pgTable(

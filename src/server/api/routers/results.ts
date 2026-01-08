@@ -1,5 +1,6 @@
 import * as cheerio from 'cheerio'
 import {
+  DrizzleQueryError,
   and,
   eq,
   exists,
@@ -530,8 +531,10 @@ export const resultsRouter = createTRPCRouter({
       }
 
       if (insertValues.length > 0) {
-        await ctx.db.delete(results).where(eq(results.roundId, input.roundId))
-        await ctx.db.insert(results).values(insertValues)
+        await ctx.db.transaction(async (db) => {
+          await db.delete(results).where(eq(results.roundId, input.roundId))
+          await db.insert(results).values(insertValues)
+        })
       }
 
       return {

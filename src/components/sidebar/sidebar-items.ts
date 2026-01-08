@@ -80,7 +80,7 @@ export const sidebarItems: SidebarConfig = {
       href: (slug) => `/competitions/${slug}/ageGroups`,
     },
     {
-      title: 'Медал',
+      title: 'Медаль',
       href: (slug) => `/competitions/${slug}/podium`,
     },
   ],

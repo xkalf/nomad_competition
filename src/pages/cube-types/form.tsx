@@ -1,9 +1,9 @@
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { Button } from "~/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "~/components/ui/dialog";
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
+import { z } from 'zod'
+import { Button } from '~/components/ui/button'
+import { Dialog, DialogContent, DialogTrigger } from '~/components/ui/dialog'
 import {
   Form,
   FormControl,
@@ -11,24 +11,24 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "~/components/ui/form";
-import { Input } from "~/components/ui/input";
-import { toast } from "~/components/ui/use-toast";
-import { cubeTypes } from "~/server/db/schema";
-import { api } from "~/utils/api";
-import { handleFileUpload } from "~/utils/supabase";
-import { createCubeTypeSchema } from "~/utils/zod";
+} from '~/components/ui/form'
+import { Input } from '~/components/ui/input'
+import { toast } from '~/components/ui/use-toast'
+import { cubeTypes } from '~/server/db/schema'
+import { api } from '~/utils/api'
+import { handleFileUpload } from '~/utils/supabase'
+import { createCubeTypeSchema } from '~/utils/zod'
 
 interface Props {
-  current?: typeof cubeTypes.$inferSelect;
-  isOpen: boolean;
-  setIsOpen: (isOpen: boolean) => void;
-  reset: () => void;
+  current?: typeof cubeTypes.$inferSelect
+  isOpen: boolean
+  setIsOpen: (isOpen: boolean) => void
+  reset: () => void
 }
 
 const defaultValues: z.infer<typeof createCubeTypeSchema> = {
-  name: "",
-};
+  name: '',
+}
 
 export default function CubeTypeForm({
   current,
@@ -36,63 +36,63 @@ export default function CubeTypeForm({
   setIsOpen,
   reset,
 }: Props) {
-  const [isLoading, setIsLoading] = useState(false);
-  const utils = api.useUtils();
+  const [isLoading, setIsLoading] = useState(false)
+  const utils = api.useUtils()
   const { mutate: create, isLoading: createLoading } =
     api.cubeTypes.create.useMutation({
       onSuccess: () => {
-        utils.cubeTypes.getAll.invalidate();
+        utils.cubeTypes.getAll.invalidate()
         toast({
-          title: "Амжилттай бүртгэгдлээ.",
-        });
-        setIsOpen(false);
+          title: 'Амжилттай бүртгэгдлээ.',
+        })
+        setIsOpen(false)
       },
       onError: (error) => {
         toast({
-          title: "Алдаа гарлаа",
+          title: 'Алдаа гарлаа',
           description: error.message,
-          variant: "destructive",
-        });
+          variant: 'destructive',
+        })
       },
-    });
+    })
   const { mutate: update, isLoading: updateLoading } =
     api.cubeTypes.update.useMutation({
       onSuccess: () => {
-        utils.cubeTypes.getAll.invalidate();
+        utils.cubeTypes.getAll.invalidate()
         toast({
-          title: "Амжилттай шинэчлэгдлээ.",
-        });
-        setIsOpen(false);
+          title: 'Амжилттай шинэчлэгдлээ.',
+        })
+        setIsOpen(false)
       },
       onError: (error) => {
         toast({
-          title: "Алдаа гарлаа",
+          title: 'Алдаа гарлаа',
           description: error.message,
-          variant: "destructive",
-        });
+          variant: 'destructive',
+        })
       },
-    });
+    })
 
   const form = useForm<z.infer<typeof createCubeTypeSchema>>({
     resolver: zodResolver(createCubeTypeSchema),
     defaultValues,
-  });
+  })
 
   const onSubmit = async (values: z.infer<typeof createCubeTypeSchema>) => {
-    current ? update({ id: current.id, ...values }) : create(values);
-  };
+    current ? update({ id: current.id, ...values }) : create(values)
+  }
 
   useEffect(() => {
-    form.reset(current || defaultValues);
-  }, [form, current]);
+    form.reset(current || defaultValues)
+  }, [form, current])
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
           onClick={() => {
-            setIsOpen(true);
-            reset();
+            setIsOpen(true)
+            reset()
           }}
         >
           Шооны төрөл
@@ -142,23 +142,23 @@ export default function CubeTypeForm({
                       type="file"
                       accept="image/*"
                       onChange={async (e) => {
-                        setIsLoading(true);
+                        setIsLoading(true)
                         const { data, error } = await handleFileUpload(
                           e,
-                          "cube-types",
-                        );
+                          'cube-types',
+                        )
 
                         if (data) {
-                          field.onChange(data.path);
+                          field.onChange(data.path)
                         } else if (error) {
                           toast({
-                            title: "Алдаа гарлаа",
+                            title: 'Алдаа гарлаа',
                             description: error.message,
-                            variant: "destructive",
-                          });
+                            variant: 'destructive',
+                          })
                         }
 
-                        setIsLoading(false);
+                        setIsLoading(false)
                       }}
                     />
                   </FormControl>
@@ -176,5 +176,5 @@ export default function CubeTypeForm({
         </Form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }
