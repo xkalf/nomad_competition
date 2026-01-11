@@ -1,4 +1,5 @@
-import { and, eq, getTableColumns, max, sql } from 'drizzle-orm'
+import { randomUUID } from 'node:crypto'
+import { and, eq, getTableColumns, inArray, max, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import {
   competitors,
@@ -15,7 +16,6 @@ import {
   protectedProcedure,
   publicProcedure,
 } from '../trpc'
-import { randomUUID } from 'node:crypto'
 
 export const competitorRouter = createTRPCRouter({
   getByCompetitionId: publicProcedure
@@ -300,5 +300,24 @@ export const competitorRouter = createTRPCRouter({
 
         console.log(user.Email, ' Done')
       }
+    }),
+  updateProvinceIds: adminProcedure
+    .input(
+      z.object({
+        competitorIds: z.array(z.number().int().positive()),
+        provinceId: z.string().uuid().nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (input.competitorIds.length === 0) {
+        throw new Error('Тамирчдыг сонгоно уу.')
+      }
+
+      await ctx.db
+        .update(competitors)
+        .set({
+          provinceId: input.provinceId,
+        })
+        .where(inArray(competitors.id, input.competitorIds))
     }),
 })

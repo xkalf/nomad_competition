@@ -114,6 +114,10 @@ export const sidebarItems: SidebarConfig = {
       href: '/competitions/create/refunds',
     },
     {
+      title: 'Тамирчид (Аймаг шинэчлэх)',
+      href: '/competitions/create/competitors',
+    },
+    {
       title: 'Үзүүлэлт',
       href: `/competitions/create/results`,
       rounds: (rounds) => {
