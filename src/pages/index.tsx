@@ -1,5 +1,5 @@
-import Layout from "~/components/layout";
-import HomeCarousel from "./carousel";
+import Layout from '~/components/layout'
+import HomeCarousel from './carousel'
 
 export default function Home() {
   return (
@@ -12,7 +12,7 @@ export default function Home() {
           <iframe
             className="h-full min-h-96 w-full"
             height="500"
-            src="https://www.youtube.com/embed/pxWN8N72R_E?si=6h6lWlTXecM_qJh2"
+            src="https://www.youtube.com/embed/1zJ05ddSNZU?si=Bx8EYjEySQPhbR3O"
             title="YouTube video player"
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
             referrerPolicy="strict-origin-when-cross-origin"
@@ -21,5 +21,5 @@ export default function Home() {
         </div>
       </div>
     </Layout>
-  );
+  )
 }
