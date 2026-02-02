@@ -109,7 +109,7 @@ const columns: ColumnDef<Result>[] = [
   {
     accessorKey: 'solve5',
     header: '5',
-    cell: ({ row }) => displayTime(row.original.solve5 ?? 0),
+    cell: ({ row }) => displayTime(row.original.solve5),
   },
 ]
 

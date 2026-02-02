@@ -301,11 +301,11 @@ export const resultsRouter = createTRPCRouter({
       const [updated] = await ctx.db
         .update(results)
         .set({
-          solve1: input.solve1,
-          solve2: input.solve2,
-          solve3: input.solve3,
-          solve4: input.solve4,
-          solve5: input.solve5,
+          solve1: input.solve1 ?? null,
+          solve2: input.solve2 ?? null,
+          solve3: input.solve3 ?? null,
+          solve4: input.solve4 ?? null,
+          solve5: input.solve5 ?? null,
           average,
           best,
         })
