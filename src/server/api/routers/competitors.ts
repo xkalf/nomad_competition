@@ -1,6 +1,6 @@
-import { randomUUID } from 'node:crypto'
-import { and, eq, getTableColumns, inArray, max, sql } from 'drizzle-orm'
-import { z } from 'zod'
+import { randomUUID } from "node:crypto";
+import { and, eq, getTableColumns, inArray, max, sql } from "drizzle-orm";
+import { z } from "zod";
 import {
   competitors,
   competitorsToCubeTypes,
@@ -8,14 +8,29 @@ import {
   provinces,
   schools,
   users,
-} from '~/server/db/schema'
-import { getTotalAmount } from '~/server/utils/getTotalAmount'
+} from "~/server/db/schema";
+import { getTotalAmount } from "~/server/utils/getTotalAmount";
 import {
   adminProcedure,
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
-} from '../trpc'
+} from "../trpc";
+
+const wcaImportRowSchema = z.object({
+  Email: z.string().email(),
+  "WCA ID": z.string().optional(),
+  Name: z.string(),
+  "Birth Date": z.string().date(),
+  "User Id": z.coerce.number().optional(),
+  "333": z.string().optional(),
+  "444": z.string().optional(),
+  "222": z.string().optional(),
+  "555": z.string().optional(),
+  "333bf": z.string().optional(),
+  minx: z.string().optional(),
+  pyram: z.string().optional(),
+});
 
 export const competitorRouter = createTRPCRouter({
   getByCompetitionId: publicProcedure
@@ -30,7 +45,7 @@ export const competitorRouter = createTRPCRouter({
         where: (t, { and, eq }) =>
           and(
             eq(t.competitionId, input.competitionId),
-            eq(t.status, input.isVerified ? 'Verified' : 'Created'),
+            eq(t.status, input.isVerified ? "Verified" : "Created"),
           ),
         with: {
           user: {
@@ -57,9 +72,9 @@ export const competitorRouter = createTRPCRouter({
             },
           },
         },
-      })
+      });
 
-      return res
+      return res;
     }),
   verify: adminProcedure
     .input(z.number().int().positive())
@@ -67,38 +82,38 @@ export const competitorRouter = createTRPCRouter({
       await ctx.db.transaction(async (db) => {
         const [competition] = await db
           .select({
-            id: sql<number>`${max(competitors.verifiedId)}`.as('v_id'),
+            id: sql<number>`${max(competitors.verifiedId)}`.as("v_id"),
             competitionId: competitors.competitionId,
           })
           .from(competitors)
           .where(eq(competitors.id, input))
-          .groupBy(competitors.competitionId)
+          .groupBy(competitors.competitionId);
 
         if (!competition) {
-          throw new Error('Бүртгэл олдсонгүй.')
+          throw new Error("Бүртгэл олдсонгүй.");
         }
 
         const [res] = await db
           .update(competitors)
           .set({
             verifiedAt: sql`now()`,
-            status: 'Verified',
+            status: "Verified",
             verifiedId: competition.id ? competition.id + 1 : 1,
           })
           .where(eq(competitors.id, input))
-          .returning()
+          .returning();
 
         if (!res) {
-          throw new Error('Бүртгэл олдсонгүй.')
+          throw new Error("Бүртгэл олдсонгүй.");
         }
 
         await db
           .update(competitorsToCubeTypes)
           .set({
-            status: 'Paid',
+            status: "Paid",
           })
-          .where(eq(competitorsToCubeTypes.competitorId, input))
-      })
+          .where(eq(competitorsToCubeTypes.competitorId, input));
+      });
     }),
   cancel: adminProcedure
     .input(z.number().int().positive())
@@ -107,23 +122,23 @@ export const competitorRouter = createTRPCRouter({
         await db
           .update(competitors)
           .set({
-            status: 'Cancelled',
+            status: "Cancelled",
             verifiedAt: null,
           })
-          .where(eq(competitors.id, input))
-      })
+          .where(eq(competitors.id, input));
+      });
 
       await ctx.db
         .update(competitorsToCubeTypes)
         .set({
-          status: 'Cancelled',
+          status: "Cancelled",
         })
-        .where(eq(competitorsToCubeTypes.competitorId, input))
+        .where(eq(competitorsToCubeTypes.competitorId, input));
     }),
   getTotalAmount: protectedProcedure
     .input(z.number().int().positive())
     .query(async ({ ctx, input }) => {
-      return await getTotalAmount(input, ctx.db)
+      return await getTotalAmount(input, ctx.db);
     }),
   getProvinces: publicProcedure.query(async ({ ctx }) => {
     return await ctx.db
@@ -134,7 +149,7 @@ export const competitorRouter = createTRPCRouter({
       .orderBy(
         sql`case when ${provinces.name} = 'Улаанбаатар' then 0 else 1 end`,
         provinces.name,
-      )
+      );
   }),
   getDistricts: publicProcedure
     .input(z.string().uuid())
@@ -142,7 +157,7 @@ export const competitorRouter = createTRPCRouter({
       return await ctx.db
         .select()
         .from(districts)
-        .where(eq(districts.provinceId, input))
+        .where(eq(districts.provinceId, input));
     }),
   getSchools: publicProcedure
     .input(z.string().uuid())
@@ -153,44 +168,40 @@ export const competitorRouter = createTRPCRouter({
         })
         .from(schools)
         .where(eq(schools.districtId, input))
-        .orderBy(schools.school)
+        .orderBy(schools.school);
 
-      return res
+      return res;
     }),
   importFromWca: adminProcedure
     .input(
       z.object({
         competitionId: z.number().int().positive(),
-        data: z
-          .object({
-            Email: z.string().email(),
-            'WCA ID': z.string().optional(),
-            Name: z.string(),
-            'Birth Date': z.string().date(),
-            'User Id': z.coerce.number().optional(),
-            '333': z.string().optional(),
-            '444': z.string().optional(),
-            '222': z.string().optional(),
-            '555': z.string().optional(),
-            '333bf': z.string().optional(),
-            minx: z.string().optional(),
-            pyram: z.string().optional(),
-          })
-          .array(),
+        data: z.array(z.record(z.string(), z.unknown())),
       }),
     )
     .mutation(async ({ input, ctx }) => {
-      for (const user of input.data) {
-        let userId = ''
+      for (const item of input.data) {
+        const parsedUser = wcaImportRowSchema.safeParse(item);
+
+        if (!parsedUser.success) {
+          console.log("WCA import validation error", {
+            item,
+            errors: parsedUser.error.flatten(),
+          });
+          continue;
+        }
+
+        const user = parsedUser.data;
+        let userId = "";
         const [dbUser] = await ctx.db
           .select()
           .from(users)
-          .where(eq(users.email, user.Email))
+          .where(eq(users.email, user.Email));
 
         if (dbUser) {
-          userId = dbUser.id
-          const firstname = user.Name.split(' ')[0] ?? ''
-          const lastname = user.Name.split(' ')[1] ?? ''
+          userId = dbUser.id;
+          const firstname = user.Name.split(" ")[0] ?? "";
+          const lastname = user.Name.split(" ")[1] ?? "";
 
           if (dbUser.firstname !== firstname || dbUser.lastname !== lastname) {
             await ctx.db
@@ -199,90 +210,90 @@ export const competitorRouter = createTRPCRouter({
                 firstname,
                 lastname,
               })
-              .where(eq(users.id, dbUser.id))
+              .where(eq(users.id, dbUser.id));
           }
         } else {
           const [insertedUser] = await ctx.db
             .insert(users)
             .values({
               email: user.Email,
-              wcaId: user['WCA ID'] === 'null' ? undefined : user['WCA ID'],
-              firstname: user.Name?.split(' ')?.[0] ?? '',
-              lastname: user.Name?.split(' ')?.[1] ?? '',
+              wcaId: user["WCA ID"] === "null" ? undefined : user["WCA ID"],
+              firstname: user.Name?.split(" ")?.[0] ?? "",
+              lastname: user.Name?.split(" ")?.[1] ?? "",
               phone: 0,
-              birthDate: user['Birth Date'],
-              password: '',
+              birthDate: user["Birth Date"],
+              password: "",
               emailVerified: sql`now()`,
               id: randomUUID(),
             })
-            .returning()
+            .returning();
 
-          userId = insertedUser?.id ?? ''
+          userId = insertedUser?.id ?? "";
         }
 
         if (!userId) {
-          console.log('COMPETITOR NOT FOUND ', user.Email)
-          continue
+          console.log("COMPETITOR NOT FOUND ", user.Email);
+          continue;
         }
 
-        let competitorId = 0
+        let competitorId = 0;
 
         const [competitor] = await ctx.db
           .insert(competitors)
           .values({
             userId: userId,
             competitionId: input.competitionId,
-            status: 'Verified',
+            status: "Verified",
             guestCount: 0,
             verifiedAt: sql`now()`,
-            verifiedId: user['User Id'],
+            verifiedId: user["User Id"],
           })
           .returning()
-          .onConflictDoNothing()
+          .onConflictDoNothing();
 
         if (competitor) {
-          competitorId = competitor.id
+          competitorId = competitor.id;
         } else {
           const curr = await ctx.db.query.competitors.findFirst({
             where: and(
               eq(competitors.userId, userId),
               eq(competitors.competitionId, input.competitionId),
             ),
-          })
+          });
 
           if (!curr) {
-            continue
+            continue;
           }
 
-          competitorId = curr.id
+          competitorId = curr.id;
         }
 
         if (!competitorId) {
-          console.log('COMPETITOR NOT FOUND', user.Email, userId)
+          console.log("COMPETITOR NOT FOUND", user.Email, userId);
         }
 
-        const insert: number[] = []
+        const insert: number[] = [];
 
-        if (user['333'] === '1') {
-          insert.push(2)
+        if (user["333"] === "1") {
+          insert.push(2);
         }
-        if (user['222'] === '1') {
-          insert.push(6)
+        if (user["222"] === "1") {
+          insert.push(6);
         }
-        if (user['444'] === '1') {
-          insert.push(3)
+        if (user["444"] === "1") {
+          insert.push(3);
         }
-        if (user['555'] === '1') {
-          insert.push(4)
+        if (user["555"] === "1") {
+          insert.push(4);
         }
-        if (user['333bf'] === '1') {
-          insert.push(11)
+        if (user["333bf"] === "1") {
+          insert.push(11);
         }
-        if (user.minx === '1') {
-          insert.push(8)
+        if (user.minx === "1") {
+          insert.push(8);
         }
-        if (user.pyram === '1') {
-          insert.push(9)
+        if (user.pyram === "1") {
+          insert.push(9);
         }
 
         if (insert.length > 0) {
@@ -292,13 +303,13 @@ export const competitorRouter = createTRPCRouter({
               insert.map((i): typeof competitorsToCubeTypes.$inferInsert => ({
                 competitorId: competitorId,
                 cubeTypeId: i,
-                status: 'Paid',
+                status: "Paid",
               })),
             )
-            .onConflictDoNothing()
+            .onConflictDoNothing();
         }
 
-        console.log(user.Email, ' Done')
+        console.log(user.Email, " Done");
       }
     }),
   updateProvinceIds: adminProcedure
@@ -310,7 +321,7 @@ export const competitorRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       if (input.competitorIds.length === 0) {
-        throw new Error('Тамирчдыг сонгоно уу.')
+        throw new Error("Тамирчдыг сонгоно уу.");
       }
 
       await ctx.db
@@ -318,6 +329,6 @@ export const competitorRouter = createTRPCRouter({
         .set({
           provinceId: input.provinceId,
         })
-        .where(inArray(competitors.id, input.competitorIds))
+        .where(inArray(competitors.id, input.competitorIds));
     }),
-})
+});

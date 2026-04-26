@@ -1,4 +1,4 @@
-import * as cheerio from 'cheerio'
+import * as cheerio from "cheerio";
 import {
   DrizzleQueryError,
   and,
@@ -15,9 +15,9 @@ import {
   notInArray,
   or,
   sql,
-} from 'drizzle-orm'
-import { createSelectSchema } from 'drizzle-zod'
-import { z } from 'zod'
+} from "drizzle-orm";
+import { createSelectSchema } from "drizzle-zod";
+import { z } from "zod";
 import {
   ageGroupMedals,
   ageGroups,
@@ -29,12 +29,12 @@ import {
   rounds,
   schools,
   users,
-} from '~/server/db/schema'
-import { getAverage, getBest } from '~/server/utils/calculate'
-import { jsonBuildObject } from '~/server/utils/drizzle.helper'
-import { formatStringToMilliSeconds } from '~/utils/timeUtils'
-import { createResultSchema } from '~/utils/zod'
-import { adminProcedure, createTRPCRouter, publicProcedure } from '../trpc'
+} from "~/server/db/schema";
+import { getAverage, getBest } from "~/server/utils/calculate";
+import { jsonBuildObject } from "~/server/utils/drizzle.helper";
+import { formatStringToMilliSeconds } from "~/utils/timeUtils";
+import { createResultSchema } from "~/utils/zod";
+import { adminProcedure, createTRPCRouter, publicProcedure } from "../trpc";
 
 export const resultsRouter = createTRPCRouter({
   findByAgeGroup: publicProcedure
@@ -45,15 +45,18 @@ export const resultsRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const columns = getTableColumns(results)
+      const columns = getTableColumns(results);
 
       const filter = and(
         eq(rounds.isAgeGroup, true),
         eq(results.cubeTypeId, input.cubeTypeId),
         eq(results.competitionId, input.competitionId),
-      )
+        eq(competitors.provinceId, "6be6930b-2242-4a65-805b-d60409caa7a9").if(
+          input.competitionId === 12,
+        ),
+      );
 
-      const isFinalQuery = ctx.db.$with('isFinalQuery').as(
+      const isFinalQuery = ctx.db.$with("isFinalQuery").as(
         ctx.db
           .select({
             competitorId: results.competitorId,
@@ -62,7 +65,7 @@ export const resultsRouter = createTRPCRouter({
           .from(results)
           .innerJoin(rounds, eq(rounds.id, results.roundId))
           .where(eq(rounds.isFinal, true)),
-      )
+      );
 
       let query = ctx.db
         .with(isFinalQuery)
@@ -108,7 +111,7 @@ export const resultsRouter = createTRPCRouter({
             eq(isFinalQuery.cubeTypeId, results.cubeTypeId),
           ),
         )
-        .where(filter)
+        .where(filter);
 
       const ageGroupsResult = await ctx.db.query.ageGroups.findMany({
         where: (table) =>
@@ -116,42 +119,42 @@ export const resultsRouter = createTRPCRouter({
             eq(table.competitionId, input.competitionId),
             eq(table.cubeTypeId, input.cubeTypeId),
           ),
-      })
-      const res = await query
-      const map = new Map<number, typeof res>()
+      });
+      const res = await query;
+      const map = new Map<number, typeof res>();
 
       ageGroupsResult.forEach((ageGroup) => {
         const filtered = res
           .filter((result) => {
-            const date = result.competitor.user.birthDate
-            const year = +date.slice(0, 4)
+            const date = result.competitor.user.birthDate;
+            const year = +date.slice(0, 4);
 
             if (!ageGroup.end) {
-              return ageGroup.start <= year
+              return ageGroup.start <= year;
             }
 
-            return ageGroup.start <= year && ageGroup.end >= year
+            return ageGroup.start <= year && ageGroup.end >= year;
           })
           .sort((a, b) => {
-            if (!a.average || a.average < 0) return 1
-            if (!b.average || b.average < 0) return -1
+            if (!a.average || a.average < 0) return 1;
+            if (!b.average || b.average < 0) return -1;
             if (a.average === b.average) {
               if (!a.best || a.best < 0) {
-                return 1
+                return 1;
               }
               if (!b.best || b.best < 0) {
-                return -1
+                return -1;
               }
 
-              return a.best - b.best
+              return a.best - b.best;
             }
-            return a.average - b.average
-          })
+            return a.average - b.average;
+          });
 
-        map.set(ageGroup.id, filtered)
-      })
+        map.set(ageGroup.id, filtered);
+      });
 
-      return map
+      return map;
     }),
   findByRound: publicProcedure
     .input(
@@ -187,25 +190,25 @@ export const resultsRouter = createTRPCRouter({
         .where(
           and(
             eq(results.roundId, input.roundId),
-            eq(competitors.provinceId, input.provinceId ?? '').if(
+            eq(competitors.provinceId, input.provinceId ?? "").if(
               !!input.provinceId && input.isOther === false,
             ),
-            eq(competitors.districtId, input.districtId ?? '').if(
+            eq(competitors.districtId, input.districtId ?? "").if(
               !!input.districtId && input.isOther === false,
             ),
-            eq(schools.school, input.school ?? '').if(
+            eq(schools.school, input.school ?? "").if(
               !!input.school && input.isOther === false,
             ),
             !!input.provinceId && input.isOther === true
               ? or(
-                  ne(competitors.provinceId, input.provinceId ?? ''),
+                  ne(competitors.provinceId, input.provinceId ?? ""),
                   isNull(competitors.provinceId),
                 )
               : undefined,
-            ne(competitors.districtId, input.districtId ?? '').if(
+            ne(competitors.districtId, input.districtId ?? "").if(
               !!input.districtId && input.isOther === true,
             ),
-            ne(schools.school, input.school ?? '').if(
+            ne(schools.school, input.school ?? "").if(
               !!input.school && input.isOther === true,
             ),
             gte(
@@ -233,7 +236,7 @@ export const resultsRouter = createTRPCRouter({
           results.best,
           competitors.verifiedId,
         )
-        .$dynamic()
+        .$dynamic();
 
       if (input.ageGroupId) {
         query = query.leftJoin(
@@ -243,10 +246,10 @@ export const resultsRouter = createTRPCRouter({
             eq(ageGroups.cubeTypeId, results.cubeTypeId),
             eq(ageGroups.id, input.ageGroupId),
           ),
-        )
+        );
       }
 
-      return await query
+      return await query;
     }),
   create: adminProcedure
     .input(createResultSchema)
@@ -257,7 +260,7 @@ export const resultsRouter = createTRPCRouter({
         input.solve3,
         input.solve4,
         input.solve5,
-      ].map((i) => (typeof i === 'number' ? i : -2))
+      ].map((i) => (typeof i === "number" ? i : -2));
 
       const [round] = await ctx.db
         .select({
@@ -268,10 +271,10 @@ export const resultsRouter = createTRPCRouter({
         })
         .from(rounds)
         .where(eq(rounds.id, input.roundId))
-        .leftJoin(cubeTypes, eq(cubeTypes.id, rounds.cubeTypeId))
+        .leftJoin(cubeTypes, eq(cubeTypes.id, rounds.cubeTypeId));
 
       if (!round) {
-        throw new Error('Раунд олдсонгүй.')
+        throw new Error("Раунд олдсонгүй.");
       }
 
       const [competitor] = await ctx.db
@@ -289,14 +292,14 @@ export const resultsRouter = createTRPCRouter({
             ),
             eq(competitors.competitionId, round.competitionId),
           ),
-        )
+        );
 
       if (!competitor) {
-        throw new Error('Тамирчин олдсонгүй.')
+        throw new Error("Тамирчин олдсонгүй.");
       }
 
-      const best = getBest(solves)
-      const average = getAverage(solves, round.type ?? 'ao5')
+      const best = getBest(solves);
+      const average = getAverage(solves, round.type ?? "ao5");
 
       const [updated] = await ctx.db
         .update(results)
@@ -317,17 +320,17 @@ export const resultsRouter = createTRPCRouter({
             eq(results.cubeTypeId, round.cubeTypeId),
           ),
         )
-        .returning()
+        .returning();
 
       if (!updated) {
         await ctx.db.insert(results).values({
           cubeTypeId: round.cubeTypeId,
           competitionId: round.competitionId,
           competitorId: competitor.id,
-          type: round.type ?? 'ao5',
+          type: round.type ?? "ao5",
           createdUserId: ctx.session.user.id,
           updatedUserId: ctx.session.user.id,
-          group: '1',
+          group: "1",
           solve1: input.solve1,
           solve2: input.solve2,
           solve3: input.solve3,
@@ -336,7 +339,7 @@ export const resultsRouter = createTRPCRouter({
           average,
           best,
           roundId: round.id,
-        })
+        });
       }
     }),
   generate: adminProcedure
@@ -344,10 +347,7 @@ export const resultsRouter = createTRPCRouter({
       /**
        * @input roundId
        */
-      z
-        .number()
-        .int()
-        .positive(),
+      z.number().int().positive(),
     )
     .mutation(async ({ ctx, input }) => {
       const [round] = await ctx.db
@@ -359,10 +359,10 @@ export const resultsRouter = createTRPCRouter({
         })
         .from(rounds)
         .where(eq(rounds.id, input))
-        .leftJoin(cubeTypes, eq(cubeTypes.id, rounds.cubeTypeId))
+        .leftJoin(cubeTypes, eq(cubeTypes.id, rounds.cubeTypeId));
 
       if (!round) {
-        throw new Error('Раунд олдсонгүй.')
+        throw new Error("Раунд олдсонгүй.");
       }
 
       const comps = await ctx.db
@@ -384,15 +384,15 @@ export const resultsRouter = createTRPCRouter({
                   and(
                     eq(competitorsToCubeTypes.competitorId, competitors.id),
                     eq(competitorsToCubeTypes.cubeTypeId, round.cubeTypeId),
-                    eq(competitorsToCubeTypes.status, 'Paid'),
+                    eq(competitorsToCubeTypes.status, "Paid"),
                   ),
                 ),
             ),
           ),
-        )
+        );
 
       if (comps.length === 0) {
-        throw new Error('Тамирчин хоосон байна.')
+        throw new Error("Тамирчин хоосон байна.");
       }
 
       const curr = await ctx.db
@@ -405,10 +405,10 @@ export const resultsRouter = createTRPCRouter({
             eq(results.cubeTypeId, round.cubeTypeId),
             isNotNull(results.best),
           ),
-        )
+        );
 
       if (curr.length > 0) {
-        throw new Error('Үзүүлэлт шивсэн байна устгах боломжгүй .')
+        throw new Error("Үзүүлэлт шивсэн байна устгах боломжгүй .");
       }
 
       await ctx.db
@@ -419,7 +419,7 @@ export const resultsRouter = createTRPCRouter({
             eq(results.competitionId, round.competitionId),
             eq(results.cubeTypeId, round.cubeTypeId),
           ),
-        )
+        );
 
       await ctx.db.insert(results).values(
         comps.map((comp, index): typeof results.$inferInsert => ({
@@ -427,12 +427,12 @@ export const resultsRouter = createTRPCRouter({
           cubeTypeId: round.cubeTypeId,
           competitionId: round.competitionId,
           competitorId: comp.id,
-          type: round.type ?? 'ao5',
+          type: round.type ?? "ao5",
           createdUserId: ctx.session.user.id,
           updatedUserId: ctx.session.user.id,
           group: `${Math.floor(index / round.perGroupCount) + 1}`,
         })),
-      )
+      );
     }),
   createFromWcaLive: adminProcedure
     .input(
@@ -447,10 +447,10 @@ export const resultsRouter = createTRPCRouter({
         with: {
           cubeType: true,
         },
-      })
+      });
 
       if (!round) {
-        throw new Error('Раунд олдсонгүй.')
+        throw new Error("Раунд олдсонгүй.");
       }
 
       const competitors = await ctx.db.query.competitors.findMany({
@@ -458,57 +458,57 @@ export const resultsRouter = createTRPCRouter({
         with: {
           user: true,
         },
-      })
+      });
 
-      const $ = cheerio.load(input.htmlText)
+      const $ = cheerio.load(input.htmlText);
 
       const ins: {
-        rank: string
-        firstname: string
-        lastname: string
-        solve1: string
-        solve2: string
-        solve3: string
-        solve4: string
-        solve5: string
-        average: string
-        best: string
-      }[] = []
+        rank: string;
+        firstname: string;
+        lastname: string;
+        solve1: string;
+        solve2: string;
+        solve3: string;
+        solve4: string;
+        solve5: string;
+        average: string;
+        best: string;
+      }[] = [];
 
-      $('.MuiTableBody-root .MuiTableRow-root').each((_, el) => {
-        const cells = $(el).find('.MuiTableCell-root')
+      $(".MuiTableBody-root .MuiTableRow-root").each((_, el) => {
+        const cells = $(el).find(".MuiTableCell-root");
 
-        const fullName = $(cells[1]).text().trim().split(' ')
-        const firstname = fullName[0] || ''
-        const lastname = fullName[1] || ''
+        const fullName = $(cells[1]).text().trim().split(" ");
+        const firstname = fullName[0] || "";
+        const lastname = fullName[1] || "";
 
         ins.push({
           rank: $(cells[0]).text().trim(),
           firstname,
           lastname,
-          solve1: $(cells[3]).text().replace('PR', '').trim(),
-          solve2: $(cells[4]).text().replace('PR', '').trim(),
-          solve3: $(cells[5]).text().replace('PR', '').trim(),
-          solve4: $(cells[6]).text().replace('PR', '').trim(),
-          solve5: $(cells[7]).text().replace('PR', '').trim(),
-          average: $(cells[8]).text().replace('PR', '').trim(),
-          best: $(cells[9]).text().replace('PR', '').trim(),
-        })
-      })
+          solve1: $(cells[3]).text().replace("PR", "").trim(),
+          solve2: $(cells[4]).text().replace("PR", "").trim(),
+          solve3: $(cells[5]).text().replace("PR", "").trim(),
+          solve4: $(cells[6]).text().replace("PR", "").trim(),
+          solve5: $(cells[7]).text().replace("PR", "").trim(),
+          average: $(cells[8]).text().replace("PR", "").trim(),
+          best: $(cells[9]).text().replace("PR", "").trim(),
+        });
+      });
 
-      const insertValues: (typeof results.$inferInsert)[] = []
-      const notFoundCompetitors: string[] = []
+      const insertValues: (typeof results.$inferInsert)[] = [];
+      const notFoundCompetitors: string[] = [];
 
       for (const result of ins) {
         const competitor = competitors.find(
           (c) =>
             c.user.firstname === result.firstname &&
             c.user.lastname === result.lastname,
-        )
+        );
 
         if (!competitor) {
-          notFoundCompetitors.push(`${result.firstname} ${result.lastname}`)
-          continue
+          notFoundCompetitors.push(`${result.firstname} ${result.lastname}`);
+          continue;
         }
 
         insertValues.push({
@@ -525,22 +525,22 @@ export const resultsRouter = createTRPCRouter({
           competitorId: competitor.id,
           createdUserId: ctx.session.user.id,
           updatedUserId: ctx.session.user.id,
-          group: '1',
+          group: "1",
           roundId: round.id,
-        })
+        });
       }
 
       if (insertValues.length > 0) {
         await ctx.db.transaction(async (db) => {
-          await db.delete(results).where(eq(results.roundId, input.roundId))
-          await db.insert(results).values(insertValues)
-        })
+          await db.delete(results).where(eq(results.roundId, input.roundId));
+          await db.insert(results).values(insertValues);
+        });
       }
 
       return {
         notFoundCompetitors,
         success: insertValues.length,
-      }
+      };
     }),
   generateMedals: adminProcedure
     .input(
@@ -558,38 +558,40 @@ export const resultsRouter = createTRPCRouter({
             },
           },
         },
-      })
+      });
 
       if (!competition) {
-        throw new Error('Тэмцээн олдсонгүй.')
+        throw new Error("Тэмцээн олдсонгүй.");
       }
 
       const allRounds = await ctx.db.query.rounds.findMany({
         where: (table) => and(eq(table.competitionId, competition.id)),
-      })
+      });
       const allAgeGroups = await ctx.db.query.ageGroups.findMany({
         where: (table) => eq(table.competitionId, input.competitionId),
-      })
+      });
 
-      const insertMedals: (typeof medals.$inferInsert)[] = []
-      const insertAgegroupMedals: (typeof ageGroupMedals.$inferInsert)[] = []
-      const finalCompetitorIds = new Set<number>()
+      const insertMedals: (typeof medals.$inferInsert)[] = [];
+      const insertAgegroupMedals: (typeof ageGroupMedals.$inferInsert)[] = [];
+      const finalCompetitorIds = new Set<number>();
 
       // Helper to get final round for a cube type
       const getFinalRound = (cubeTypeId: number) =>
-        allRounds.find((r) => r.isFinal === true && r.cubeTypeId === cubeTypeId)
+        allRounds.find(
+          (r) => r.isFinal === true && r.cubeTypeId === cubeTypeId,
+        );
 
       // Helper to get age group round for a cube type
       const getAgeGroupRound = (cubeTypeId: number) =>
-        allRounds.find((r) => r.isAgeGroup && r.cubeTypeId === cubeTypeId)
+        allRounds.find((r) => r.isAgeGroup && r.cubeTypeId === cubeTypeId);
 
       // Final medals
       for (const cubeType of competition.competitionsToCubeTypes) {
-        const finalRound = getFinalRound(cubeType.cubeTypeId)
+        const finalRound = getFinalRound(cubeType.cubeTypeId);
         if (!finalRound) {
           throw new Error(
             `${cubeType.cubeType.name} төрөл дээр финал раунд олдсонгүй.`,
-          )
+          );
         }
 
         const finalResults = await ctx.db.query.results.findMany({
@@ -608,7 +610,7 @@ export const resultsRouter = createTRPCRouter({
               },
             },
           },
-        })
+        });
 
         insertMedals.push(
           ...finalResults.map((r, i): typeof medals.$inferInsert => ({
@@ -616,28 +618,28 @@ export const resultsRouter = createTRPCRouter({
             competitionId: r.competitionId,
             cubeTypeId: r.cubeTypeId,
             roundId: r.roundId,
-            group: '',
+            group: "",
             medal: i + 1,
             resultId: r.id,
           })),
-        )
-        finalResults.forEach((r) => finalCompetitorIds.add(r.competitorId))
+        );
+        finalResults.forEach((r) => finalCompetitorIds.add(r.competitorId));
       }
 
       // AgeGroup medals
       for (const cubeType of competition.competitionsToCubeTypes.filter((ct) =>
         [2, 6, 9, 13, 14].includes(ct.cubeTypeId),
       )) {
-        const ageGroupRound = getAgeGroupRound(cubeType.cubeTypeId)
+        const ageGroupRound = getAgeGroupRound(cubeType.cubeTypeId);
         if (!ageGroupRound) {
           throw new Error(
             `${cubeType.cubeType.name} төрөл дээр насны ангилал раунд олдсонгүй.`,
-          )
+          );
         }
 
         const currentAgeGroups = allAgeGroups.filter(
           (i) => i.cubeTypeId === cubeType.cubeTypeId,
-        )
+        );
 
         for (const ageGroup of currentAgeGroups) {
           const currentAgeGroupCompetitors = await ctx.db
@@ -658,7 +660,7 @@ export const resultsRouter = createTRPCRouter({
                   ageGroup.end ?? 0,
                 ).if(ageGroup.id),
               ),
-            )
+            );
 
           const ageGroupResults = await ctx.db.query.results.findMany({
             where: (table) =>
@@ -681,7 +683,7 @@ export const resultsRouter = createTRPCRouter({
                 },
               },
             },
-          })
+          });
 
           insertAgegroupMedals.push(
             ...ageGroupResults.map(
@@ -690,13 +692,13 @@ export const resultsRouter = createTRPCRouter({
                 competitionId: r.competitionId,
                 cubeTypeId: r.cubeTypeId,
                 roundId: r.roundId,
-                group: '',
+                group: "",
                 medal: i + 1,
                 ageGroupId: ageGroup.id,
                 resultId: r.id,
               }),
             ),
-          )
+          );
         }
       }
 
@@ -705,16 +707,16 @@ export const resultsRouter = createTRPCRouter({
         if (insertMedals.length > 0) {
           await db
             .delete(medals)
-            .where(eq(medals.competitionId, input.competitionId))
-          await db.insert(medals).values(insertMedals)
+            .where(eq(medals.competitionId, input.competitionId));
+          await db.insert(medals).values(insertMedals);
         }
         if (insertAgegroupMedals.length > 0) {
           await db
             .delete(ageGroupMedals)
-            .where(eq(ageGroupMedals.competitionId, input.competitionId))
-          await db.insert(ageGroupMedals).values(insertAgegroupMedals)
+            .where(eq(ageGroupMedals.competitionId, input.competitionId));
+          await db.insert(ageGroupMedals).values(insertAgegroupMedals);
         }
-      })
+      });
     }),
   getMedals: publicProcedure
     .input(
@@ -766,9 +768,9 @@ export const resultsRouter = createTRPCRouter({
             eq(medals.cubeTypeId, input.cubeTypeId ?? 0).if(!!input.cubeTypeId),
           ),
         )
-        .orderBy(medals.cubeTypeId, medals.medal)
+        .orderBy(medals.cubeTypeId, medals.medal);
 
-      const finalMedals = await finalMedalsQuery
+      const finalMedals = await finalMedalsQuery;
 
       // Get age group medals
       const ageGroupMedalsQuery = ctx.db
@@ -827,14 +829,14 @@ export const resultsRouter = createTRPCRouter({
           ageGroupMedals.cubeTypeId,
           ageGroupMedals.ageGroupId,
           ageGroupMedals.medal,
-        )
+        );
 
-      const ageGroupMedalsData = await ageGroupMedalsQuery
+      const ageGroupMedalsData = await ageGroupMedalsQuery;
 
       // Get user info for medals
-      const userIds = new Set<string>()
-      finalMedals.forEach((m) => userIds.add(m.userId))
-      ageGroupMedalsData.forEach((m) => userIds.add(m.userId))
+      const userIds = new Set<string>();
+      finalMedals.forEach((m) => userIds.add(m.userId));
+      ageGroupMedalsData.forEach((m) => userIds.add(m.userId));
 
       const usersData = await ctx.db.query.users.findMany({
         where: (table) => inArray(table.id, Array.from(userIds)),
@@ -843,23 +845,23 @@ export const resultsRouter = createTRPCRouter({
           firstname: true,
           lastname: true,
         },
-      })
+      });
 
-      const usersMap = new Map(usersData.map((u) => [u.id, u]))
+      const usersMap = new Map(usersData.map((u) => [u.id, u]));
 
       const finalMedalsWithUsers = finalMedals.map((m) => ({
         ...m,
         user: usersMap.get(m.userId),
-      }))
+      }));
 
       const ageGroupMedalsWithUsers = ageGroupMedalsData.map((m) => ({
         ...m,
         user: usersMap.get(m.userId),
-      }))
+      }));
 
       return {
         finalMedals: finalMedalsWithUsers,
         ageGroupMedals: ageGroupMedalsWithUsers,
-      }
+      };
     }),
-})
+});
